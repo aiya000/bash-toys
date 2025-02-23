@@ -1,8 +1,12 @@
 #!/bin/bash
 
-#
 # An alternative of `rm`, but move to dustbox instead.
 #
+# Example:
+#
+# $ touch example-file
+# $ dust example-file
+# mv example-file /home/aiya000/.backup/dustbox/example-file_2025-02-24_07:28:40  # The result is shown
 
 dir=$(dirname "$0")
 
