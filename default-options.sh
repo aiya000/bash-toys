@@ -6,7 +6,7 @@
 
 [[ -n $BASH_TOYS_LOADED_DEFAULT_OPTIONS ]] && return
 
-dir=$(dirname "${BASH_SOURCE[0]}")
+dir=$(dirname "$0")
 source "$dir/functions/define-alt-export.sh"
 
 define-alt-export BASH_TOYS_INTERACTIVE_FILTER peco # or fzf
