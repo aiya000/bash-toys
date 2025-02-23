@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Executes ./configure of Vim source for testing Vim
+#
+# Example:
+#
+# $ git clone https://github.com/vim/vim
+# $ cd vim
+# $ vim-configure-debug
+
+configure=$(cat << EOS
+./configure \
+    --prefix=/usr/local/ \
+    --enable-fail-if-missing \
+    --enable-gui=no \
+    --enable-multibyte=yes \
+    --enable-perlinterp=no \
+    --enable-pythoninterp=no \
+    --enable-python3interp=no \
+    --enable-rubyinterp=no \
+    --enable-luainterp=no \
+    --with-lua-prefix=/usr \
+    --with-luajit \
+    --enable-cscope=yes \
+    --with-features=huge \
+    --with-compiledby=$USER \
+    --enable-terminal
+EOS
+)
+
+if [[ -f ./configure ]] ; then
+  echo "$configure"
+  eval "$configure"
+else
+  echo './configure cannot be found'
+fi

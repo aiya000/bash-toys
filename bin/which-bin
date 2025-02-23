@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# A shorthand to `cat $(which cmd)`.
+# This uses bat (batcat) if available automatically.
+#
+# - bat: https://github.com/sharkdp/bat
+
+dir=$(dirname "$0")
+
+# shellcheck disable=SC1091
+source "$dir/../default-options.sh"
+
+if command -v batcat > /dev/null 2>&1 || command -v bat > /dev/null 2>&1 ; then
+  cat="batcat $BASH_TOYS_BATCAT_OPTIONS"
+else
+  cat='cat'
+fi
+
+$cat "$(which "$1")"

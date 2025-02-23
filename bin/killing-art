@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#
+# Displays a list of processes with `BASH_TOYS_INTERACTIVE_FILTER` and kill the selected process
+#
+# Example
+#
+# $ killing-art
+
+dir=$(dirname "$0")
+
+# shellcheck disable=SC1091
+source "$dir/../default-options.sh"
+
+
+if [[ -n $1 ]] ; then
+  signal=$1
+else
+  signal=-9
+fi
+
+if [[ $(uname) == 'Darwin' ]] ; then
+  target_pids=$(ps -axO 'pid,tty,command' | awk 'NR!=1 {print}' | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')
+else
+  target_pids=$(ps -ax --format='pid,tty,command' | awk 'NR!=1 {print}' | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')
+fi
+
+if [[ -n $target_pids ]] ; then
+  echo 'Failed'
+  exit 1
+else
+  kill "$signal" "$target_pids" && echo 'Succeed' || exit 1
+fi

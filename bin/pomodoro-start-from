@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Like ./pomodoro-start.sh but starting count $2 from $1.
+#
+# Example:
+#
+# pomodoro-start-from 17:00 60
+
+dir=$(dirname "$0")
+
+from=$1
+to=$(date +'%H:%M')  # Now
+count=$2
+consumed=$("$dir/date-diff-seconds" "$from" "$to")
+
+"$dir/pomodoro-start.sh" $((count - consumed))

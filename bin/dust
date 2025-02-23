@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#
+# An alternative of `rm`, but move to dustbox instead.
+#
+
+dir=$(dirname "$0")
+
+# shellcheck disable=SC1091
+source "$dir/../default-options.sh"
+
+if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
+  mkdir -p "$BASH_TOYS_DUSTBOX_DIR"
+fi
+
+for file in "$@" ; do
+  maybeExt=${file##*.}
+  ext=$([[ "$file" != "$maybeExt" ]] && echo ".$maybeExt" || echo '')
+
+  new_name=$(echo "${file}_$(date +'%Y-%m-%d')_$(date +'%H:%M:%S')$ext" | sed 's;/;+;g')
+
+  echo mv "$file" "$BASH_TOYS_DUSTBOX_DIR/$new_name"
+  mv "$file" "$BASH_TOYS_DUSTBOX_DIR/$new_name"
+done
