@@ -4,24 +4,23 @@ Welcome to **bash-toys**!
 
 ## Overview
 
-bash-toys is "Tiny Tools that Reach the Finer Details".
-A collection of shell script and aliases for bash/zsh.
+**bash-toys** is "Tiny Tools that Reach the Finer Details". It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
 
 ## Scripts
 
-- `dust`: An alternative of `rm`, but move to dustbox instead. Like [gomi](https://github.com/babarot/gomi), but no dependencies (no golang requirement)
-- `which-bin`: A shorthand to `cat $(which cmd)`. This uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available automatically
-- `pomodoro-start`: A basic CLI pomodoro timer implementation in shell script
-- `vim-configure`: Executes ./configure of Vim source with modern flags. This requires some packages. Please also see https://vim-jp.org/docs/build_linux.html
-- `vim-configure-debug`: Executes ./configure of Vim source for testing Vim. This requires some packages. Please also see https://vim-jp.org/docs/build_linux.html
+- `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
+- `which-bin`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
+- `pomodoro-start`: A basic CLI Pomodoro timer implementation in shell script.
+- `vim-configure`: Executes `./configure` for Vim source with modern flags. Requires some packages. See https://vim-jp.org/docs/build_linux.html for details.
+- `vim-configure-debug`: Executes `./configure` for Vim source for testing purposes. Requires some packages. See https://vim-jp.org/docs/build_linux.html for details.
 
 ## Getting Started
 
-1. To get started with bash-toys, simply clone the repository and start exploring the scripts:
+1. Clone the repository and start exploring the scripts:
 
 ```shell-session
 $ git clone https://github.com/aiya000/bash-toys.git path/to/bash-toys
-$ cp path-to/bash-toys/default-options.sh ~/my-bash-toys-options.sh
+$ cp path/to/bash-toys/default-options.sh ~/my-bash-toys-options.sh
 $ vim ~/my-bash-toys-options.sh  # Configure your options
 ```
 
@@ -36,13 +35,14 @@ export BASH_TOYS_BATCAT_OPTIONS=''
 
 </details>
 
-2. Add bin to `$PATH`
+2. Add the `bin` directory to your `$PATH`:
 
 ```shell-session
-$ echo 'export $PATH=$PATH:path/to/bash-toys'
+$ echo 'export PATH=$PATH:path/to/bash-toys/bin' >> ~/.bashrc
+$ source ~/.bashrc
 ```
 
-3. `source` functions in your shell
+3. Source the functions in your shell:
 
 ```bash
 $ vim ~/.bashrc  # or your .zshrc
@@ -52,31 +52,30 @@ for script in path/to/bash-toys/functions/*.sh ; do
 done
 ```
 
-'functions' should be executed on parent shell and cannot execute in sub shell, because functions effects parent shell's state.
+Note: Functions should be sourced in the parent shell and cannot execute in a subshell, as they affect the parent shell's state.
 
 ## All Options
 
-Please see ./default-options.sh and configure yourself if needed.
+Please see `./default-options.sh` and configure your options as needed.
 
 ## Optional Dependencies
 
 ### If macOS
 
-- mpg123: for `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is default value)
+- `mpg123`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value).
 
 ### If Linux (Non WSL)
 
-- vlc: for `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is default value)
+- `vlc`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value).
 
 ## Contributing
 
-PR is welcome!
-Please follow below instruction.
+We welcome contributions! Please follow these steps:
 
-1. Create an issue for the feature you want to add
-1. Create PR when maintainers when maintainers OKs the feature
-    - unless it's a really bad feature request, they probably won't NG it :dog2:
-1. Open a pull request!
+1. Create an issue for the feature you want to add.
+2. Wait for maintainers to approve the feature.
+   - Unless it's a really bad idea, they probably won't say no :dog2:
+3. Open a pull request!
 
 ## License
 
