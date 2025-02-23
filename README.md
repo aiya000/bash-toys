@@ -2,17 +2,34 @@
 
 Welcome to **bash-toys**!
 
+![](./readme/which-bin-dust.png)
+
 ## Overview
 
 **bash-toys** is "Tiny Tools that Reach the Finer Details". It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
+
+**Nothing complicated.**
 
 ## Scripts
 
 - `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
 - `which-bin`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
+- `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in background without outputs. This is often useful to run GUI applications from CLI
 - `pomodoro-start`: A basic CLI Pomodoro timer implementation in shell script.
 - `vim-configure`: Executes `./configure` for Vim source with modern flags. Requires some packages. See https://vim-jp.org/docs/build_linux.html for details.
 - `vim-configure-debug`: Executes `./configure` for Vim source for testing purposes. Requires some packages. See https://vim-jp.org/docs/build_linux.html for details.
+
+For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./functions](https://github.com/aiya000/bash-toys/tree/main/functions).
+
+## Show help for commands
+
+Just we can use `which-bin`!
+
+For example:
+- bin: `$ which-bin {cmd-name}`, e.g. `$ which-bin dust`
+- functions (Please don't forget `.sh`): `$ which-bin {source-name}.sh`, e.g. `$ which-bin cd-to-git-root.sh`
+
+![](./readme/which-bin-dust.png)
 
 ## Getting Started
 
