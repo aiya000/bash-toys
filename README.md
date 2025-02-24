@@ -34,11 +34,8 @@ Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 - `define-alt-export`: Similar to `define-alt`, but this defines environment variables.
 - `force-unexport`: Unexports an environment variable.
 - `cd-finddir`: Shows all directories up to 6 levels deep (if `fd` is available, or 3 levels for `find`), and `cd` to a directory you select.
-- `cd-to-git-root`: `cd` to the git root directory (With `wslpath` support. This is often useful if you are in a git directory on the Windows filesystem).
-- `cd-to-node-root`: Similar to `cd-to-git-root`, but tries to find `package.json`. This is often useful for bun/npm workspaces.
 - `contains_value`: A simple utility that checks if an array contains a value.
 - `alias_of`: Creates an alias and overwrites a taken name if you have a specified command (e.g., `alias_of mysql 'mysql --pager="less -r -S -n -i -F -X"'` defines a mysql alias only if you have the mysql command).
-- `source_if_exists`: `source` a script if it exists.
 
 For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./functions](https://github.com/aiya000/bash-toys/tree/main/functions).
 
