@@ -20,6 +20,7 @@ Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 
 - `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
 - `pomodoro-timer`: A simplest **Pomodoro Timer** implementation in shell script
+    - Please also see `pomodoro-timer-start-from`
 - `clamdscan-full`: Performs a full virus scan ussing ClamAV. Also scan only specified directories
 - `which-bin`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
 - `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in the background without output. This is often useful for running GUI applications from the CLI.

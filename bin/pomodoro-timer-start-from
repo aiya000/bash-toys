@@ -4,7 +4,7 @@
 #
 # Example:
 #
-# pomodoro-start-from 17:00 60
+# pomodoro-timer-start-from 17:00 60
 
 dir=$(dirname "$0")
 
@@ -13,4 +13,4 @@ to=$(date +'%H:%M')  # Now
 count=$2
 consumed=$("$dir/date-diff-seconds" "$from" "$to")
 
-"$dir/pomodoro-start.sh" $((count - consumed))
+"$dir/pomodoro-timer" $((count - consumed))
