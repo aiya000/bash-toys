@@ -2,8 +2,8 @@
 
 # A basic CLI pomodoro timer implementation in shell script.
 #
-# Example
-#
+# Example:
+# ```bash
 # # Notify end of pomodoro with sound after 30 mins.
 # # The sound is $BASH_TOYS_POMODORO_NOTIFICATION_MUSIC.
 # $ pomodoro-timer
@@ -19,8 +19,28 @@
 #
 # # Clean pomodoro count
 # $ pomodoro-timer --clean
+#
+# # Set current pomodoro count
+# $ pomodoro-timer --set-count 3
+# $ ls /tmp/pomodoro-3
+# /tmp/pomodoro-3
+#
+# # Get current pomodoro count
+# $ pomodoro-timer --get-count
+# ```
 
-is_rest_time=false
+if [[ $1 == --set-count ]] ; then
+  if [[ $2 == '' ]] ; then
+    echo '--set-count requires minutes as a second argument' > /dev/stderr
+    exit 1
+  fi
+
+  this_script=$0
+  $this_script --clean > /dev/null
+  touch "/tmp/pomodoro-$2"
+  echo "The current pomodoro count is $2"
+  exit
+fi
 
 function read_count_file () {
   local result
@@ -32,8 +52,12 @@ function read_count_file () {
     echo "$result" | sed 's;^/tmp/pomodoro-;;'
   fi
 }
-
 current_count=$(( $(read_count_file) + 1 )) # +1 converts count to human readable count
+
+if [[ $1 == --get-count ]] ; then
+  echo "$current_count"
+  exit
+fi
 
 if [[ $1 == --clean ]] ; then
   if [[ $current_count -eq 1 ]] ; then
@@ -46,6 +70,8 @@ if [[ $1 == --clean ]] ; then
   exit
 fi
 
+is_rest_time=false
+interval=30
 if [[ $1 == --rest ]] ; then
   is_rest_time=true
   if [[ -n $2 ]] ; then
@@ -55,8 +81,6 @@ if [[ $1 == --rest ]] ; then
   fi
 elif [[ -n $1 ]] ; then
   interval=$1
-else
-  interval=30
 fi
 
 function increase_count_file () {
@@ -78,7 +102,7 @@ for (( minutes = 0; minutes < "$interval"; minutes++ )) ; do
   sleep 1m
 done
 
-date
+echo "> $(date)"
 
 if [[ $is_rest_time == true ]] ; then
   echo $'> Now it\'s time to get to work'
