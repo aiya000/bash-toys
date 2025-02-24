@@ -18,9 +18,10 @@ if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
 fi
 
 for file in "$@" ; do
-  maybeExt=${file##*.}
-  ext=$([[ "$file" != "$maybeExt" ]] && echo ".$maybeExt" || echo '')
-
+  maybe_ext=${file##*.}
+  if [[ $file != "$maybe_ext" ]] ; then
+    ext=".$maybe_ext"
+  fi
   new_name=$(echo "${file}_$(date +'%Y-%m-%d')_$(date +'%H:%M:%S')$ext" | sed 's;/;+;g')
 
   echo mv "$file" "$BASH_TOYS_DUSTBOX_DIR/$new_name"
