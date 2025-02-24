@@ -8,11 +8,11 @@ Welcome to **bash-toys**!
 
 **bash-toys** is "Tiny Tools that Reach the Finer Details." It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
 
-**No Dependencies.**
-
 **Nothing complicated.**
 
 ## Scripts
+
+Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 
 ### Bin
 
@@ -132,12 +132,6 @@ source path/to/bash-toys/functions/contains_value.sh
 Please see `./default-options.sh` and configure your options as needed.
 
 ## Optional Dependencies
-
-### If macOS
-
-- `mpg123`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value).
-
-### If Linux (Non WSL)
 
 - `vlc`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value).
 

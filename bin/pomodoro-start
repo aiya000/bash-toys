@@ -14,7 +14,7 @@
 is_rest_time=false
 interval=30
 
-if [[ $1 = --rest ]] ; then
+if [[ $1 == --rest ]] ; then
   is_rest_time=true
   interval=5
 elif [[ -n $1 ]] ; then
@@ -38,19 +38,9 @@ function increase_count () {
   touch "/tmp/pomodoro-$((count + 1))"
 }
 
-function get_notification_sound () {
-  if [[ -f $DOTFILES_SH_POMODORO_NOTIFY_SOUND ]] ; then
-    echo "$DOTFILES_SH_POMODORO_NOTIFY_SOUND"
-  elif command -v wsl.exe > /dev/null ; then
-    wslpath -m ~/Windows/Music/notify.mp3
-  else
-    echo ~/.dotfiles/Music/notify.mp3
-  fi
-}
-
 count=$(( $(read_count) + 1 )) # `+ 1` to count by 1 based
 
-if [[ $is_rest_time = true ]] ; then
+if [[ $is_rest_time == true ]] ; then
   echo $'It\'s time to rest. Good job!'
 else
   echo "Let's start $count-th working"
@@ -63,11 +53,11 @@ done
 
 date
 
-if [[ $is_rest_time = true ]] ; then
+if [[ $is_rest_time == true ]] ; then
   echo $'Let\'s do work :D'
 else
   echo "$count-th working time finished!"
   increase_count
 fi
 
-$BASH_TOYS_MUSIC_PLAYER "$BASH_TOYS_POMODORO_NOTIFICATION_MUSIC" &
+$BASH_TOYS_MUSIC_PLAYER "$BASH_TOYS_POMODORO_NOTIFICATION_MUSIC" 2> /dev/null &
