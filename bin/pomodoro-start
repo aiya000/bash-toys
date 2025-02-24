@@ -4,60 +4,87 @@
 #
 # Example
 #
-# # Notify end of pomodoro with sound after 60 mins.
+# # Notify end of pomodoro with sound after 30 mins.
 # # The sound is $BASH_TOYS_POMODORO_NOTIFICATION_MUSIC.
+# $ pomodoro-start
+#
+# # You can specify pomodoro time count. e.g., below specifies 60 mins.
 # $ pomodoro-start 60
 #
 # # Notify end of pomodoro rest time silently after 5 mins.
 # $ pomodoro-start --rest
+#
+# # Same as above, you can specify podoro rest time count.
+# $ pomodoro-start --rest 10
+#
+# # Clean pomodoro count
+# $ pomodoro-start --clean
 
 is_rest_time=false
-interval=30
+
+function read_count_file () {
+  local result
+  result=$(eval 'ls /tmp/pomodoro-*' 2> /dev/null)
+  if [[ $result == '' ]] ; then
+    echo 0
+  else
+    # shellcheck disable=SC2001
+    echo "$result" | sed 's;^/tmp/pomodoro-;;'
+  fi
+}
+
+current_count=$(( $(read_count_file) + 1 )) # +1 converts count to human readable count
+
+if [[ $1 == --clean ]] ; then
+  if [[ $current_count -eq 1 ]] ; then
+    echo 'Pomodoro count has not started yet. (Nothing to do)'
+    exit 1
+  fi
+
+  eval 'rm /tmp/pomodoro-*' 2> /dev/null
+  echo "Removed: /tmp/pomodoro-$current_count"
+  exit
+fi
 
 if [[ $1 == --rest ]] ; then
   is_rest_time=true
-  interval=5
+  if [[ -n $2 ]] ; then
+    interval=$2
+  else
+    interval=5
+  fi
 elif [[ -n $1 ]] ; then
   interval=$1
+else
+  interval=30
 fi
 
-function read_count () {
-  ( \
-    find /tmp/ 2> /dev/null \
-    | grep -Eo '/tmp/pomodoro-([0-9]+)' \
-    || echo '/tmp/pomodoro-0' \
-  ) \
-  | sed -r 's;/tmp/pomodoro-([0-9]+);\1;'
-}
-
-function increase_count () {
+function increase_count_file () {
   local count
-  count=$(read_count)
+  count=$(read_count_file)
 
   rm "/tmp/pomodoro-$count" 2> /dev/null
   touch "/tmp/pomodoro-$((count + 1))"
 }
 
-count=$(( $(read_count) + 1 )) # `+ 1` to count by 1 based
-
 if [[ $is_rest_time == true ]] ; then
-  echo $'It\'s time to rest. Good job!'
+  echo '> Starting break time'
 else
-  echo "Let's start $count-th working"
+  echo "> Starting $current_count-th work time"
 fi
 
 for (( minutes = 0; minutes < "$interval"; minutes++ )) ; do
-  echo "$((minutes + 1)) minutes / $interval"
+  echo "> $((minutes + 1)) minutes / $interval"
   sleep 1m
 done
 
 date
 
 if [[ $is_rest_time == true ]] ; then
-  echo $'Let\'s do work :D'
+  echo $'> Now it\'s time to get to work'
 else
-  echo "$count-th working time finished!"
-  increase_count
+  echo "> The $current_count-th work hour is over"
+  increase_count_file
 fi
 
 $BASH_TOYS_MUSIC_PLAYER "$BASH_TOYS_POMODORO_NOTIFICATION_MUSIC" 2> /dev/null &
