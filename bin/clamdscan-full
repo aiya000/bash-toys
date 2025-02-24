@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [[ $# -eq 0 ]] ; then
+  target_paths=(/)
+else
+  target_paths=("$*")
+fi
+
+if command -v fdfind > /dev/null 2>&1 ; then
+  find_target_paths="fdfind . ${target_paths[*]} --min-depth 1 --exclude \"/{proc,sys,run,dev,snap,mnt}\" --type d"
+elif  command -v fd > /dev/null 2>&1 ; then
+  find_target_paths="fd . ${target_paths[*]} --min-depth 1 --exclude \"/{proc,sys,run,dev,snap,mnt}\" --type d"
+else
+  find_target_paths="find ${target_paths[*]} -mindepth 1 -not -path \"/proc\" -not -path \"/sys\" -not -path \"/run\" -not -path \"/dev\" -not -path \"/snap\" -not -path \"/mnt\" -type d"
+fi
+
+logfile="/tmp/clamdscan_$(date '+%Y-%m-%d-%H-%M').log"
+count=0
+
+function show_progress () {
+  echo -ne "\r"
+  echo -n "$(echo "scale=5; ($count / $total) * 100" | bc)"
+}
+
+IFS=$'\n'
+touch "$logfile"
+
+total=$(eval "$find_target_paths" | wc -l)
+
+for dir in $(eval "$find_target_paths" 2>/dev/null) ; do
+  count=$((count + 1))
+  show_progress
+  echo "$dir" >> "$logfile"
+
+  for file in $(fdfind --full-path "$dir" --min-depth 1 --max-depth 1 --type f 2>/dev/null) ; do
+    clamdscan --fdpass --quiet "$file"
+  done
+done
+
+echo

@@ -19,9 +19,10 @@ Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 'bin' contains utility scripts that can run as child processes (in a subshell).
 
 - `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
+- `pomodoro-start`: A basic CLI **Pomodoro Timer** implementation in shell script.
+- `clamdscan-full`: Performs a full virus scan ussing ClamAV. Also scan only specified directories
 - `which-bin`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
 - `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in the background without output. This is often useful for running GUI applications from the CLI.
-- `pomodoro-start`: A basic CLI **Pomodoro Timer** implementation in shell script.
 - `git-root`: Shows the git root directory of the current directory. This is a shorthand for `git rev-parse --show-toplevel 2> /dev/null || return 1`.
 - `vim-configure`: Executes `./configure` for Vim source with modern flags. Requires some packages. See [here](https://vim-jp.org/docs/build_linux.html) for details.
 - `vim-configure-debug`: Executes `./configure` for Vim source for testing purposes. Requires some packages. See [here](https://vim-jp.org/docs/build_linux.html) for details.
