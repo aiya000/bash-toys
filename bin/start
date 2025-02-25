@@ -1,6 +1,22 @@
 #!/bin/bash
-# Starts a command in background without outputs
+
+# Starts a command in the background with no CLI outputs
 #
+# Example:
+# ```shell-session
+# # Using 'start'
+# $ start vlc
+# (with no outputs)
+# $ ls  # You can stay in the shell
+# ...
+#
+# For comparison, an example fo the normal case
+# $ vlc
+# VLC media player 3.0.16 Vetinari (revision 3.0.13-8-g41878ff4f2)
+# ...
+# ('Ctrl + c' required to return the shell)
+# ```
+
 ("$@" &) &> /dev/null
 
 # The MIT License (MIT)
