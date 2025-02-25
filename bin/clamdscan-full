@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Performs a full virus scan using ClamAV.
+# Or scans only specified directories.
+#
+# Example:
+# ```shell-session
+# # Scan all common directories
+# $ clamdscan-full
+#
+# # Scan specified directories
+# $ clamdscan-full /home /etc
+# ```
+
 if [[ $# -eq 0 ]] ; then
   target_paths=(/)
 else
