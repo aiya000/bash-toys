@@ -57,7 +57,7 @@ and etc.
 - `force-unexport`: Unexports an environment variable.
 - `cd-finddir`: Shows all directories up to 6 levels deep (if `fd` is available, or 3 levels for `find`), and `cd` to a directory you select.
 - `contains_value`: A simple utility that checks if an array contains a value.
-- `alias_of`: Creates an alias and overwrites a taken name if you have a specified command (e.g., `alias_of mysql 'mysql --pager="less -r -S -n -i -F -X"'` defines a mysql alias only if you have the command).
+- `alias_of`: Creates an alias and overwrites a taken name if you have a specified command (e.g., `alias_of rg 'rg --color always --hidden'` defines a ripgrep alias only if you have the command).
 
 and etc.
 
