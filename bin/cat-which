@@ -1,9 +1,19 @@
 #!/bin/bash
 
 # A shorthand to `cat $(which cmd)`.
-# This uses bat (batcat) if available automatically.
+# (Also, not plain text executables are skipped.)
 #
+# This uses bat (batcat) instead of cat if available automatically.
 # - bat: https://github.com/sharkdp/bat
+#
+# Example:
+# ```shell-session
+# $ cat-which dust  # If a plain text script specified
+# (The contents of dust will be displayed)
+#
+# $ cat-which zsh  # If a binary specified
+# Not a plain text: /bin/zsh
+# ```
 
 dir=$(dirname "$0")
 
@@ -16,7 +26,14 @@ else
   cat='cat'
 fi
 
-$cat "$(which "$1")"
+cmd_path=$(which "$1")
+
+if [[ $(file "$cmd_path") =~ text ]] ; then
+  $cat "$cmd_path"
+else
+  echo "Not a plain text: $cmd_path" > /dev/stderr
+  exit 1
+fi
 
 # The MIT License (MIT)
 #
