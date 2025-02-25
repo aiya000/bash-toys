@@ -3,7 +3,7 @@
 function load-my-env () {
   local target_name="$1"
 
-  case "$target_name" in
+  case $target_name in
     # Also please update /.zsh/complete/_load-my-env when update here.
     help)
       echo 'Available:'
