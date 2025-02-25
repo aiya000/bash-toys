@@ -1,8 +1,28 @@
 # :dog2: bash-toys :dog2:
 
+![Build Status](https://img.shields.io/github/actions/workflow/status/aiya000/bash-toys/ci.yml)
+![License](https://img.shields.io/github/license/aiya000/bash-toys)
+![Release](https://img.shields.io/github/v/release/aiya000/bash-toys)
+![Dependencies](https://img.shields.io/librariesio/github/aiya000/bash-toys)
+
 Welcome to **bash-toys**!
 
 ![](./readme/which-bin-dust.png)
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Scripts](#scripts)
+  - [Bin](#bin)
+  - [Functions](#functions)
+- [Show help for commands](#show-help-for-commands)
+- [Getting Started](#getting-started)
+  - [Simple](#simple)
+  - [Custom](#custom)
+- [All Options](#all-options)
+- [Optional Dependencies](#optional-dependencies)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Overview
 
@@ -14,19 +34,23 @@ Welcome to **bash-toys**!
 
 Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 
+For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./functions](https://github.com/aiya000/bash-toys/tree/main/functions).
+
 ### Bin
 
 'bin' contains utility scripts that can run as child processes (in a subshell).
 
 - `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
 - `pomodoro-timer`: A simplest **Pomodoro Timer** implementation in shell script
-    - Please also see `pomodoro-timer-start-from`
-- `clamdscan-full`: Performs a full virus scan ussing ClamAV. Also scan only specified directories
+  - Please also see `pomodoro-timer-start-from`
+- `clamdscan-full`: Performs a full virus scan using ClamAV. Also scans only specified directories.
 - `which-bin`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
 - `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in the background without output. This is often useful for running GUI applications from the CLI.
 - `git-root`: Shows the git root directory of the current directory. This is a shorthand for `git rev-parse --show-toplevel 2> /dev/null || return 1`.
 - `vim-configure`: Executes `./configure` for Vim source with modern flags. Requires some packages. See [here](https://vim-jp.org/docs/build_linux.html) for details.
 - `vim-configure-debug`: Executes `./configure` for Vim source for testing purposes. Requires some packages. See [here](https://vim-jp.org/docs/build_linux.html) for details.
+
+and etc.
 
 ### Functions
 
@@ -37,19 +61,25 @@ Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 - `force-unexport`: Unexports an environment variable.
 - `cd-finddir`: Shows all directories up to 6 levels deep (if `fd` is available, or 3 levels for `find`), and `cd` to a directory you select.
 - `contains_value`: A simple utility that checks if an array contains a value.
-- `alias_of`: Creates an alias and overwrites a taken name if you have a specified command (e.g., `alias_of mysql 'mysql --pager="less -r -S -n -i -F -X"'` defines a mysql alias only if you have the mysql command).
+- `alias_of`: Creates an alias and overwrites a taken name if you have a specified command (e.g., `alias_of mysql 'mysql --pager="less -r -S -n -i -F -X"'` defines a mysql alias only if you have the command).
 
-For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./functions](https://github.com/aiya000/bash-toys/tree/main/functions).
+and etc.
 
 ## Show help for commands
 
-Just use `which-bin`!
+Just we can use `which-bin`!
 
-For example:
-- bin: `$ which-bin {cmd-name}`, e.g., `$ which-bin dust`
-- functions (Please don't forget `.sh`): `$ which-bin {source-name}.sh`, e.g., `$ which-bin cd-to-git-root.sh`
+```shell-session
+# `which-bin {cmd-name}` for ./bin/*
+# For example:
+$ which-bin dust
+```
 
-![](./readme/which-bin-dust.png)
+```shell-session
+# `which-bin {source-name}.sh` for ./functions/*
+# **Please don't forget `.sh`**
+$ which-bin cd-to-git-root.sh
+```
 
 ## Getting Started
 
@@ -147,6 +177,6 @@ We welcome contributions! Please follow these steps:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- - -
+---
 
 Happy scripting! :dog2:
