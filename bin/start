@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 # Starts a command in background without outputs
-"$@" > /dev/null 2>&1 &
+#
+("$@" &) &> /dev/null
 
 # The MIT License (MIT)
 #
