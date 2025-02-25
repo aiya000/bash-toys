@@ -10,75 +10,120 @@
 #
 # # Simple usage
 # $ bak README.md
-# $ ls README.bak.md
-# README.bak.md
+# mv README.md README.bak.md  # Executed this
 #
-# $ bak README.md.bak
-# $ ls README.md
-# README.md
+# # Recover .bak
+# $ bak README.md
+# mv README.bak.md README.md
+#
+# # Can specify multiple files
+# $ touch a.md b  # Prepare files (NOTE: 'c' doesn't exist)
+# $ bak a.md b c
+# mv a.md a.bak.md
+# mv b b.bak
+# File not found. Skip: c
+#
+# # Recover multiple files
+# $ bak a.md b c
+# mv a.bak.md a.md
+# mv b.bak b
+# File not found. Skip: c
+#
+# # TODO: Specify .bak explicitly
+# $ bak --restore a.bak.md b.bak
+# mv a.bak.md a.md
+# mv b.bak b
 # ```
 
-if [[ $# -lt 1 ]] ; then
-  echo 'error: require 1 or more arguments' 1>&2
-  return 1
+if [[ $# -eq 0 ]] ; then
+  echo 'Error: 1 or more arguments required' 1>&2
+  exit 1
 fi
 
-function mv_exact () {
-  local old_file_name=$1
-  local new_file_name=$2
+function append_bak_to_name () {
+  local target_file=$1 names names_last_index names_body names_ext bak_name result
 
-  if [[ -e $new_file_name ]] ; then
-    echo "A file is already existent: '$new_file_name'"
+  # If target_file doesn't have a file extension
+  if [[ $target_file != *'.'* ]] ; then
+    echo "$target_file.bak"
+    return
   fi
 
-  mv "$old_file_name" "$new_file_name"
+  IFS='.' read -ra names <<< "$target_file"
+  names_last_index=$(( ${#names[@]} - 1 ))
+  names_body=("${names[@]:0:$names_last_index}") # names without the last element
+  names_ext=${names[$names_last_index]}
+
+  bak_name=()
+  for name in "${names_body[@]}" ; do
+    bak_name=("$name")
+  done
+  bak_name+=(bak "$names_ext")
+
+  result="$(printf "%s." "${bak_name[@]}")"
+  result=${result%.}
+  echo "$result"
 }
 
-function toggle_bak () {
-  : Removes extension '.bak' or
-  : Appends extension '.bak'
+function is_bak_name () {
+  local target_file=$1 names maybe_bak_ext_index
+  IFS='.' read -ra names <<< "$target_file"
 
-  if echo "$1" | grep 'bak$' > /dev/null 2>&1 ; then
-    mv_exact "$1" "${1%.*}"
-  else
-    mv_exact "$1" "$1.bak"
+  # Reject target_file that doesn't have a file extension
+  if [[ ${#names[@]} -le 1 ]] ; then
+    return 1
   fi
+
+  # If target_file has only a file extension
+  if [[ ${#names[@]} -eq 2 ]] ; then
+    if [[ ${names[1]} == 'bak' ]] ; then
+      return 0
+    fi
+    return 1
+  fi
+
+  maybe_bak_ext_index=$(( ${#names[@]} - 2 ))
+  [[ ${names[$maybe_bak_ext_index]} == 'bak' ]]
 }
 
-have_error=0
+function remove_bak_from_name () {
+  local target_file=$1 names names_ext names_length names_last_index names_body result names_body_index result_name
 
-for file_name in "$@" ; do
-  if [[ ! -e $file_name ]] ; then
-    echo "error: A file not found '${1}'" 1>&2
-    have_error=1
+  IFS='.' read -ra names <<< "$target_file"
+  names_last_index=$(( ${#names[@]} - 1 ))
+  names_ext=${names[$names_last_index]} # The last file extension
+  names_length=${#names[@]}
+
+  # If target_file has only .bak extension
+  if [[ $names_ext == 'bak' ]] ; then
+    names_body=("${names[@]:0:$names_last_index}") # names without the last element
+    result="$(printf "%s." "${names_body[@]}")"
+    result=${result%.}
+    echo "$result"
+    return
+  fi
+
+  names_body_index=$((names_length - 2))
+  result_name=("${names[@]:0:$names_body_index}" "$names_ext")
+
+  result="$(printf "%s." "${result_name[@]}")"
+  result=${result%.}
+  echo "$result"
+}
+
+for target_file in "$@" ; do
+  target_bak_file="$(append_bak_to_name "$target_file")"
+  if [[ -e $target_bak_file ]] ; then
+    echo mv "$target_bak_file" "$(remove_bak_from_name "$target_bak_file")"
+    mv "$target_bak_file" "$(remove_bak_from_name "$target_bak_file")"
     continue
   fi
 
-  toggle_bak "$file_name"
+  if [[ -e $target_file ]] ; then
+    echo mv "$target_file" "$(append_bak_to_name "$target_file")"
+    mv "$target_file" "$(append_bak_to_name "$target_file")"
+    continue
+  fi
+
+  echo "File not found. Skip: $target_file" 2> /dev/stderr
 done
-
-if [[ $have_error -ne 0 ]] ; then
-  return 1
-fi
-
-# The MIT License (MIT)
-#
-# Copyright (c) 2025- aiya000
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
