@@ -6,18 +6,20 @@ Welcome to **bash-toys**!
 
 ## :bookmark_tabs: Table of Contents
 
-- [Overview](#overview)
-- [Scripts](#scripts)
-  - [Bin](#bin)
-  - [Functions](#functions)
-- [Show help for commands](#show-help-for-commands)
-- [Installation](#installation)
-  - [Simple](#simple)
-  - [Custom](#custom)
-- [All Options](#all-options)
-- [Optional Dependencies](#optional-dependencies)
-- [Contributing](#contributing)
-- [License](#license)
+- [Overview](#bookmark_tabs-overview)
+- [Scripts](#bookmark_tabs-scripts)
+    - [Bin](#bin)
+    - [Functions](#functions)
+- [Show help for commands](#bookmark_tabs-show-help-for-commands)
+- [Installation](#bookmark_tabs-installation)
+    - [Install all tools](#install-all-tools)
+    - [Simple](#simple)
+    - [Custom](#custom)
+    - [Install each of the tools](#install-each-of-the-tools)
+- [All Options](#bookmark_tabs-all-options)
+- [Optional Dependencies](#bookmark_tabs-optional-dependencies)
+- [Contributing](#bookmark_tabs-contributing)
+- [License](#bookmark_tabs-license)
 
 ## :bookmark_tabs: Overview
 
