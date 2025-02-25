@@ -4,7 +4,7 @@
 # (Toggles the file extension '.bak'.)
 #
 # Example:
-# ```bash
+# ```shell-session
 # $ ls README.md  # Check existence of readme
 # README.md
 #
@@ -33,6 +33,13 @@
 # $ bak --restore a.bak.md b.bak
 # mv a.bak.md a.md
 # mv b.bak b
+#
+# # TODO: 'cp' instead 'mv'
+# $ bak --copy a.md
+# cp a.bak.md
+# $ ls a.md a.bak.md
+# a.md
+# a.bak.md
 # ```
 
 if [[ $# -eq 0 ]] ; then

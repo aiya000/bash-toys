@@ -1,12 +1,17 @@
 #!/bin/bash
 
-# An alternative of `rm`, but move to dustbox instead.
+# An alternative of `rm`, but 'mv' to dustbox instead.
 #
 # Example:
+# ```shell-session
+# # Simple usage
+# $ ls README.md  # Check existence of readme
+# $ dust README.md
+# mv README.md /home/aiya000/.backup/dustbox/README.md_2025-02-25_13:45:37.md  # Executed this
 #
-# $ touch example-file
-# $ dust example-file
-# mv example-file /home/aiya000/.backup/dustbox/example-file_2025-02-24_07:28:40  # The result is shown
+# # TODO: List backed up files
+# $ dust --list
+# ```
 
 dir=$(dirname "$0")
 
