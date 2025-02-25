@@ -1,17 +1,10 @@
 # :dog2: bash-toys :dog2:
 
-<!--
-![Build Status](https://img.shields.io/github/actions/workflow/status/aiya000/bash-toys/ci.yml)
-![License](https://img.shields.io/github/license/aiya000/bash-toys)
-![Release](https://img.shields.io/github/v/release/aiya000/bash-toys)
-![Dependencies](https://img.shields.io/librariesio/github/aiya000/bash-toys)
--->
-
 Welcome to **bash-toys**!
 
 ![](./readme/which-bin-dust.png)
 
-## :page_facing_up: Table of Contents
+## :bookmark_tabs: Table of Contents
 
 - [Overview](#overview)
 - [Scripts](#scripts)
@@ -26,13 +19,13 @@ Welcome to **bash-toys**!
 - [Contributing](#contributing)
 - [License](#license)
 
-## :page_facing_up: Overview
+## :bookmark_tabs: Overview
 
 **bash-toys** is "Tiny Tools that Reach the Finer Details." It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
 
 **Nothing complicated.**
 
-## :page_facing_up: Scripts
+## :bookmark_tabs: Scripts
 
 Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 
@@ -67,7 +60,7 @@ and etc.
 
 and etc.
 
-## :page_facing_up: Show help for commands
+## :bookmark_tabs: Show help for commands
 
 Just we can use `which-bin`!
 
@@ -83,7 +76,7 @@ $ which-bin dust
 $ which-bin cd-to-git-root.sh
 ```
 
-## :page_facing_up: Installation
+## :bookmark_tabs: Installation
 
 ### Install all tools
 
@@ -117,11 +110,8 @@ Next, you can choose between two methods.
 
 If you want a quick setup, just do this. It will set the appropriate `$PATH` and load all functions automatically.
 
-```bash
-$ vim ~/.bashrc  # or your .zshrc
-
-# Add this
-source path/to/bash-toys/source-all.sh
+```shell-session
+$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc  # or your .zshrc
 ```
 
 In this case, the setup is complete!
@@ -154,6 +144,7 @@ Or source only the ones you want:
 ```bash
 $ vim ~/.bashrc  # or your .zshrc
 
+# Add these
 source path/to/bash-toys/functions/source_if_exists.sh
 source path/to/bash-toys/functions/force-unexport.sh
 source path/to/bash-toys/functions/cd-finddir.sh
@@ -179,15 +170,15 @@ $ source path/to/assets/cd-to-git-root.sh
 
 Keep in mind, however, that this method does not allow `git pull`.
 
-## :page_facing_up: All Options
+## :bookmark_tabs: All Options
 
 Please see `./default-options.sh` and configure your options as needed.
 
-## :page_facing_up: Optional Dependencies
+## :bookmark_tabs: Optional Dependencies
 
 - `vlc`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value).
 
-## :page_facing_up: Contributing
+## :bookmark_tabs: Contributing
 
 We welcome contributions! Please follow these steps:
 
@@ -196,7 +187,7 @@ We welcome contributions! Please follow these steps:
    - Unless it's a really bad idea, they probably won't say no :dog2:
 1. Open a pull request!
 
-## :page_facing_up: License
+## :bookmark_tabs: License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
