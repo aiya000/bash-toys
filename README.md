@@ -2,7 +2,7 @@
 
 Welcome to **bash-toys**!
 
-![](./readme/which-bin-dust.png)
+![](./readme/cat-which-dust.png)
 
 ## :bookmark_tabs: Table of Contents
 
@@ -40,7 +40,7 @@ For a complete list of scripts, please visit [./bin](https://github.com/aiya000/
 - `pomodoro-timer`: A simplest **Pomodoro Timer** implementation in shell script
   - Please also see `pomodoro-timer-start-from`
 - `clamdscan-full`: Performs a full virus scan using ClamAV. Or scans only specified directories.
-- `which-bin`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
+- `cat-which`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
 - `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in the background without output. This is often useful for running GUI applications from the CLI.
 - `git-root`: Shows the git root directory of the current directory. This is a shorthand for `git rev-parse --show-toplevel 2> /dev/null || return 1`.
 - `vim-configure`: Executes `./configure` for Vim source with modern flags. Requires some packages. See [here](https://vim-jp.org/docs/build_linux.html) for details.
@@ -63,18 +63,18 @@ and etc.
 
 ## :bookmark_tabs: Show help for commands
 
-Just we can use `which-bin`!
+Just we can use `cat-which`!
 
 ```shell-session
-# `which-bin {cmd-name}` for ./bin/*
+# `cat-which {cmd-name}` for ./bin/*
 # For example:
-$ which-bin dust
+$ cat-which dust
 ```
 
 ```shell-session
-# `which-bin {source-name}.sh` for ./functions/*
+# `cat-which {source-name}.sh` for ./functions/*
 # **Please don't forget `.sh`**
-$ which-bin cd-to-git-root.sh
+$ cat-which cd-to-git-root.sh
 ```
 
 ## :bookmark_tabs: Installation
