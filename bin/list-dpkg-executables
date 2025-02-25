@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# ```shell-session
+# $ list-dpkg-executables wslu
+# /usr/bin/wslact
+# /usr/bin/wslclip
+# /usr/bin/wslfetch
+# /usr/bin/wslgsu
+# /usr/bin/wslsys
+# /usr/bin/wslupath
+# /usr/bin/wslusc
+# /usr/bin/wslvar
+# /usr/bin/wslview
+# ```
+
+dpkg -L "$1" | grep 'bin/'
