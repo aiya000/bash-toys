@@ -1,22 +1,24 @@
 # :dog2: bash-toys :dog2:
 
+<!--
 ![Build Status](https://img.shields.io/github/actions/workflow/status/aiya000/bash-toys/ci.yml)
 ![License](https://img.shields.io/github/license/aiya000/bash-toys)
 ![Release](https://img.shields.io/github/v/release/aiya000/bash-toys)
 ![Dependencies](https://img.shields.io/librariesio/github/aiya000/bash-toys)
+-->
 
 Welcome to **bash-toys**!
 
 ![](./readme/which-bin-dust.png)
 
-## Table of Contents
+## :page_facing_up: Table of Contents
 
 - [Overview](#overview)
 - [Scripts](#scripts)
   - [Bin](#bin)
   - [Functions](#functions)
 - [Show help for commands](#show-help-for-commands)
-- [Getting Started](#getting-started)
+- [Installation](#installation)
   - [Simple](#simple)
   - [Custom](#custom)
 - [All Options](#all-options)
@@ -24,13 +26,13 @@ Welcome to **bash-toys**!
 - [Contributing](#contributing)
 - [License](#license)
 
-## Overview
+## :page_facing_up: Overview
 
 **bash-toys** is "Tiny Tools that Reach the Finer Details." It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
 
 **Nothing complicated.**
 
-## Scripts
+## :page_facing_up: Scripts
 
 Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 
@@ -43,7 +45,7 @@ For a complete list of scripts, please visit [./bin](https://github.com/aiya000/
 - `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
 - `pomodoro-timer`: A simplest **Pomodoro Timer** implementation in shell script
   - Please also see `pomodoro-timer-start-from`
-- `clamdscan-full`: Performs a full virus scan using ClamAV. Also scans only specified directories.
+- `clamdscan-full`: Performs a full virus scan using ClamAV. Or scans only specified directories.
 - `which-bin`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
 - `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in the background without output. This is often useful for running GUI applications from the CLI.
 - `git-root`: Shows the git root directory of the current directory. This is a shorthand for `git rev-parse --show-toplevel 2> /dev/null || return 1`.
@@ -65,7 +67,7 @@ and etc.
 
 and etc.
 
-## Show help for commands
+## :page_facing_up: Show help for commands
 
 Just we can use `which-bin`!
 
@@ -81,7 +83,9 @@ $ which-bin dust
 $ which-bin cd-to-git-root.sh
 ```
 
-## Getting Started
+## :page_facing_up: Installation
+
+### Install all tools
 
 1. Clone the repository and start exploring the scripts:
 
@@ -156,24 +160,43 @@ source path/to/bash-toys/functions/cd-finddir.sh
 source path/to/bash-toys/functions/contains_value.sh
 ```
 
-## All Options
+### Install each of the tools
+
+You can download into your `$PATH` via `wget` or `curl`.
+(The following assumes that `path/to/bin` goes through `$PATH`.)
+
+```shell-session
+$ wget https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -O path/to/bin/bak
+# or
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -o path/to/bin/bak
+```
+
+For `./functions/*`, please don't forget, execute `$ source`.
+```shell-session
+$ wget https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/functions/cd-to-git-root.sh -O path/to/assets/cd-to-git-root.sh
+$ source path/to/assets/cd-to-git-root.sh
+```
+
+Keep in mind, however, that this method does not allow `git pull`.
+
+## :page_facing_up: All Options
 
 Please see `./default-options.sh` and configure your options as needed.
 
-## Optional Dependencies
+## :page_facing_up: Optional Dependencies
 
 - `vlc`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value).
 
-## Contributing
+## :page_facing_up: Contributing
 
 We welcome contributions! Please follow these steps:
 
 1. Create an issue for the feature you want to add.
-2. Wait for maintainers to approve the feature.
+1. Wait for maintainers to approve the feature.
    - Unless it's a really bad idea, they probably won't say no :dog2:
-3. Open a pull request!
+1. Open a pull request!
 
-## License
+## :page_facing_up: License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
