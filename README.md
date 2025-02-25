@@ -36,6 +36,7 @@ For a complete list of scripts, please visit [./bin](https://github.com/aiya000/
 'bin' contains utility scripts that can run as child processes (in a subshell).
 
 - `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
+    - `$ alias rm=dust` is highly recommended!
 - `pomodoro-timer`: A simplest **Pomodoro Timer** implementation in shell script
   - Please also see `pomodoro-timer-start-from`
 - `clamdscan-full`: Performs a full virus scan using ClamAV. Or scans only specified directories.
