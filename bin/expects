@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# A smaller test API like [jest](https://jestjs.io/ja/docs/expect) for bash script.
+#
+# ```shell-session
+# $ x=10
+# $ expects "$x" to_be 10 && echo Success
+# Success
+# ```
+# ```shell-session
+# $ x=42
+# $ expects "$x" to_be 10
+# FAIL: expected {actual} to_be 10, but {actual} is: 42
+# ```
+
+actual_value=$1
+compare_method=$2
+expected_value=$3
+
+case $compare_method in
+  to_equal)
+    compare_operator='=='
+    ;;
+  not_to_equal)
+    compare_operator='!='
+    ;;
+  to_be)
+    compare_operator='-eq'
+    ;;
+  not_to_be)
+    compare_operator='-ne'
+    ;;
+  to_be_less_than)
+    compare_operator='-lt'
+    ;;
+  to_be_less_than_or_equal)
+    compare_operator='-le'
+    ;;
+  to_be_greater_than)
+    compare_operator='-gt'
+    ;;
+  to_be_greater_than_or_equal)
+    compare_operator='-ge'
+    ;;
+esac
+
+if [[ $compare_operator == '' ]] ; then
+  echo "Unknown compare method: $compare_method" >&2
+  exit 1
+fi
+
+if eval "[[ \"$actual_value\" $compare_operator \"$expected_value\" ]]" ; then
+  exit 0
+fi
+
+[[ $actual_value == '' ]] \
+  && visible_actual_value='(empty or not defined)' \
+  || visible_actual_value=$actual_value
+echo "FAIL: expected {actual} $compare_method $expected_value, but {actual} is: $visible_actual_value" >&2
+exit 1
