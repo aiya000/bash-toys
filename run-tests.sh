@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ./source-all.sh
+
 for test_file in ./test/*.bats ; do
   echo
   echo "Running $test_file"

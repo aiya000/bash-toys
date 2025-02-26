@@ -15,4 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run tests
-        run: ./run-tests.sh
+        run: |
+          git submodule update --init --recursive
+          ./run-tests.sh
