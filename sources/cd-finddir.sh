@@ -7,7 +7,7 @@
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091
-source "$dir/../default-options.sh"
+source "$dir/../define-options.sh"
 
 function cd-finddir () {
   local finddir

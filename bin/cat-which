@@ -18,7 +18,7 @@
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091
-source "$dir/../default-options.sh"
+source "$dir/../define-options.sh"
 
 if command -v batcat > /dev/null 2>&1 || command -v bat > /dev/null 2>&1 ; then
   cat="batcat $BASH_TOYS_BATCAT_OPTIONS"

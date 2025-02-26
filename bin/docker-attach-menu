@@ -3,7 +3,7 @@
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091
-source "$dir/../default-options.sh"
+source "$dir/../define-options.sh"
 
 docker attach "$(docker ps | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')"
 

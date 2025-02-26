@@ -16,7 +16,7 @@
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091
-source "$dir/../default-options.sh"
+source "$dir/../define-options.sh"
 
 if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
   mkdir -p "$BASH_TOYS_DUSTBOX_DIR"
