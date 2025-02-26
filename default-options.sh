@@ -6,8 +6,8 @@
 
 [[ -n $BASH_TOYS_LOADED_DEFAULT_OPTIONS ]] && return
 
-dir=$(dirname "$0")
-source "$dir/functions/define-alt-export.sh"
+dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
+source "$dir/sources/define-alt-export.sh"
 
 define-alt-export BASH_TOYS_INTERACTIVE_FILTER peco # or fzf
 define-alt-export BASH_TOYS_DUSTBOX_DIR "$HOME/.backup/dustbox"

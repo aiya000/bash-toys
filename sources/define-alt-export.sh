@@ -6,10 +6,20 @@
 #
 # $ define-alt-export BASH_TOYS_INTERACTIVE_FILTER peco
 
+dir=$(dirname "$0")
+
+# shellcheck disable=SC1091
+source "$dir/define-alt.sh"
+
 function define-alt-export () {
-  if eval "[[ -z \$$1 ]]" ; then
-    eval "export $1=\"$2\""
+  define-alt "$@"
+
+  local var_name=$1
+  if [[ $1 == --empty-array ]] ; then
+    var_name=$2
   fi
+  # TODO
+  # if eval "[[ \$$var_name != '' ]]"
 }
 
 # The MIT License (MIT)
