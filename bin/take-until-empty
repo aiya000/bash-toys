@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Takes input lines until a blank line appears.
+#
+# ```shell-session
+# $ touch file
+# $ echo a >> file
+# $ echo b >> file
+# $ echo '' >> file
+# $ echo c >> file
+#
+# $ cat file | take-until-empty
+# a
+# b
+# $ take-until-empty file
+# a
+# b
+# ```
+
+# Check if an argument is provided and if it is a file
+if [[ -n $1 ]] && [[ ! -f $1 ]] ; then
+  echo "Error: File not found: $1"
+  exit 1
+fi
+
+# Determine input source
+if [[ -n $1 ]] && [[ -f $1 ]] ; then
+  # From file
+  input_source=$1
+else
+  # From pipe
+  input_source=/dev/stdin
+fi
+
+# Read lines until a blank line appears
+while IFS= read -r line ; do
+  if [[ -z $line ]] ; then
+    break
+  fi
+  echo "$line"
+done < "$input_source"
