@@ -4,7 +4,7 @@
 # Shows all directories of 6 depth (if `fd` is available, or 3 depth for `find`), and cd to a directory you selected.
 #
 
-dir=$(dirname "$0")
+dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 
 # shellcheck disable=SC1091
 source "$dir/../define-options.sh"

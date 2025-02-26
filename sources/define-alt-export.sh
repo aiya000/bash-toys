@@ -1,12 +1,11 @@
 #!/bin/bash
 
 # Similar to ./define-alt, but this one performs `export`
-#
-# Example
-#
+# ```shell-session
 # $ define-alt-export BASH_TOYS_INTERACTIVE_FILTER peco
+# ```
 
-dir=$(dirname "$0")
+dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 
 # shellcheck disable=SC1091
 source "$dir/define-alt.sh"
