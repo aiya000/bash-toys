@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# A smaller test API like [jest](https://jestjs.io/ja/docs/expect) for bash script.
+# A smaller test API like [Jest](https://jestjs.io/ja/docs/expect) for bash script.
 #
 # ```shell-session
 # $ x=10
@@ -17,33 +17,37 @@ actual_value=$1
 compare_method=$2
 expected_value=$3
 
-case $compare_method in
-  to_equal)
-    compare_operator='=='
-    ;;
-  not_to_equal)
-    compare_operator='!='
-    ;;
-  to_be)
-    compare_operator='-eq'
-    ;;
-  not_to_be)
-    compare_operator='-ne'
-    ;;
-  to_be_less_than)
-    compare_operator='-lt'
-    ;;
-  to_be_less_than_or_equal)
-    compare_operator='-le'
-    ;;
-  to_be_greater_than)
-    compare_operator='-gt'
-    ;;
-  to_be_greater_than_or_equal)
-    compare_operator='-ge'
-    ;;
-esac
+function get_compare_method () {
+  local compare_method=$1
+  case $compare_method in
+    to_equal)
+      printf '%s\n' '=='
+      ;;
+    not_to_equal)
+      printf '%s\n' '!='
+      ;;
+    to_be)
+      printf '%s\n' '-eq'
+      ;;
+    not_to_be)
+      printf '%s\n' '-ne'
+      ;;
+    to_be_less_than)
+      printf '%s\n' '-lt'
+      ;;
+    to_be_less_than_or_equal)
+      printf '%s\n' '-le'
+      ;;
+    to_be_greater_than)
+      printf '%s\n' '-gt'
+      ;;
+    to_be_greater_than_or_equal)
+      printf '%s\n' '-ge'
+      ;;
+  esac
+}
 
+compare_operator=$(get_compare_method "$compare_method")
 if [[ $compare_operator == '' ]] ; then
   echo "Unknown compare method: $compare_method" >&2
   exit 1
