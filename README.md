@@ -2,6 +2,8 @@
 
 Welcome to **bash-toys**!
 
+![Test](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
+
 ![](./readme/cat-which-dust.png)
 
 ## :bookmark_tabs: Table of Contents
@@ -45,6 +47,7 @@ For a complete list of scripts, please visit [./bin](https://github.com/aiya000/
   - Please also see `pomodoro-timer-start-from`
 - `clamdscan-full`: Performs a full virus scan using ClamAV. Or scans only specified directories.
 - `cat-which`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
+- `take-until-empty`: Takes input lines until a blank line appears. [Example](./test/take-until-empty.bats)
 - `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in the background without output. This is often useful for running GUI applications from the CLI.
 - `git-root`: Shows the git root directory of the current directory. This is a shorthand for `git rev-parse --show-toplevel 2> /dev/null || return 1`.
 - `vim-configure`: Executes `./configure` for Vim source with modern flags. Requires some packages. See [here](https://vim-jp.org/docs/build_linux.html) for details.
