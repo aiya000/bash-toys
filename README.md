@@ -9,7 +9,7 @@ Welcome to **bash-toys**!
 - [Overview](#bookmark_tabs-overview)
 - [Scripts](#bookmark_tabs-scripts)
     - [Bin](#bin)
-    - [Functions](#functions)
+    - [Sources](#sources)
 - [Show help for commands](#bookmark_tabs-show-help-for-commands)
 - [Installation](#bookmark_tabs-installation)
     - [Install all tools](#install-all-tools)
@@ -23,7 +23,9 @@ Welcome to **bash-toys**!
 
 ## :bookmark_tabs: Overview
 
-**bash-toys** is "Tiny Tools that Reach the Finer Details." It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
+**bash-toys** is "Tiny Tools that Reach the Finer Details."
+
+It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
 
 **Nothing complicated.**
 
@@ -31,7 +33,7 @@ Welcome to **bash-toys**!
 
 Rest assured, bash-toys scripts are almost with **no/few dependencies**.
 
-For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./functions](https://github.com/aiya000/bash-toys/tree/main/functions).
+For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./sources](https://github.com/aiya000/bash-toys/tree/main/sources).
 
 ### Bin
 
@@ -50,9 +52,9 @@ For a complete list of scripts, please visit [./bin](https://github.com/aiya000/
 
 and etc.
 
-### Functions
+### Sources
 
-'Functions' are utility scripts that affect the parent shell. In simple terms, they are like the `cd` command.
+'Sources' are utility scripts that affect the parent shell. In simple terms, they are like the `cd` command.
 
 - `define-alt`: Defines a shell variable named 'foo' if the 'foo' variable is not defined.
 - `define-alt-export`: Similar to `define-alt`, but this defines environment variables.
@@ -68,13 +70,12 @@ and etc.
 Just we can use `cat-which`!
 
 ```shell-session
-# `cat-which {cmd-name}` for ./bin/*
-# For example:
+# 'cat-which {cmd-name}' for ./bin/* -- For example
 $ cat-which dust
 ```
 
 ```shell-session
-# `cat-which {source-name}.sh` for ./functions/*
+# `cat-which {source-name}.sh` for ./sources/*
 # **Please don't forget `.sh`**
 $ cat-which cd-to-git-root.sh
 ```
@@ -83,23 +84,30 @@ $ cat-which cd-to-git-root.sh
 
 ### Install all tools
 
-1. Clone the repository and start exploring the scripts:
+Please see the ['Install each of the tools'](#install-each-of-the-tools) section for instructions on how to download each of the tools.
+
+This section presents the easiest way to do this.
+
+1. Clone the repository and start exploring the scripts
 
 ```shell-session
-$ git clone https://github.com/aiya000/bash-toys.git path/to/bash-toys
+$ git clone --depth 1 https://github.com/aiya000/bash-toys.git path/to/bash-toys
 ```
 
-2. Configure your options if necessary:
+2. (**Optional**) Configure your options **if necessary**
+
+NOTE: You can use your favorite editor intead of `vim`.
 
 ```shell-session
-$ cp path/to/bash-toys/default-options.sh ~/my-bash-toys-options.sh
-$ vim ~/my-bash-toys-options.sh  # Configure your options
+$ cd path/to/bash-toys
+$ vim define-options.sh  # Configure your options
 ```
 
 <details>
-<summary>An example of ~/my-bash-toys-options.sh</summary>
+<summary>An example of your define-options.sh</summary>
 
-```bash
+```shell-session
+$ cat define-options.sh
 export BASH_TOYS_INTERACTIVE_FILTER=fzf
 export BASH_TOYS_DUSTBOX_DIR="$HOME/dustbox"
 export BASH_TOYS_BATCAT_OPTIONS=''
@@ -107,75 +115,49 @@ export BASH_TOYS_BATCAT_OPTIONS=''
 
 </details>
 
-Next, you can choose between two methods.
-
-### Simple
-
-If you want a quick setup, just do this. It will set the appropriate `$PATH` and load all functions automatically.
+3. Source the `source-all.sh` script in your `.bashrc` or `.zshrc`
 
 ```shell-session
 $ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc  # or your .zshrc
 ```
 
-In this case, the setup is complete!
-
-### Custom
-
-If you want more control over your environment, follow these steps.
-
-1. Add the `bin` directory to your `$PATH`:
-
-```shell-session
-$ echo 'export PATH=$PATH:path/to/bash-toys/bin' >> ~/.bashrc
-$ source ~/.bashrc  # If necessary
-```
-
-2. Source the functions in your shell:
-    - Note: Functions should be sourced in the parent shell and cannot execute in a subshell, as they affect the parent shell's state.
-
-```bash
-$ vim ~/.bashrc  # or your .zshrc
-
-# Add this
-for script in path/to/bash-toys/functions/*.sh ; do
-  source "$script"
-done
-```
-
-Or source only the ones you want:
-
-```bash
-$ vim ~/.bashrc  # or your .zshrc
-
-# Add these
-source path/to/bash-toys/functions/source_if_exists.sh
-source path/to/bash-toys/functions/force-unexport.sh
-source path/to/bash-toys/functions/cd-finddir.sh
-source path/to/bash-toys/functions/contains_value.sh
-```
-
 ### Install each of the tools
 
-You can download into your `$PATH` via `wget` or `curl`.
-(The following assumes that `path/to/bin` goes through `$PATH`.)
+Here is how to install each of the tools.
+
+1. Download [fun.sh](https://github.com/ssledz/bash-fun) -- (Please see ['Quick Start' section of ssledz/bash-fun])
+
+NOTE: The following assumes that `path/to/source` directory does exist.
 
 ```shell-session
-$ wget https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -O path/to/bin/bak
-# or
+$ curl https://raw.githubusercontent.com/ssledz/bash-fun/master/src/fun.sh -o path/to/sources/fun.sh
+```
+
+2. Download `define-options.sh` and append `$ source define-options.sh` into your `.bashrc` (or `.zshrc`)
+
+```shell-session
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -O path/to/sources/define-options.sh
+$ echo 'source path/to/sources/define-options.sh' >> ~/.bashrc  # or your .zshrc
+```
+
+3. Download a tool you want into your `$PATH`
+
+NOTE: The following assumes that `$PATH` contains `path/to/bin`.
+
+```shell-session
+# In this case, you want to install 'bak'
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -o path/to/bin/bak
 ```
 
-For `./functions/*`, please don't forget, execute `$ source`.
+For `./sources/*`, please don't forget, execute `$ source`.
 ```shell-session
-$ wget https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/functions/cd-to-git-root.sh -O path/to/assets/cd-to-git-root.sh
-$ source path/to/assets/cd-to-git-root.sh
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/sources/cd-to-git-root.sh -o path/to/sources/cd-to-git-root.sh
+$ echo 'source path/to/sources/cd-to-git-root.sh' >> ~/.bashrc  # or your .zshrc
 ```
-
-Keep in mind, however, that this method does not allow `git pull`.
 
 ## :bookmark_tabs: All Options
 
-Please see `./default-options.sh` and configure your options as needed.
+Please see `./define-options.sh` and configure your options as needed.
 
 ## :bookmark_tabs: Optional Dependencies
 
@@ -183,7 +165,7 @@ Please see `./default-options.sh` and configure your options as needed.
 
 ## :bookmark_tabs: Contributing
 
-We welcome contributions! Please follow these steps:
+We welcome contributions! Please follow these steps.
 
 1. Create an issue for the feature you want to add.
 1. Wait for maintainers to approve the feature.
