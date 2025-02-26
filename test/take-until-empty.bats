@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# shellcheck disable=SC2016
+# shellcheck disable=SC2016,SC2181
 
 file_contains_empty_line="$BATS_TMPDIR/file_contains_empty_line"
 file_does_not_contain_empty_line="$BATS_TMPDIR/file_does_not_contain_empty_line"
@@ -29,15 +29,18 @@ teardown () {
 
 @test '`take-until-empty file_contains_empty_line` should take lines until an empty line appears' {
   run take-until-empty "$file_contains_empty_line"
+  [ "$status" -eq 0 ]
   [ "$output" == "a"$'\n'"b" ]
 }
 
-@test '`cat file_contains_empty_line | take-until-empty` should take lines until an empty line appears' {
-  run cat "$file_contains_empty_line" | take-until-empty
-  [ "$output" == "a"$'\n'"b" ]
+@test '`take-until-empty < file_contains_empty_line` (using stdin/pipe) should take lines until an empty line appears' {
+  result=$(take-until-empty < "$file_contains_empty_line")
+  [ "$?" -eq 0 ]
+  [ "$result" == "a"$'\n'"b" ]
 }
 
 @test '`take-until-empty file_contains_empty_line` should take all lines if no empty line appears' {
   run take-until-empty "$file_does_not_contain_empty_line"
+  [ "$status" -eq 0 ]
   [ "$output" == "a"$'\n'"b"$'\n'"c" ]
 }
