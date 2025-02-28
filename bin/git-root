@@ -1,5 +1,17 @@
 #!/bin/bash
-git rev-parse --show-toplevel 2> /dev/null || return 1
+
+# Shows the git root directory if you are in a git directory.
+# ```shell-session
+# $ cd /path/to/git/root/sub && git-root
+# /path/to/git/root
+#
+# $ cd /path/to/no-git-dir && git-root
+# (No output)
+# $ echo $?
+# 1
+# ```
+
+git rev-parse --show-toplevel 2> /dev/null || exit 1
 
 # The MIT License (MIT)
 #

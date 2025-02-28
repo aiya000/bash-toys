@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Like ./pomodoro-start.sh but starting count $2 from $1.
+# Like ./pomodoro-timer but starting count $2 from $1.
 #
-# Example:
-#
+# ```shell-session
 # pomodoro-timer-start-from 17:00 60
+# ```
 
 dir=$(dirname "$0")
 

@@ -1,4 +1,14 @@
 #!/bin/bash
+
+# Executes ./configure of Vim source with modern flags for macOS.
+#
+# ```shell-session
+# $ git clone https://github.com/vim/vim
+# $ cd vim
+# $ vim-configure-debug
+# ...
+# ```
+
 configure=$(cat << EOS
 ./configure \
     --prefix=/usr/local/ \

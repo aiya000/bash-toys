@@ -15,9 +15,9 @@
 num_lines_to_skip=$1
 input_file=$2
 
-if [[ -n "$input_file" ]]; then
+if [[ -n "$input_file" ]] ; then
   # From file
-  if [[ ! -f "$input_file" ]]; then
+  if [[ ! -f "$input_file" ]] ; then
     echo "Error. File not found: $input_file" 1>&2
     exit 1
   fi

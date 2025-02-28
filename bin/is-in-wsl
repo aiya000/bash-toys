@@ -1,8 +1,10 @@
 #!/bin/bash
 
-#
-# Return 0 if a current shell is in under WSL
-#
+# Returns 0 if a current shell is in under WSL.
+# Otherwise, returns 1.
+# ```shell-session
+# $ is-in-wsl && echo 'WSL' || echo 'Not WSL'
+# ```
 
 [[ -n $WSL_INTEROP ]]
 

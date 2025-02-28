@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Executes ./configure of Vim source for testing Vim
+# Executes ./configure of Vim source for testing Vim.
 #
-# Example:
-#
+# ```shell-session
 # $ git clone https://github.com/vim/vim
 # $ cd vim
 # $ vim-configure-debug
+# ...
+# ```
 
 configure=$(cat << EOS
 ./configure \

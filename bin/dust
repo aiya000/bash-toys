@@ -2,13 +2,14 @@
 
 # An alternative of `rm`, but 'mv' to dustbox instead.
 #
-# Example:
+# Simple usage (`mv README.md ...` is the result output):
 # ```shell-session
-# # Simple usage
 # $ ls README.md  # Check existence of readme
 # $ dust README.md
-# mv README.md /home/aiya000/.backup/dustbox/README.md_2025-02-25_13:45:37.md  # Executed this
+# mv README.md /home/aiya000/.backup/dustbox/README.md_2025-02-25_13:45:37.md
+# ```
 #
+# ```shell-session
 # # TODO: List backed up files
 # $ dust --list
 # ```

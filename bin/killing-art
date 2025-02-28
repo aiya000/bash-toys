@@ -1,11 +1,12 @@
 #!/bin/bash
 
+# Displays a list of processes with `BASH_TOYS_INTERACTIVE_FILTER`.
+# And kills the processs you selected.
 #
-# Displays a list of processes with `BASH_TOYS_INTERACTIVE_FILTER` and kill the selected process
-#
-# Example
-#
+# ```shell-session
 # $ killing-art
+# (Showing a list of processes with `BASH_TOYS_INTERACTIVE_FILTER` like 'peco' and 'fzf')
+# ```
 
 dir=$(dirname "$0")
 

@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Starts a command in the background with no CLI outputs
+# Starts a command in the background with no CLI outputs.
 #
-# Example:
 # ```shell-session
-# # Using 'start'
 # $ start vlc
-# (with no outputs)
-# $ ls  # You can stay in the shell
+# (Opening vlc with no outputs)
+# $ ls  # You can stay in your current shell
 # ...
+# ```
 #
-# For comparison, an example fo the normal case
+# For comparison, an example case without 'start'.
+# ```shell-session
 # $ vlc
 # VLC media player 3.0.16 Vetinari (revision 3.0.13-8-g41878ff4f2)
 # ...
