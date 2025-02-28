@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# TODO: Add the help and the description.
+#
+# ```shell-session
+# TODO: Write an example
+# ```
+
 function load-my-env () {
   local target_name="$1"
 

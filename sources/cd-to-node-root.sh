@@ -1,8 +1,10 @@
 #!/bin/bash
 
+# `cd` to a directory that have a `package.json`.
 #
-# cd to a directory that have a package.json.
-#
+# ```shell-session
+# TODO: Write an example
+# ```
 
 function cd-to-node-root::find-node-root-dir () {
   local current_dir=$1

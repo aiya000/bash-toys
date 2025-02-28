@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# TODO: Add the help and the description.
+#
+# ```shell-session
+# TODO: Write an example
+# ```
+
 function source_if_exists () {
   if [[ -f $1 ]] ; then
     # shellcheck disable=SC1090

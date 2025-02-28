@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Check a taken var name is an array
+# Checks a taken var name is an array.
 #
-# Example:
 # ```shell-session
 # $ foo=()
 # $ is_array foo && echo yes || echo no

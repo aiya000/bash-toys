@@ -1,11 +1,11 @@
 #!/bin/bash
 
+# `cd` to the git root directory.
+# The behavior when Atata is on a Windows file system with WSL is also supported.
 #
-# `cd` to the git root directory
-# With `wslpath` support.
-# Try using `wslpath`.
-# This is often useful if you are in a git directory of Windows filesystem.
-#
+# ```shell-session
+# TODO: Write an example
+# ```
 
 function cd-to-git-root () {
   local root

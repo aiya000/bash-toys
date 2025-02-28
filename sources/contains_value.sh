@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Example
-#
 # ```bash
 # target=banana
 # my_array=(apple banana cherry)

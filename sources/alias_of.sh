@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# If $1 exists, create an alias for $1 with the contents of $2 and overwrite it.
+# If `$1` exists, create an alias for `$1` with the contents of `$2` and overwrite it.
 #
-# Example:
 # ```shell-session
 # $ alias_of rg 'rg --color always --hidden'
 # $ alias rg
