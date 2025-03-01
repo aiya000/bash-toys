@@ -33,7 +33,7 @@ It's a collection of shell scripts and aliases for bash/zsh designed to simplify
 
 ## :bookmark_tabs: Scripts
 
-Rest assured, bash-toys scripts are almost with **no/few dependencies**.
+Rest assured, bash-toys scripts are almost with **few of dependencies**.
 
 For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./sources](https://github.com/aiya000/bash-toys/tree/main/sources).
 
@@ -128,22 +128,19 @@ $ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc  # or your .zshrc
 
 Here is how to install each of the tools.
 
-1. Download [fun.sh](https://github.com/ssledz/bash-fun) -- (Please see ['Quick Start' section of ssledz/bash-fun])
+1. Install requirements
+    - [fun.sh](https://github.com/ssledz/bash-fun)
 
 NOTE: The following assumes that `path/to/source` directory does exist.
 
 ```shell-session
-$ curl https://raw.githubusercontent.com/ssledz/bash-fun/master/src/fun.sh -o path/to/sources/fun.sh
-```
-
-2. Download `define-options.sh` and append `$ source define-options.sh` into your `.bashrc` (or `.zshrc`)
-
-```shell-session
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -O path/to/sources/define-options.sh
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/fun.sh -o path/to/sources/fun.sh
+$ echo 'source path/to/sources/fun.sh' >> ~/.bashrc  # or your .zshrc
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o path/to/sources/define-options.sh
 $ echo 'source path/to/sources/define-options.sh' >> ~/.bashrc  # or your .zshrc
 ```
 
-3. Download a tool you want into your `$PATH`
+2. Download a tool you want into your `$PATH`
 
 NOTE: The following assumes that `$PATH` contains `path/to/bin`.
 
