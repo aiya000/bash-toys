@@ -1,2 +1,5 @@
 # Allow to use expressions like '[[ $x == foo ]]' for fun.sh functions -- "Expressions don't expand in single quotes, use double quotes for that."
 disable=SC2016
+
+# In this project, we often use non-constant source -- ShellCheck can't follow non-constant source. Use a directive to specify location.
+disable=SC1090
