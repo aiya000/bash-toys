@@ -30,8 +30,33 @@ if [[ $1 == --help ]] ; then
   exit 0
 fi
 
-command_name=$(list "$@" | filter lambda x . '[[ $x != --disable-glow ]]' | last)
+this_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 
+# Read README.md how fun.sh is loaded
+function source-fun-sh () {
+  if [[ -f "$this_script_dir/../lib/fun.sh" ]] ; then
+    source "$this_script_dir/../lib/fun.sh"
+    return
+  fi
+
+  local path
+  if path=$(command -v fun.sh) && [[ -f $path ]] ; then
+    source "$path"
+    return
+  fi
+
+  return 1
+}
+
+if ! source-fun-sh ; then
+  {
+    echo 'Error: fun.sh require, but fun.sh not found'
+    echo 'Please see: https://github.com/aiya000/bash-toys/blob/main/README.md#bookmark_tabs-installation'
+  } >&2
+  exit 1
+fi
+
+command_name=$(list "$@" | filter lambda x . '[[ $x != --disable-glow ]]' | last)
 if [[ -z $command_name ]] ; then
   echo 'Usage: bash-toys-help [options] COMMAND' >&2
   exit 1
