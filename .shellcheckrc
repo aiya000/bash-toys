@@ -1,0 +1,2 @@
+# Allow to use expressions like '[[ $x == foo ]]' for fun.sh functions -- "Expressions don't expand in single quotes, use double quotes for that."
+disable=SC2016
