@@ -15,6 +15,11 @@
 # Not a plain text: /bin/zsh
 # ```
 
+if [[ $1 == '' ]] ; then
+  echo 'Error: 1 or more arguments required' > /dev/stderr
+  exit 1
+fi
+
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091
