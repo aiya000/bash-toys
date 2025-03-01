@@ -115,7 +115,7 @@ $BASH_TOYS_MUSIC_PLAYER "$BASH_TOYS_POMODORO_NOTIFICATION_MUSIC" 2> /dev/null &
 
 player_pid=$!
 (
-  sleep "${BASH_TOYS_POMODORO_NOTIFICATION_DURATION}"
+  sleep "$BASH_TOYS_POMODORO_NOTIFICATION_DURATION"
   kill "$player_pid" 2> /dev/null
 ) &
 
