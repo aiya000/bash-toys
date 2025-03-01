@@ -3,18 +3,52 @@
 # Shows help for bash-toys commands.
 #
 # ```shell-session
-# $ cat-which dust | skip 2 | take-until-empty | sed 's/^#\ \?//'
-# An alternative of `rm`, but 'mv' to dustbox instead.
-#
-# Simple usage:
-# \`\`\`shell-session
-# $ ls README.md  # Check existence of readme
-# $ dust README.md
-# mv README.md /home/aiya000/.backup/dustbox/README.md_2025-02-25_13:45:37.md  # Executed this
-# \`\`\`
+# $ bash-toys-help COMMAND  # Show help with glow if available
+# $ bash-toys-help --disable-glow COMMAND  # Show help without glow
+# $ bash-toys-help --help  # Show this help message
 # ```
+#
+# This requires:
+# - (Optional) `glow` command for markdown rendering
 
-cat-which "$1" | skip 2 | take-until-empty | sed 's/^#\ \?//'
+function show_help () {
+  cat << EOF
+bash-toys-help - Show help for bash-toys commands
+
+Usage:
+  bash-toys-help [--disable-glow] COMMAND
+  bash-toys-help --help
+
+Options:
+  --disable-glow  Do not use glow for markdown rendering
+  --help          Show this help message
+EOF
+}
+
+if [[ $1 == --help ]] ; then
+  show_help
+  exit 0
+fi
+
+command_name=$(list "$@" | filter lambda x . '[[ $x != --disable-glow ]]' | last)
+
+if [[ -z $command_name ]] ; then
+  echo 'Usage: bash-toys-help [options] COMMAND' >&2
+  exit 1
+fi
+
+# Check if --disable-glow is present
+list "$@" | filter lambda x . '[[ $x == --disable-glow ]]' > /dev/null \
+  && use_glow=false \
+  || use_glow=true
+
+content=$(cat-which "$command_name" | skip 2 | take-until-empty | sed 's/^#\ \?//')
+
+if $use_glow && command -v glow >/dev/null 2>&1 ; then
+  echo "$content" | glow -
+else
+  echo "$content"
+fi
 
 # The MIT License (MIT)
 #
