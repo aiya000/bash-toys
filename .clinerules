@@ -1,0 +1,186 @@
+## Creating ShellScript files
+
+When creating a ShellScript file:
+
+- Always include `./LICENSE` content as a comment at the end of the file.
+
+- Minimize dependencies on other ShellScript files whenever possible.
+    - This is because `./README.md` explicitly states that the installation is independent of the environment.
+    - However, exceptions are `./define-options.sh` and `./lib/fun.sh`, which may be depended upon.
+        - This is also explicitly stated in `./README.md`.
+    - For usage of `./lib/fun.sh`, refer to its contents or the [official README.md](https://raw.githubusercontent.com/ssledz/bash-fun/refs/heads/master/README.md).
+
+- If a library in the `./lib` directory seems useful, prioritize using it.
+    - `./lib/fun.sh` is particularly useful. Keep functional programming in mind.
+
+- Include `#!/bin/bash` as the first line.
+
+- Follow this with a description and usage examples. For instance:
+    - The usage examples should be comprehensive, but also remain simple and easy to read for users.
+
+bin/dust
+```sh
+#!/bin/bash
+
+# An alternative to `rm`, but moves the file to a dustbox instead.
+#
+# ```shell-session
+# $ ls README.md  # Checking existence of readme
+# $ dust README.md
+# mv README.md /home/aiya000/.backup/dustbox/README.md_2025-02-25_13:45:37.md
+# ```
+
+# Implementation follows
+# ...
+
+# Contents of ./LICENSE follow
+# ...
+```
+
+- Read the "About `./sources`" and "About `./bin`" sections to determine the appropriate placement of ShellScript files.
+    - Ensure that placed scripts adhere to the rules outlined in their respective sections.
+
+- Allow users as much configuration flexibility as possible.
+    - Whenever possible, allow settings to be configured via environment variables.
+        - In such cases, append the following format to `./define-options.sh`:
+
+define-options.sh
+```sh
+# ...
+
+[[ -z $BASH_TOYS_{VARIABLE_NAME} ]] && export BASH_TOYS_{VARIABLE_NAME}={DEFAULT_VALUE}
+
+# ...
+```
+
+- After creating a ShellScript file, also create a corresponding test.
+    - Test-related rules are outlined in the 'Creating Test Files' section.
+
+- When using variable names, prefer `$varname` over `${varname}`.
+    - However, use `${varname}` when `$varname` could be misinterpreted as part of a string.
+
+- Always use `function` when defining functions.
+- When defining local variables within functions, use `local`.
+- Whenever possible, avoid using global variables (such as top-level `$1`) within functions and use arguments instead.
+- Strive for low module coupling and high module cohesion in functions.
+
+- While defining helper functions is acceptable, avoid excessive proliferation.
+    - In other words, minimize unnecessary noise.
+
+Here are examples of unnecessary helper functions:
+
+```sh
+function has_glow () {
+  # Writing this directly in the condition does not significantly reduce readability.
+  command -v glow >/dev/null 2>&1
+}
+
+function is_disable_glow_opt () {
+  # Same as above.
+  [[ $1 == '--disable-glow' ]]
+}
+```
+
+Conversely, the following is an appropriate helper function:
+
+```sh
+# Show help
+function show_help () {
+  cat << EOF
+bash-toys-help - Show help for bash-toys commands
+
+Usage:
+  bash-toys-help [--disable-glow] COMMAND
+  bash-toys-help --help
+
+Options:
+  --disable-glow  Do not use glow for markdown rendering
+  --help         Show this help message
+EOF
+}
+```
+
+- Use `snake_case` for helper function names.
+    - However, an exception applies to functions placed in `./sources` following the `function {feature_name}` naming pattern.
+        - See the "About `./sources`" section for details.
+
+- Insert spaces before and after `;`.
+- Use `[[ ... ]]` instead of `[ ... ]`.
+
+- If `--help` is passed, implement it to display help documentation.
+    - Ensure no other operations are performed when displaying help.
+
+- Prefer `''` over `""` when possible.
+- If quotes are unnecessary, omit them entirely.
+
+- While comments are allowed, avoid writing them if the code is self-explanatory.
+    - Strive for code that is inherently descriptive.
+
+Here is an example where a comment is unnecessary:
+`# Show help` is redundant.
+
+```sh
+# Show help
+function show_help () {
+  cat << EOF
+cmd - ...
+
+Usage:
+  ...
+
+Options:
+  ...
+EOF
+}
+```
+
+- Run shellcheck and fix any issues whenever possible.
+
+### About `./sources`
+
+- ShellScripts that cannot be executed as a subprocess (i.e., functions affecting the current shell) should be placed in `./sources`.
+    - Name the file `{feature_name}.sh` and define a function inside it as `function {feature_name} () { ... }`.
+    - Use `kebab-case` for `{feature_name}`.
+
+For example:
+
+source/define-alias.sh
+```sh
+#!/bin/bash
+
+# Defines an alias.
+# ```shell-session
+# $ define-alias ll 'ls -l'
+# ```
+
+function define-alias () {
+  local name=$1 detail=$2
+  eval "alias $name='$detail'"
+}
+```
+
+- All other ShellScripts that can be executed as a subprocess should be placed in `./bin`.
+
+### About `./bin`
+
+- ShellScripts that can be executed as a subprocess should be placed in `./bin`.
+    - Name the file `{feature_name}` without an extension.
+
+Refer to the "About `./sources`" section for additional details.
+
+## Git
+
+- Write commit messages in English.
+
+- Format commit messages as `{Verb} ...`.
+    - Capitalize the first letter of the verb, e.g., `Add ...`, `Fix ...`.
+
+- If the `gh` command is available, check the issue list using `$ gh issue list` before committing.
+    - If there is an issue that the commit is likely to resolve, add `Closes #{IssueNumber}` on the third line of the commit message.
+
+## General Rules
+
+- When executing `$ curl {url} | sh` or `$ curl {url} | bash`, always review the contents of `{url}` first and understand any potential risks before proceeding.
+    - If any risks exist, halt the process and consult with me for further instructions.
+
+- If installing OS packages (e.g., `$ sudo apt install {packages}` or `$ brew install {packages}`) is necessary, pause the task and consult with me first.
