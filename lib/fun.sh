@@ -461,3 +461,11 @@ iswritable() {
 isdir() {
   [ -d "$1" ] && ret true || ret false
 }
+
+#
+# Blow functions are added by aiya000
+#
+
+function equals () {
+  [[ $1 == $2 ]] && ret true || ret false
+}
