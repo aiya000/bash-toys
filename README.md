@@ -85,6 +85,9 @@ $ cat-which cd-to-git-root.sh
 
 ## :bookmark_tabs: Installation
 
+In this section, we assumed you are using bash and `~/.bashrc`.
+If you are using zsh, replace `~/.bashrc` with `~/.zshrc`.
+
 ### Install all tools
 
 Please see the ['Install each of the tools'](#install-each-of-the-tools) section for instructions on how to download each of the tools.
@@ -121,32 +124,36 @@ export BASH_TOYS_BATCAT_OPTIONS=''
 3. Source the `source-all.sh` script in your `.bashrc` or `.zshrc`
 
 ```shell-session
-$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc  # or your .zshrc
+$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
 ```
 
 ### Install each of the tools
 
 Here is how to install each of the tools.
 
-1. Install requirements
+1. Install a few of dependencies
     - [fun.sh](https://github.com/ssledz/bash-fun)
 
-NOTE: The following assumes that `path/to/source` directory does exist.
+You can choice a path instead of `~/lib/bash-toys` freely.
 
 ```shell-session
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/fun.sh -o path/to/sources/fun.sh
-$ echo 'source path/to/sources/fun.sh' >> ~/.bashrc  # or your .zshrc
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o path/to/sources/define-options.sh
-$ echo 'source path/to/sources/define-options.sh' >> ~/.bashrc  # or your .zshrc
+$ mkdir -p ~/lib/bash-toys || true
+$ echo ~/lib/bash-toys
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/fun.sh -o ~/lib/bash-toys/fun.sh
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o ~/lib/bash-toys/define-options.sh
+$ echo 'source ~/lib/bash-toys/fun.sh' >> ~/.bashrc
+$ echo 'source path/to/sources/define-options.sh' >> ~/.bashrc
+$ echo 'export PATH=$PATH:~/lib/bash-toys' >> ~/.bashrc
 ```
 
-2. Download a tool you want into your `$PATH`
+2. Install a tool you want into your `$PATH`
 
-NOTE: The following assumes that `$PATH` contains `path/to/bin`.
+For example, in this case, assumed you want to install 'bak'.
+Also the following assumes that `$PATH` contains `~/bin`.
+You can choice an another path contained by `$PATH` instead of `~/bin`.
 
 ```shell-session
-# In this case, you want to install 'bak'
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -o path/to/bin/bak
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -o ~/bin/bak
 ```
 
 For `./sources/*`, please don't forget, execute `$ source`.
