@@ -70,17 +70,17 @@ and etc.
 
 ## :bookmark_tabs: Show help for commands
 
-Just we can use `cat-which`!
+Use `bash-toys-help` to display help for any command:
 
 ```shell-session
-# 'cat-which {cmd-name}' for ./bin/* -- For example
-$ cat-which dust
-```
+# Show help for bin commands
+$ bash-toys-help dust
 
-```shell-session
-# `cat-which {source-name}.sh` for ./sources/*
-# **Please don't forget `.sh`**
-$ cat-which cd-to-git-root.sh
+# Show help for source commands (Don't forget appending .sh extension)
+$ bash-toys-help cd-to-git-root.sh
+
+# Show help with markdown rendering (if glow is available)
+$ bash-toys-help --disable-glow dust  # Disable markdown rendering
 ```
 
 ## :bookmark_tabs: Installation
