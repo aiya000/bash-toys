@@ -168,6 +168,11 @@ function define-alias () {
 
 Refer to the "About `./sources`" section for additional details.
 
+### Creating Test Files
+
+- Use `[[ ... ]]` instead of `[ ... ]`.
+- Use `==` instead of `=` for string comparison.
+
 ## Git
 
 - Write commit messages in English.
