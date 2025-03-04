@@ -16,6 +16,8 @@
 latest_test_id=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
 gh run view "$latest_test_id" "$@"
 
+# https://github.com/aiya000/bash-toys
+#
 # The MIT License (MIT)
 #
 # Copyright (c) 2025- aiya000

@@ -23,6 +23,8 @@ function contains_value() {
   return 1
 }
 
+# https://github.com/aiya000/bash-toys
+#
 # The MIT License (MIT)
 #
 # Copyright (c) 2025- aiya000

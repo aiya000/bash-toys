@@ -31,6 +31,8 @@ function cd-to-node-root () {
   cd "$root" || exit 1
 }
 
+# https://github.com/aiya000/bash-toys
+#
 # The MIT License (MIT)
 #
 # Copyright (c) 2025- aiya000

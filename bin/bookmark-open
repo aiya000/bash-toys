@@ -29,6 +29,8 @@ if [[ -n $selected ]] ; then
   xdg-open "$url" >/dev/null 2>&1
 fi
 
+# https://github.com/aiya000/bash-toys
+#
 # The MIT License (MIT)
 #
 # Copyright (c) 2024 aiya000

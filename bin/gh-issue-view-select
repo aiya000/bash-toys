@@ -29,6 +29,8 @@ if [[ -z $selected_issue_number ]] ; then
 fi
 gh issue view "$selected_issue_number" "$@"
 
+# https://github.com/aiya000/bash-toys
+#
 # The MIT License (MIT)
 #
 # Copyright (c) 2024 aiya000
