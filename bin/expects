@@ -2,14 +2,54 @@
 
 # A smaller test API like [Jest](https://jestjs.io/ja/docs/expect) for bash script.
 #
+# ## Basic Usage
 # ```shell-session
+# # Positive assertions
 # $ x=10
 # $ expects "$x" to_be 10 && echo Success
 # Success
-# ```
-# ```shell-session
+#
+# # Negative assertions
 # $ x=10
 # $ expects "$x" not to_be 42 && echo Success
+# Success
+#
+# # Failed assertions
+# $ x=42
+# $ expects "$x" to_be 10
+# FAIL: expected {actual} to_be 10, but {actual} is: 42
+# ```
+#
+# ## String Operations
+# ```shell-session
+# # String containment
+# $ str="hello world"
+# $ expects "$str" to_contain "world" && echo Success
+# Success
+# $ expects "$str" not to_contain "moon" && echo Success
+# Success
+#
+# # Pattern matching
+# $ str="hello123"
+# $ expects "$str" to_match "^[a-z]+[0-9]+$" && echo Success
+# Success
+# $ expects "$str" not to_match "^[0-9]+$" && echo Success
+# Success
+# ```
+#
+# ## Value Checks
+# ```shell-session
+# # Boolean assertions
+# $ expects true to_be_true && echo Success
+# Success
+# $ expects false to_be_false && echo Success
+# Success
+#
+# # Existence checks
+# $ var="some value"
+# $ expects "$var" to_be_defined && echo Success
+# Success
+# $ expects "" not to_be_defined && echo Success
 # Success
 # ```
 
