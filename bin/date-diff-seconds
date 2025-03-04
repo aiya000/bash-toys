@@ -8,12 +8,32 @@
 # $ date-diff-seconds '08-05 21:47' '08-05 22:33'
 # $ date-diff-seconds 21:47 22:33  -- Infer both times is today's
 
+function show_help () {
+  cat << 'EOF'
+date-diff-seconds - Calculate time difference in minutes
+
+Usage:
+  date-diff-seconds TIME1 TIME2
+  date-diff-seconds --help
+
+Arguments:
+  TIME1, TIME2      Time in format 'MM-DD HH:MM' or just 'HH:MM'
+                    When only HH:MM is given, current date is assumed
+
+Options:
+  --help           Show this help message
+
+Examples:
+  date-diff-seconds '08-05 21:47' '08-05 22:33'   # Specific dates
+  date-diff-seconds 21:47 22:33                    # Times today
+EOF
+}
+
+[[ $1 == --help ]] && show_help && exit 0
+
 if [[ $# -lt 2 ]] ; then
-  {
-    echo "help:"
-    declare -f "$0" | head
-  } > /dev/stderr
-  return 1
+  echo "Error: TIME1 and TIME2 arguments are required" >&2
+  exit 1
 fi
 
 this_year=$(date +%Y)
@@ -37,26 +57,4 @@ now=$(get_fully_qualified_date "$1")
 from_raw=$(date --date "$from" +%s)
 now_raw=$(date --date "$now" +%s)
 
-echo "$(( (from_raw - now_raw) / 60))"
-
-# The MIT License (MIT)
-#
-# Copyright (c) 2025- aiya000
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+echo "$(( (from_raw - now_raw) / 60 ))"
