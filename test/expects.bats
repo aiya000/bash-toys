@@ -2,6 +2,14 @@
 
 # shellcheck disable=SC2016
 
+@test '`expects --help` should show help message' {
+  run expects --help
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "expects - A smaller test API like Jest's expect() for bash" ]
+  [ "${lines[1]}" = "" ]
+  [ "${lines[2]}" = "Usage:" ]
+}
+
 @test '`expects 10 to_be 10` should succeed' {
   run expects 10 to_be 10
   [[ $status -eq 0 ]]

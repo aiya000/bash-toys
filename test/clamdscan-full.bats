@@ -4,8 +4,9 @@
 
 @test '`clamdscan-full --help` should show help message' {
   run clamdscan-full --help
-  [ $status -eq 0 ]
+  [ "$status" -eq 0 ]
   [ "${lines[0]}" = "clamdscan-full - Full system virus scan using ClamAV" ]
+  [ "${lines[1]}" = "" ]
   [ "${lines[2]}" = "Usage:" ]
 }
 
@@ -15,6 +16,6 @@
   export -f fdfind clamdscan
 
   run clamdscan-full
-  [ $status -eq 0 ]
+  [ "$status" -eq 0 ]
   [[ ${lines[0]} == *"scale=5; (1 / 1) * 100"* ]]  # Progress calculation
 }
