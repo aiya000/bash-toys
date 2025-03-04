@@ -8,60 +8,103 @@
 # Success
 # ```
 # ```shell-session
-# $ x=42
-# $ expects "$x" to_be 10
-# FAIL: expected {actual} to_be 10, but {actual} is: 42
+# $ x=10
+# $ expects "$x" not to_be 42 && echo Success
+# Success
 # ```
 
 actual_value=$1
-compare_method=$2
-expected_value=$3
+shift
 
-function get_compare_method () {
-  local compare_method=$1
-  case $compare_method in
-    to_equal)
-      printf '%s\n' '=='
-      ;;
-    not_to_equal)
-      printf '%s\n' '!='
-      ;;
-    to_be)
-      printf '%s\n' '-eq'
-      ;;
-    not_to_be)
-      printf '%s\n' '-ne'
+# Parse "not to_*" or just "to_*"
+is_negated=false
+if [[ $1 == not ]] ; then
+  is_negated=true
+  shift
+fi
+
+matcher=$1
+expected_value=$2
+
+function test_value () {
+  local actual=$1 matcher=$2 expected=$3
+  case $matcher in
+    to_be|to_equal)
+      [[ $actual -eq $expected ]]
+      return $?
       ;;
     to_be_less_than)
-      printf '%s\n' '-lt'
-      ;;
-    to_be_less_than_or_equal)
-      printf '%s\n' '-le'
+      [[ $actual -lt $expected ]]
+      return $?
       ;;
     to_be_greater_than)
-      printf '%s\n' '-gt'
+      [[ $actual -gt $expected ]]
+      return $?
       ;;
-    to_be_greater_than_or_equal)
-      printf '%s\n' '-ge'
+    to_contain)
+      [[ $actual == *"$expected"* ]]
+      return $?
+      ;;
+    to_match)
+      [[ $actual =~ $expected ]]
+      return $?
+      ;;
+    to_be_true)
+      [[ $actual == true ]]
+      return $?
+      ;;
+    to_be_false)
+      [[ $actual == false ]]
+      return $?
+      ;;
+    to_be_defined)
+      [[ -n $actual ]]
+      return $?
+      ;;
+    *)
+      echo "Unknown matcher: $matcher" >&2
+      exit 1
       ;;
   esac
 }
 
-compare_operator=$(get_compare_method "$compare_method")
-if [[ $compare_operator == '' ]] ; then
-  echo "Unknown compare method: $compare_method" >&2
-  exit 1
-fi
+function format_failure_message () {
+  local actual=$1 not=$2 matcher=$3 expected=$4
+  local visible_actual=$actual
 
-if eval "[[ \"$actual_value\" $compare_operator \"$expected_value\" ]]" ; then
+  if [[ -z $actual ]] ; then
+    visible_actual=empty
+  fi
+
+  # Special case for to_be_defined matcher
+  if [[ $matcher == to_be_defined && -z $not ]] ; then
+    printf "FAIL: expected {actual} %s%s, but {actual} is %s" \
+      "$not" "$matcher" "$visible_actual"
+  else
+    if [[ -n $expected ]] ; then
+      printf "FAIL: expected {actual} %s%s %s, but {actual} is: %s" \
+        "$not" "$matcher" "$expected" "$visible_actual"
+    else
+      printf "FAIL: expected {actual} %s%s, but {actual} is: %s" \
+        "$not" "$matcher" "$visible_actual"
+    fi
+  fi
+}
+
+# Execute test and handle result
+if test_value "$actual_value" "$matcher" "$expected_value" ; then
+  if $is_negated ; then
+    format_failure_message "$actual_value" "not " "$matcher" "$expected_value" >&2
+    exit 1
+  fi
+  exit 0
+else
+  if ! $is_negated ; then
+    format_failure_message "$actual_value" "" "$matcher" "$expected_value" >&2
+    exit 1
+  fi
   exit 0
 fi
-
-[[ $actual_value == '' ]] \
-  && visible_actual_value='(empty or not defined)' \
-  || visible_actual_value=$actual_value
-echo "FAIL: expected {actual} $compare_method $expected_value, but {actual} is: $visible_actual_value" >&2
-exit 1
 
 # The MIT License (MIT)
 #
