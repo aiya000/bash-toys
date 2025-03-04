@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Opens a selected bookmark in the default browser.
+# The bookmarks are defined in BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS (separated by '|').
+#
+# ```shell-session
+# $ bookmark-open
+# # Shows interactive filter with bookmarks
+# # Opens selected bookmark in the default browser
+# ```
+
+if [[ $1 == '--help' ]] ; then
+  cat << EOF
+bookmark-open - Opens a selected bookmark in the default browser
+
+Usage:
+  bookmark-open
+  bookmark-open --help
+
+Options:
+  --help  Show this help message
+EOF
+  exit 0
+fi
+
+selected=$(echo "$BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS" | tr '|' '\n' | sed -E 's/\((.*?)=(.*?)\)/\1: \2/' | eval "$BASH_TOYS_INTERACTIVE_FILTER")
+if [[ -n $selected ]] ; then
+  url=$(echo "$selected" | sed -E 's/.*?: *//')
+  xdg-open "$url" >/dev/null 2>&1
+fi
+
+# The MIT License (MIT)
+#
+# Copyright (c) 2024 aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
