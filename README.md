@@ -6,7 +6,7 @@ Welcome to **bash-toys**!
 
 ![](./readme/cat-which-dust.png)
 
-A product from me and **Cline (Roo Code)** :alien:
+A product from **Cline (Roo Code)** and me :alien:
 
 ## :bookmark_tabs: Table of Contents
 
