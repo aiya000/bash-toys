@@ -5,7 +5,7 @@
 @test '`expects --help` should show help message' {
   run expects --help
   [ "$status" -eq 0 ]
-  [ "${lines[0]}" = "expects - A smaller test API like Jest's expect() for bash" ]
+  [[ "${lines[0]}" =~ ^expects\ -\  ]]
   [ "${lines[1]}" = "" ]
   [ "${lines[2]}" = "Usage:" ]
 }

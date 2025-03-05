@@ -183,6 +183,11 @@ Refer to the "About `./sources`" section for additional details.
     - Environment setup should be handled in the setup() function
     - Focus tests on command behavior, not configuration
 
+- Help message testing conventions:
+    - First line must match the pattern `^{command-name} - ` using `to_match`
+    - Example: `expects "${lines[0]}" to_match '^my-command - '`
+    - Following lines can be exact matched using `to_equal`
+
 ## Git
 
 - Write commit messages in English.
@@ -199,3 +204,4 @@ Refer to the "About `./sources`" section for additional details.
     - If any risks exist, halt the process and consult with me for further instructions.
 
 - If installing OS packages (e.g., `$ sudo apt install {packages}` or `$ brew install {packages}`) is necessary, pause the task and consult with me first.
+
