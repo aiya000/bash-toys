@@ -195,7 +195,7 @@
 @test '`expects "" to_be_defined` should fail' {
   run expects "" to_be_defined
   [[ $status -eq 1 ]]
-  [[ $output == "FAIL: expected {actual} to_be_defined, but {actual} is empty" ]]
+  [[ $output == "FAIL: expected {actual} to_be_defined, but {actual} is (empty)" ]]
 }
 
 @test '`expects "" not to_be_defined` should succeed' {
@@ -207,4 +207,21 @@
   run expects "value" not to_be_defined
   [[ $status -eq 1 ]]
   [[ $output == "FAIL: expected {actual} not to_be_defined, but {actual} is 'value'" ]]
+}
+
+@test '`expects "" to_equal ""` should succeed' {
+  run expects "" to_equal ""
+  [[ $status -eq 0 ]]
+}
+
+@test '`expects "" to_equal "x"` should fail' {
+  run expects "" to_equal "x"
+  [[ $status -eq 1 ]]
+  [[ $output == "FAIL: expected {actual} to_equal 'x', but {actual} is (empty)" ]]
+}
+
+@test '`expects "x" to_equal ""` should fail' {
+  run expects "x" to_equal ""
+  [[ $status -eq 1 ]]
+  [[ $output == "FAIL: expected {actual} to_equal (empty), but {actual} is 'x'" ]]
 }
