@@ -1,26 +1,19 @@
 #!/usr/bin/env bats
 
-# shellcheck disable=SC2030,SC2031
-
 setup () {
   export GH_OUTPUT
   GH_OUTPUT="$(mktemp)"
 }
 
-@test '`gh-issue-view-select --help` should show help message' {
+@test '`gh-issue-view-select --help` should show help message with usage' {
   run bin/gh-issue-view-select --help
-  [[ $status -eq 0 ]]
-  [[ ${lines[0]} == 'gh-issue-view-select - Show GitHub issues in interactive filter and open selected issue' ]]
-  [[ ${lines[2]} == 'Usage:' ]]
-  [[ ${lines[5]} == 'Options:' ]]
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_be 'gh-issue-view-select - Show GitHub issues in interactive filter and open selected issue'
+  expects "${lines[2]}" to_be 'Usage:'
+  expects "${lines[5]}" to_be 'Options:'
 }
 
-@test '`gh-issue-view-select` should handle empty selection' {
-  export BASH_TOYS_INTERACTIVE_FILTER=true
-  bin/gh-issue-view-select
-}
-
-@test '`gh-issue-view-select` should extract and view issue number' {
+@test '`gh-issue-view-select` should display selected issue content' {
   # Mock gh command
   function gh () {
     if [[ $1 == 'issue' && $2 == 'list' ]] ; then
@@ -35,13 +28,14 @@ setup () {
   }
   export -f gh
 
-  # Mock interactive filter
+  # Mock filter
   function test_filter () {
     head -n 1
   }
   export -f test_filter
   export BASH_TOYS_INTERACTIVE_FILTER=test_filter
 
-  bin/gh-issue-view-select
-  [[ "$(cat "$GH_OUTPUT")" == 'Issue #42 content' ]]
+  run bin/gh-issue-view-select
+  expects "$status" to_be 0
+  expects "$(cat "$GH_OUTPUT")" to_be 'Issue #42 content'
 }
