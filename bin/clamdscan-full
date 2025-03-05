@@ -3,7 +3,6 @@
 # Performs a full virus scan using ClamAV.
 # Or scans only specified directories.
 #
-# Example:
 # ```shell-session
 # # Scan all common directories
 # $ clamdscan-full
@@ -33,7 +32,10 @@ Notes:
 EOF
 }
 
-[[ $1 == --help ]] && show_help && exit 0
+if [[ $1 == --help ]] ; then
+  show_help
+  exit 0
+fi
 
 if [[ $# -eq 0 ]] ; then
   target_paths=(/)
@@ -41,16 +43,53 @@ else
   target_paths=("$*")
 fi
 
-if command -v fdfind > /dev/null 2>&1 ; then
-  find_target_paths="fdfind . ${target_paths[*]} --min-depth 1 --exclude \"/{proc,sys,run,dev,snap,mnt}\" --type d"
-elif  command -v fd > /dev/null 2>&1 ; then
-  find_target_paths="fd . ${target_paths[*]} --min-depth 1 --exclude \"/{proc,sys,run,dev,snap,mnt}\" --type d"
-else
-  find_target_paths="find ${target_paths[*]} -mindepth 1 -not -path \"/proc\" -not -path \"/sys\" -not -path \"/run\" -not -path \"/dev\" -not -path \"/snap\" -not -path \"/mnt\" -type d"
-fi
+function find_target_paths () {
+  local type=$1
+  shift
+  local args=("$@")
+  local search_path="${target_paths[*]:-/}"
+  local find
+
+  if command -v fdfind > /dev/null 2>&1 ; then
+    find=fdfind
+  elif command -v fd > /dev/null 2>&1 ; then
+    find=fd
+  else
+    find='find'
+  fi
+
+  if [[ $find == fdfind || $find == fd ]] ; then
+    $find \
+      --min-depth 1 \
+      --type "$type" \
+      --exclude "/proc" \
+      --exclude "/sys" \
+      --exclude "/run" \
+      --exclude "/dev" \
+      --exclude "/snap" \
+      --exclude "/mnt" \
+      . "$search_path" \
+      "${args[@]}"
+    return
+  fi
+
+  find \
+    "$search_path" \
+    -mindepth 1 \
+    -type "$type" \
+    -not -path "/proc/*" \
+    -not -path "/sys/*" \
+    -not -path "/run/*" \
+    -not -path "/dev/*" \
+    -not -path "/snap/*" \
+    -not -path "/mnt/*" \
+    "${args[@]}"
+}
 
 logfile="/tmp/clamdscan_$(date '+%Y-%m-%d-%H-%M').log"
 count=0
+found_target_paths=$(find_target_paths d)
+total=$(echo "$found_target_paths" | wc -l)
 
 function show_progress () {
   echo -ne "\r"
@@ -60,14 +99,12 @@ function show_progress () {
 IFS=$'\n'
 touch "$logfile"
 
-total=$(eval "$find_target_paths" | wc -l)
-
-for dir in $(eval "$find_target_paths" 2>/dev/null) ; do
+for dir in $(find_target_paths d 2>/dev/null) ; do
   count=$((count + 1))
   show_progress
   echo "$dir" >> "$logfile"
 
-  for file in $(fdfind --full-path "$dir" --min-depth 1 --max-depth 1 --type f 2>/dev/null) ; do
+  for file in $(find_target_paths f "$dir" -max-depth 1 2>/dev/null) ; do
     clamdscan --fdpass --quiet "$file"
   done
 done
