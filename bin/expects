@@ -144,21 +144,31 @@ function test_value () {
 function format_failure_message () {
   local actual=$1 not=$2 matcher=$3 expected=$4
   local visible_actual=$actual
+  local visible_expected=$expected
 
+  # Handle empty values
   if [[ -z $actual ]] ; then
-    visible_actual=empty
+    visible_actual="(empty)"
+  else
+    visible_actual="'$actual'"
+  fi
+
+  if [[ -z $expected ]] ; then
+    visible_expected="(empty)"
+  else
+    visible_expected="'$expected'"
   fi
 
   # Special case for to_be_defined matcher
   if [[ $matcher == to_be_defined && -z $not ]] ; then
-    printf "FAIL: expected {actual} %s%s, but {actual} is '%s'" \
+    printf "FAIL: expected {actual} %s%s, but {actual} is %s" \
       "$not" "$matcher" "$visible_actual"
   else
     if [[ -n $expected ]] ; then
-      printf "FAIL: expected {actual} %s%s '%s', but {actual} is '%s'" \
-        "$not" "$matcher" "$expected" "$visible_actual"
+      printf "FAIL: expected {actual} %s%s %s, but {actual} is %s" \
+        "$not" "$matcher" "$visible_expected" "$visible_actual"
     else
-      printf "FAIL: expected {actual} %s%s, but {actual} is '%s'" \
+      printf "FAIL: expected {actual} %s%s, but {actual} is %s" \
         "$not" "$matcher" "$visible_actual"
     fi
   fi
