@@ -7,7 +7,7 @@
   expects "$status" to_be 0
   expects "${lines[0]}" to_match '^date-diff-seconds-now - '
   expects "${lines[1]}" to_equal ''
-  expects "${lines[2]}" to_equal 'Usage:'
+  expects "${lines[3]}" to_equal 'Usage:'
 }
 
 @test '`date-diff-seconds-now` with no arguments should show error' {

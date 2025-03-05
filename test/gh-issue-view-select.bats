@@ -9,8 +9,9 @@ setup () {
   run bin/gh-issue-view-select --help
   expects "$status" to_be 0
   expects "${lines[0]}" to_match '^gh-issue-view-select - '
-  expects "${lines[2]}" to_equal 'Usage:'
-  expects "${lines[5]}" to_equal 'Options:'
+  expects "${lines[1]}" to_equal ''
+  expects "${lines[3]}" to_equal 'Usage:'
+  expects "${lines[6]}" to_equal 'Options:'
 }
 
 @test '`gh-issue-view-select` should display selected issue content' {
