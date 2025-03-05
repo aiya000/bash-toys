@@ -185,8 +185,16 @@ Refer to the "About `./sources`" section for additional details.
 
 - Help message testing conventions:
     - First line must match the pattern `^{command-name} - ` using `to_match`
-    - Example: `expects "${lines[0]}" to_match '^my-command - '`
-    - Following lines can be exact matched using `to_equal`
+    - Second line must be empty
+    - Usage section starts at line 3
+    - Options section starts at line 6
+    - Example:
+      ```sh
+      expects "${lines[0]}" to_match '^my-command - '
+      expects "${lines[1]}" to_equal ''
+      expects "${lines[3]}" to_equal 'Usage:'
+      expects "${lines[6]}" to_equal 'Options:'
+      ```
 
 ## Git
 
