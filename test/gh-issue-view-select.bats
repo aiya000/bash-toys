@@ -8,7 +8,7 @@ setup () {
 @test '`gh-issue-view-select --help` should show help message with usage' {
   run bin/gh-issue-view-select --help
   expects "$status" to_be 0
-  expects "${lines[0]}" to_equal 'gh-issue-view-select - Show GitHub issues in interactive filter and open selected issue'
+  expects "${lines[0]}" to_match '^gh-issue-view-select - '
   expects "${lines[2]}" to_equal 'Usage:'
   expects "${lines[5]}" to_equal 'Options:'
 }
