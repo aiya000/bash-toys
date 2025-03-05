@@ -170,10 +170,18 @@ Refer to the "About `./sources`" section for additional details.
 
 ### Creating Test Files
 
-- Tests descriptions MUST BE ``'`{The actual run command} should {expected behavior}`'``
-- MUST use `./bin/expects` instead of `[[ ... ]]` and `[ ... ]`.
-    - The only exception is the test of `/bin/expects` itself.
-- Checking environment variables is not necessary.
+- Test descriptions MUST follow the format: ``'`{The actual run command} should {expected behavior}`'``
+    - The actual run command should be exactly as it would be typed in the terminal
+    - Example: ``'`my-command --flag` should display help message'``
+
+- Use `./bin/expects` for assertions instead of `[[ ... ]]` or `[ ... ]`
+    - This provides clearer error messages and more consistent testing
+    - Example: `expects "$status" to_be 0` instead of `[[ $status -eq 0 ]]`
+    - The only exception is tests for `/bin/expects` itself
+
+- Do not write tests that only check if environment variables are set
+    - Environment setup should be handled in the setup() function
+    - Focus tests on command behavior, not configuration
 
 ## Git
 
