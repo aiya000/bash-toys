@@ -170,8 +170,10 @@ Refer to the "About `./sources`" section for additional details.
 
 ### Creating Test Files
 
-- Use `[[ ... ]]` instead of `[ ... ]`.
-- Use `==` instead of `=` for string comparison.
+- Tests descriptions MUST BE ``'`{The actual run command} should {expected behavior}`'``
+- MUST use `./bin/expects` instead of `[[ ... ]]` and `[ ... ]`.
+    - The only exception is the test of `/bin/expects` itself.
+- Checking environment variables is not necessary.
 
 ## Git
 
