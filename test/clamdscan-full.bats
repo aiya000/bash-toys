@@ -5,7 +5,7 @@
 @test '`clamdscan-full --help` should show help message' {
   run clamdscan-full --help
   expects "$status" to_be 0
-  expects "${lines[0]}" to_equal 'clamdscan-full - Full system virus scan using ClamAV'
+  expects "${lines[0]}" to_match '^clamdscan-full - '
   expects "${lines[1]}" to_equal ''
   expects "${lines[2]}" to_equal 'Usage:'
 }

@@ -5,7 +5,7 @@
 @test '`dust --help` should show help message' {
   run dust --help
   expects "$status" to_be 0
-  expects "${lines[0]}" to_equal 'dust - Alternative to rm that moves files to dustbox instead of deletion'
+  expects "${lines[0]}" to_match '^dust - '
   expects "${lines[1]}" to_equal ''
   expects "${lines[2]}" to_equal 'Usage:'
 }

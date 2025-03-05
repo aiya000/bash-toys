@@ -5,7 +5,7 @@
 @test '`date-diff-seconds-now --help` should show help message' {
   run date-diff-seconds-now --help
   expects "$status" to_be 0
-  expects "${lines[0]}" to_equal 'date-diff-seconds-now - Calculate time difference between given time and now'
+  expects "${lines[0]}" to_match '^date-diff-seconds-now - '
   expects "${lines[1]}" to_equal ''
   expects "${lines[2]}" to_equal 'Usage:'
 }

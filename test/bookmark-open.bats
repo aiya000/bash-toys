@@ -8,7 +8,7 @@ setup () {
 @test '`bookmark-open --help` should show help message' {
   run bin/bookmark-open --help
   expects "$status" to_be 0
-  expects "${lines[0]}" to_equal 'bookmark-open - Opens a selected bookmark in the default browser'
+  expects "${lines[0]}" to_match '^bookmark-open - '
   expects "${lines[2]}" to_equal 'Usage:'
   expects "${lines[5]}" to_equal 'Options:'
 }

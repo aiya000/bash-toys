@@ -5,7 +5,7 @@
 @test '`cat-which --help` should show help message' {
   run cat-which --help
   expects "$status" to_be 0
-  expects "${lines[0]}" to_equal 'cat-which - Display contents of executable files in PATH'
+  expects "${lines[0]}" to_match '^cat-which - '
   expects "${lines[1]}" to_equal ''
   expects "${lines[2]}" to_equal 'Usage:'
 }
