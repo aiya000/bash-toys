@@ -13,6 +13,6 @@ source ./sources/get-var.sh
 
 @test '`get-var name` should failure if the variable is not defined' {
   run get-var name
-  [ "$status" -ne 0 ]
-  [ "$output" == '' ]
+  expects "$status" to_be 1
+  expects "$output" to_equal ''
 }

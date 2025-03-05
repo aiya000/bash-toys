@@ -29,18 +29,18 @@ teardown () {
 
 @test '`take-until-empty file_contains_empty_line` should take lines until an empty line appears' {
   run take-until-empty "$file_contains_empty_line"
-  [ "$status" -eq 0 ]
-  [ "$output" == "a"$'\n'"b" ]
+  expects "$status" to_be 0
+  expects "$output" to_equal "a"$'\n'"b"
 }
 
 @test '`take-until-empty < file_contains_empty_line` (using stdin/pipe) should take lines until an empty line appears' {
   result=$(take-until-empty < "$file_contains_empty_line")
-  [ "$?" -eq 0 ]
-  [ "$result" == "a"$'\n'"b" ]
+  expects "$?" to_be 0
+  expects "$result" to_equal "a"$'\n'"b"
 }
 
 @test '`take-until-empty file_contains_empty_line` should take all lines if no empty line appears' {
   run take-until-empty "$file_does_not_contain_empty_line"
-  [ "$status" -eq 0 ]
-  [ "$output" == "a"$'\n'"b"$'\n'"c" ]
+  expects "$status" to_be 0
+  expects "$output" to_equal "a"$'\n'"b"$'\n'"c"
 }

@@ -4,20 +4,20 @@
 
 @test '`cat-which --help` should show help message' {
   run cat-which --help
-  [ "$status" -eq 0 ]
-  [ "${lines[0]}" = "cat-which - Display contents of executable files in PATH" ]
-  [ "${lines[1]}" = "" ]
-  [ "${lines[2]}" = "Usage:" ]
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'cat-which - Display contents of executable files in PATH'
+  expects "${lines[1]}" to_equal ''
+  expects "${lines[2]}" to_equal 'Usage:'
 }
 
 @test '`cat-which` with no arguments should show error' {
   run cat-which
-  [ "$status" -eq 1 ]
-  [ "$output" = 'Error: 1 or more arguments required' ]
+  expects "$status" to_be 1
+  expects "$output" to_equal 'Error: 1 or more arguments required'
 }
 
 @test '`cat-which` with binary file should show error' {
   run cat-which bash
-  [ "$status" -eq 1 ]
-  [[ $output == "Not a plain text:"* ]]
+  expects "$status" to_be 1
+  expects "$output" to_match "^Not a plain text:"
 }

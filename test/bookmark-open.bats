@@ -7,10 +7,10 @@ setup () {
 
 @test '`bookmark-open --help` should show help message' {
   run bin/bookmark-open --help
-  [[ $status -eq 0 ]]
-  [[ "${lines[0]}" == "bookmark-open - Opens a selected bookmark in the default browser" ]]
-  [[ "${lines[2]}" == "Usage:" ]]
-  [[ "${lines[5]}" == "Options:" ]]
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'bookmark-open - Opens a selected bookmark in the default browser'
+  expects "${lines[2]}" to_equal 'Usage:'
+  expects "${lines[5]}" to_equal 'Options:'
 }
 
 @test '`bookmark-open` should open the first bookmark' {
@@ -22,6 +22,6 @@ setup () {
   export -f xdg-open
 
   run bin/bookmark-open
-  [[ $status -eq 0 ]]
-  [[ "$(cat "$XDG_OPEN_OUTPUT")" == 'https://example.com' ]]
+  expects "$status" to_be 0
+  expects "$(cat "$XDG_OPEN_OUTPUT")" to_equal 'https://example.com'
 }
