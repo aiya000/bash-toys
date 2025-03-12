@@ -159,16 +159,19 @@ function format_failure_message () {
     visible_expected="'$expected'"
   fi
 
-  # Special case for to_be_defined matcher
+  # Special cases for specific matchers
   if [[ $matcher == to_be_defined && -z $not ]] ; then
-    printf "FAIL: expected {actual} %s%s, but {actual} is %s" \
+    printf "FAIL: expected {actual} %s%s, but {actual} is %s\n" \
       "$not" "$matcher" "$visible_actual"
+  elif [[ $matcher == to_equal ]] ; then
+    printf "FAIL: expected {actual} %s%s %s, but {actual} is %s\n" \
+      "$not" "$matcher" "$visible_expected" "$visible_actual"
   else
     if [[ -n $expected ]] ; then
-      printf "FAIL: expected {actual} %s%s %s, but {actual} is %s" \
+      printf "FAIL: expected {actual} %s%s %s, but {actual} is %s\n" \
         "$not" "$matcher" "$visible_expected" "$visible_actual"
     else
-      printf "FAIL: expected {actual} %s%s, but {actual} is %s" \
+      printf "FAIL: expected {actual} %s%s, but {actual} is %s\n" \
         "$not" "$matcher" "$visible_actual"
     fi
   fi
