@@ -133,7 +133,7 @@ $ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
 
 Here is how to install each of the tools.
 
-1. Install a few of dependencies
+1. Install a few of dependencies **if the command you want is doing like `source ../lib/fun.sh`** -- Not necessary downloading fun.sh if the command you want is not doing it`
     - [fun.sh](https://github.com/ssledz/bash-fun)
 
 You can choice a path instead of `~/lib/bash-toys` freely.
