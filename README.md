@@ -133,22 +133,35 @@ $ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
 
 Here is how to install each of the tools.
 
-1. Install a few of dependencies **if the command you want is doing like `source ../lib/fun.sh`** -- Not necessary downloading fun.sh if the command you want is not doing it`
-    - [fun.sh](https://github.com/ssledz/bash-fun)
+1. Create base directory
 
 You can choice a path instead of `~/lib/bash-toys` freely.
 
 ```shell-session
 $ mkdir -p ~/lib/bash-toys || true
 $ echo ~/lib/bash-toys
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/fun.sh -o ~/lib/bash-toys/fun.sh
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o ~/lib/bash-toys/define-options.sh
-$ echo 'source ~/lib/bash-toys/fun.sh' >> ~/.bashrc
-$ echo 'source path/to/sources/define-options.sh' >> ~/.bashrc
 $ echo 'export PATH=$PATH:~/lib/bash-toys' >> ~/.bashrc
 ```
 
-2. Install a tool you want into your `$PATH`
+2. Install a few of dependencies
+    - **You can skip this step** if the script you want is doing like `source ../lib/fun.sh`
+        - Not necessary downloading fun.sh if the script you want is not doing it
+    - [fun.sh](https://github.com/ssledz/bash-fun)
+
+```shell-session
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/fun.sh -o ~/lib/bash-toys/fun.sh
+$ echo 'source ~/lib/bash-toys/fun.sh' >> ~/.bashrc
+```
+
+3. Install a utility script. This defines necessary environment variables
+    - **You can skip this step** if the script you want is not using any environment variables
+
+```shell-session
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o ~/lib/bash-toys/define-options.sh
+$ echo 'source path/to/sources/define-options.sh' >> ~/.bashrc
+```
+
+4. Install a tool you want into your `$PATH`
 
 For example, in this case, assumed you want to install 'bak'.
 Also the following assumes that `$PATH` contains `~/bin`.
