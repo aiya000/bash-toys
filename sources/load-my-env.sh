@@ -24,6 +24,7 @@ function load-my-env () {
       echo '  - gradlew'
       echo '  - idris'
       echo '  - linuxbrew'
+      echo '  - mise'
       echo '  - nvm'
       echo '  - pkgsrc'
       echo '  - rbenv'
@@ -238,12 +239,20 @@ function load-my-env () {
 
     cargo)
       if [[ -f ~/.cargo/env ]] ; then
-        # shellcheck disable=SC1090
-        source ~/.cargo/env
-        return
+        echo '~/.cargo/env is not found.' > /dev/stderr
+        return 1
       fi
-      echo '~/.cargo/env is not found.' > /dev/stderr
-      return 1
+      # shellcheck disable=SC1090
+      source ~/.cargo/env
+      ;;
+
+    mise)
+      if [[ ! -f ~/.local/bin/mise ]] ; then
+        echo '~/.local/bin/mise is not found.' > /dev/stderr
+        return 1
+      fi
+      # shellcheck disable=SC1090
+      eval "$(~/.local/bin/mise activate zsh)"
       ;;
 
     *)
