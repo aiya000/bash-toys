@@ -5,22 +5,22 @@
 # Simple usage (`mv README.md ...` is the result output):
 # ```shell-session
 # $ ls README.md  # Check existence of readme
-# $ dust README.md
+# $ rm-dust README.md
 # mv README.md /home/aiya000/.backup/dustbox/README.md_2025-02-25_13:45:37.md
 # ```
 #
 # ```shell-session
 # # TODO: List backed up files
-# $ dust --list
+# $ rm-dust --list
 # ```
 
 function show_help () {
   cat << 'EOF'
-dust - Alternative to rm that moves files to dustbox instead of deletion
+rm-dust - Alternative to rm that moves files to dustbox instead of deletion
 
 Usage:
-  dust FILE...
-  dust --help
+  rm-dust FILE...
+  rm-dust --help
 
 Arguments:
   FILE...          Files to move to dustbox
