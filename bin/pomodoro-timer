@@ -11,6 +11,9 @@
 # # You can specify pomodoro time count. e.g., below specifies 60 mins.
 # $ pomodoro-timer 60
 #
+# # Start timer from a specific time (e.g., start from 20:45 for 60 mins)
+# $ pomodoro-timer --from 20:45 60
+#
 # # Notify end of pomodoro rest time silently after 5 mins.
 # $ pomodoro-timer --rest
 #
@@ -40,6 +43,34 @@ if [[ $1 == --set-count ]] ; then
   touch "/tmp/pomodoro-$2"
   echo "The current pomodoro count is $2"
   exit
+fi
+
+if [[ $1 == --from ]] ; then
+  if [[ $2 == '' ]] ; then
+    echo '--from requires start time as a second argument (e.g., 20:45)' > /dev/stderr
+    exit 1
+  fi
+  if [[ $3 == '' ]] ; then
+    echo '--from requires duration in minutes as a third argument' > /dev/stderr
+    exit 1
+  fi
+
+  dir=$(dirname "$0")
+  from=$2
+  to=$(date +'%H:%M')  # Now
+  count=$3
+  consumed_minutes=$("$dir/date-diff-seconds" "$from" "$to")
+
+  # Calculate remaining time in minutes
+  remaining_time=$((count - consumed_minutes))
+
+  if [[ $remaining_time -le 0 ]] ; then
+    echo "Timer has already expired. Started at $from for $count minutes." > /dev/stderr
+    exit 1
+  fi
+
+  # Shift arguments to make the remaining code work with the calculated time
+  set -- "$remaining_time"
 fi
 
 function read_count_file () {
