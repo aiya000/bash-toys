@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# A script to efficiently sync files from a source to a target directory
+# by first comparing file lists to avoid a full rsync scan.
+
+set -e
+set -o pipefail
+
+# --- Colors for output ---
+C_GREEN='\033[0;32m'
+C_YELLOW='\033[0;33m'
+C_CYAN='\033[0;36m'
+C_RED='\033[0;31m'
+C_NONE='\033[0m' # No Color
+
+# --- Usage ---
+print_usage() {
+    echo -e "Usage: $0 <source_dir> <target_dir>"
+    echo -e "   or: $0 --init <directory_to_scan>"
+}
+
+# --- Command Definition ---
+# Check if fd is available, otherwise fall back to find
+if command -v fd >/dev/null 2>&1; then
+    LIST_COMMAND="fd"
+    list_files() {
+        # $1 is the directory to search
+        fd --type f . "$1" | sed "s|^$1/||" | sort
+    }
+elif command -v fdfind >/dev/null 2>&1; then
+    LIST_COMMAND="fdfind"
+    list_files() {
+        # $1 is the directory to search
+        fdfind --type f . "$1" | sed "s|^$1/||" | sort
+    }
+else
+    LIST_COMMAND="find"
+    list_files() {
+        # $1 is the directory to search
+        find "$1" -type f | sed "s|^$1/||" | sort
+    }
+fi
+
+# --- Argument Parsing & Mode Selection ---
+
+# TODO: Make to be structed better. Currently, using same .last_sync for any SOURCE_DIR and TARGET_DIR
+SYNC_STATE_FILE="$HOME/.last_sync"
+
+if [ "$1" == "--init" ]; then
+    if [ -z "$2" ]; then
+        print_usage
+        exit 1
+    fi
+    INIT_DIR="$2"
+    echo -e "${C_YELLOW}Initialization mode: Creating '${SYNC_STATE_FILE}' for directory:${C_NONE} $INIT_DIR"
+    echo -e "Using '${LIST_COMMAND}' for file listing..."
+    list_files "$INIT_DIR" > "$SYNC_STATE_FILE"
+    FILE_COUNT=$(wc -l < "$SYNC_STATE_FILE")
+    echo -e "${C_GREEN}Done. Found $FILE_COUNT files. '${SYNC_STATE_FILE}' created in the current directory.${C_NONE}"
+    exit 0
+fi
+
+if [ "$#" -ne 2 ]; then
+    print_usage
+    exit 1
+fi
+
+SOURCE_DIR="$1"
+TARGET_DIR="$2"
+
+echo -e "${C_GREEN}Syncing from:${C_NONE} $SOURCE_DIR"
+echo -e "${C_GREEN}         to:${C_NONE} $TARGET_DIR"
+
+# --- Sanity Checks ---
+# Check if source or target directories are empty, which might indicate a mount failure.
+if [ -z "$(ls -A "$SOURCE_DIR" 2>/dev/null)" ] || [ -z "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]; then
+    echo -e "${C_RED}Warning: Source or target directory appears to be empty.${C_NONE}"
+    echo "This could be due to a failed mount."
+
+    while true; do
+        read -p "Do you want to continue anyway? (yes/no) " yn
+        case $yn in
+            [Yy]es ) break;;
+            [Nn]o ) echo "Aborting."; exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+fi
+
+# --- Main Script ---
+
+echo -e "${C_YELLOW}Starting fast sync process...${C_NONE}"
+echo -e "Using '${LIST_COMMAND}' for file listing..."
+
+# Ensure target directory exists, create if not
+mkdir -p "$TARGET_DIR"
+
+echo -e "${C_CYAN}Step 1: Generating list of already synced files from target...${C_NONE}"
+list_files "$TARGET_DIR" > "$SYNC_STATE_FILE"
+TARGET_FILE_COUNT=$(wc -l < "$SYNC_STATE_FILE")
+echo -e " -> Found ${C_GREEN}$TARGET_FILE_COUNT${C_NONE} files in target directory."
+
+echo -e "${C_CYAN}Step 2: Finding new files in source...${C_NONE}"
+# Create a temporary file for the sorted list of source files
+SOURCE_FILES_SORTED=$(mktemp)
+list_files "$SOURCE_DIR" > "$SOURCE_FILES_SORTED"
+
+# Create a temporary file for the list of new files
+NEW_FILES=$(mktemp)
+# Use `comm` to find lines that are unique to the source list (`-23` suppresses lines unique to file2 and lines common to both)
+comm -23 "$SOURCE_FILES_SORTED" "$SYNC_STATE_FILE" > "$NEW_FILES"
+NEW_FILE_COUNT=$(wc -l < "$NEW_FILES")
+
+if [ "$NEW_FILE_COUNT" -eq 0 ]; then
+    echo -e "${C_GREEN}All up to date! No new files to sync.${C_NONE}"
+    rm "$SOURCE_FILES_SORTED" "$NEW_FILES"
+    exit 0
+fi
+
+echo -e " -> Found ${C_GREEN}$NEW_FILE_COUNT${C_NONE} new files to sync."
+echo -e "${C_CYAN}Step 3: Syncing new files with rsync...${C_NONE}"
+
+# Use rsync with --files-from to read the list of new files.
+# The paths in the list are relative, and rsync will look for them
+# inside the SOURCE_DIR.
+rsync -av --progress --files-from="$NEW_FILES" "$SOURCE_DIR/" "$TARGET_DIR/"
+
+echo -e "${C_GREEN}Sync complete! ✨${C_NONE}"
+
+# Clean up temporary files
+rm "$SOURCE_FILES_SORTED" "$NEW_FILES"
+
+echo "Cleaned up temporary files."
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
