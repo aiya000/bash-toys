@@ -4,9 +4,7 @@ Welcome to **bash-toys**!
 
 ![Test](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
 
-![](./readme/cat-which-dust.png)
-
-A product from **Cline (Roo Code)** and me :alien:
+![](./readme/cat-which-rm-dust.png)
 
 ## :bookmark_tabs: Table of Contents
 
@@ -43,8 +41,8 @@ For a complete list of scripts, please visit [./bin](https://github.com/aiya000/
 
 'bin' contains utility scripts that can run as child processes (in a subshell).
 
-- `dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
-    - `$ alias rm=dust` is highly recommended!
+- `rm-dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
+    - `$ alias rm=rm-dust` is highly recommended!
 - `pomodoro-timer`: A simplest **Pomodoro Timer** implementation in shell script
   - Please also see `pomodoro-timer-start-from`
 - `clamdscan-full`: Performs a full virus scan using ClamAV. Or scans only specified directories.
@@ -76,13 +74,13 @@ Use `bash-toys-help` to display help for any command:
 
 ```shell-session
 # Show help for bin commands
-$ bash-toys-help dust
+$ bash-toys-help rm-dust
 
 # Show help for source commands (Don't forget appending .sh extension)
 $ bash-toys-help cd-to-git-root.sh
 
 # Show help with markdown rendering (if glow is available)
-$ bash-toys-help --disable-glow dust  # Disable markdown rendering
+$ bash-toys-help --disable-glow rm-dust  # Disable markdown rendering
 ```
 
 ## :bookmark_tabs: Installation
