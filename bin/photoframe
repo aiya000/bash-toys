@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# Displays photos in fullscreen slideshow mode using feh.
+# Supports NAS mounting and photo directory access.
+#
+# Example:
+# ```shell-session
+# # Basic usage with pre-mounted NAS
+# $ photoframe /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20
+# Using NAS directory: /home/pi/LS210D6E9
+# # -> Starts slideshow with photos in /home/pi/LS210D6E9/Pictures/Family
+#
+# # Auto-mount NAS with credentials
+# $ photoframe /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword
+# Using NAS directory: /home/pi/LS210D6E9
+# NAS directory is not mounted. Try mounting to /home/pi/LS210D6E9
+# # -> Mounts NAS first, then starts slideshow
+#
+# # With user directory on NAS
+# $ photoframe /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword aiya000
+# Using NAS directory: /home/pi/LS210D6E9
+# # -> Accesses /home/pi/LS210D6E9/aiya000/Pictures/Family
+# ```
+
+function usage() {
+  echo "Usage:"
+  echo "  $0 <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [<nas_remote_username> <nas_remote_password> [nas_remote_user_dir]]"
+  echo
+  echo 'Example:'
+  echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20"
+  echo '  # Start photoframe with pictures in /home/pi/LS210D6E9/Pictures/Family'
+  echo '  # When NAS directory is not mounted yet, this fails.'
+  echo
+  echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword"
+  echo '  # Simular to above example, but if NAS directory is not mounted yet,'
+  echo '  # (photoframe refers to /home/pi/LS210D6E9/Pictures/Family),'
+  echo '  # this mounts it first with given username and password.'
+  echo
+  echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword aiya000"
+  echo '  # Almost same as above example.'
+  echo '  # Only difference is that photoframe refers to /home/pi/LS210D6E9/aiya000/Pictures/Family.'
+  echo '  # Some NASes (e.g. Buffalo NAS) has user directories. This is useful in that case.'
+}
+
+if [[ $1 == '-h' || $1 == '--help' ]] ; then
+  usage
+  exit 0
+fi
+
+if command -v feh >/dev/null 2>&1 ; then
+  echo 'feh is not installed. Please install it first.'
+  echo '  sudo apt-get install feh'
+  exit 1
+fi
+
+secs=60.0
+
+nas_local_mount_point=$1  # e.g. /home/pi/LS210D6E9
+nas_remote_photoframe_dir=$2  # e.g. /10-Picture/ペロララぷちまとめ
+nas_remote_ip=$3  # e.g. 192.168.1.20
+nas_remote_username=$4
+nas_remote_password=$5
+nas_remote_user_dir=$6  # aiya000
+
+remote_mount_dir="//$nas_remote_ip/$nas_remote_user_dir"
+local_photoframe_photos_dir="$nas_local_mount_point/$nas_remote_photoframe_dir"  # e.g. /home/pi/LS210D6E9/10-Picture/ペロララぷちまとめ
+
+# Ensure the mount point exists
+echo "Using NAS directory: $nas_local_mount_point"
+if [[ ! -d $nas_local_mount_point ]] ; then
+  echo "Missing mount point directory: $nas_local_mount_point"
+  mkdir -p $nas_local_mount_point || exit 1
+  echo "Created directory: $nas_local_mount_point"
+fi
+
+if [[ ! -d $nas_local_mount_point/$nas_remote_photoframe_dir ]] ; then  # If NAS is not mounted yet
+  echo "NAS directory is not mounted. Try mounting to $nas_local_mount_point"
+  if [[ $nas_remote_username == '' || $nas_remote_password == '' ]] ; then
+    (
+      echo 'Please specify NAS username and password when NAS directory is not mounted yet.'
+      echo 'Or mount it manually first before run this script.'
+    ) >&2
+    exit 1
+  fi
+  sudo mount -t cifs -o username=$1,password=$2,vers=1.0 "$remote_mount_dir" "$nas_local_mount_point" || exit 1
+fi
+
+feh "$local_photoframe_photos_dir" \
+	--randomize \
+	--recursive \
+	--auto-rotate \
+	--fullscreen \
+	--slideshow-delay "$secs"
+# -g 1600x1200 \
+# --borderless \
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
