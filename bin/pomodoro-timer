@@ -14,6 +14,9 @@
 # # Start timer from a specific time (e.g., start from 20:45 for 60 mins)
 # $ pomodoro-timer --from 20:45 60
 #
+# # Resume previous pomodoro-timer from history (automatically detects start time and duration)
+# $ pomodoro-timer --resume
+#
 # # Notify end of pomodoro rest time silently after 5 mins.
 # $ pomodoro-timer --rest
 #
@@ -43,6 +46,100 @@ if [[ $1 == --set-count ]] ; then
   touch "/tmp/pomodoro-$2"
   echo "The current pomodoro count is $2"
   exit
+fi
+
+if [[ $1 == --resume ]] ; then
+  # Check if rg is available, fallback to grep
+  if command -v rg &> /dev/null ; then
+    grep_cmd="rg"
+  else
+    grep_cmd="grep"
+  fi
+
+  # Use appropriate history command based on shell
+  # zsh: fc -li 1
+  # bash: history
+  if [[ -n $ZSH_VERSION ]] ; then
+    history_cmd="fc -li 1"
+  else
+    history_cmd="history"
+  fi
+
+  # Find available interactive filter
+  interactive_filter=""
+  if [[ -n $BASH_TOYS_INTERACTIVE_FILTER ]] && command -v "$BASH_TOYS_INTERACTIVE_FILTER" &> /dev/null ; then
+    interactive_filter="$BASH_TOYS_INTERACTIVE_FILTER"
+  elif command -v peco &> /dev/null ; then
+    interactive_filter="peco"
+  elif command -v fzf &> /dev/null ; then
+    interactive_filter="fzf"
+  elif command -v percol &> /dev/null ; then
+    interactive_filter="percol"
+  elif command -v sk &> /dev/null ; then
+    interactive_filter="sk"
+  else
+    echo 'No interactive filter found. Please install one of: peco, fzf, percol, sk' > /dev/stderr
+    echo 'Or set BASH_TOYS_INTERACTIVE_FILTER to your preferred filter' > /dev/stderr
+    exit 1
+  fi
+
+  # Get recent pomodoro-timer commands from history
+  history_size="${BASH_TOYS_POMODORO_RESUME_HISTORY_SIZE:-10}"
+  history_candidates=$(eval "$history_cmd" | $grep_cmd pomodoro-timer | $grep_cmd -v -- --resume | $grep_cmd -v "$grep_cmd" | tail -"$history_size")
+
+  if [[ -z $history_candidates ]] ; then
+    echo 'No previous pomodoro-timer execution found in history' > /dev/stderr
+    exit 1
+  fi
+
+  # Let user select which command to resume
+  selected_command=$(echo "$history_candidates" | "$interactive_filter")
+
+  if [[ -z $selected_command ]] ; then
+    echo 'No command selected' > /dev/stderr
+    exit 1
+  fi
+
+  # Extract time - handle both formats:
+  # zsh (fc -li 1): "13430  2025-10-09 04:46  pomodoro-timer 60"
+  # bash (history): "  123  12:34  pomodoro-timer 60"
+  # Check if field 2 contains a date (YYYY-MM-DD format)
+  if echo "$selected_command" | awk '{print $2}' | $grep_cmd -q '^[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$' ; then
+    # zsh format: time is in field 3
+    start_time=$(echo "$selected_command" | awk '{print $3}')
+  else
+    # bash format: time is in field 2
+    start_time=$(echo "$selected_command" | awk '{print $2}')
+  fi
+
+  # Extract all arguments after pomodoro-timer command
+  # This handles both "pomodoro-timer 60" and "pomodoro-timer --rest 10" cases
+  args=$(echo "$selected_command" | sed 's/.*pomodoro-timer //')
+
+  if [[ -z $start_time ]] ; then
+    echo 'Could not extract time from history' > /dev/stderr
+    echo "Selected command: $selected_command" > /dev/stderr
+    exit 1
+  fi
+
+  # Check if it was a regular timer or rest timer
+  if echo "$args" | $grep_cmd -q -- --rest ; then
+    # Rest timer case
+    rest_duration=$(echo "$args" | sed 's/--rest *//')
+    if [[ -z $rest_duration ]] ; then
+      rest_duration=5  # Default rest duration
+    fi
+    echo "Resuming rest timer from $start_time for $rest_duration minutes"
+    set -- --from "$start_time" "$rest_duration"
+  else
+    # Regular timer case
+    duration=$(echo "$args" | awk '{print $1}')
+    if [[ -z $duration ]] ; then
+      duration=30  # Default duration
+    fi
+    echo "Resuming work timer from $start_time for $duration minutes"
+    set -- --from "$start_time" "$duration"
+  fi
 fi
 
 if [[ $1 == --from ]] ; then
