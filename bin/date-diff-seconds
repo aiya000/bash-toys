@@ -42,11 +42,14 @@ this_month=$(date +%m-%d)
 function get_fully_qualified_date () {
   local text=$1
 
-  if [[ $text =~ ^[0-9][0-9]-[0-9][0-9] ]] ; then
-    # If a day is specified.
+  if [[ $text =~ ^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]] ; then
+    # If full date format is already provided (YYYY-MM-DD HH:MM)
+    echo "$text"
+  elif [[ $text =~ ^[0-9][0-9]-[0-9][0-9] ]] ; then
+    # If a day is specified (MM-DD HH:MM).
     echo "$this_year-$text"
   else
-    # If a day is omited.
+    # If a day is omited (HH:MM).
     echo "$this_year-$this_month $text"
   fi
 }

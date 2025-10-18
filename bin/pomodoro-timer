@@ -17,6 +17,9 @@
 # # Resume previous pomodoro-timer from history (automatically detects start time and duration)
 # $ pomodoro-timer --resume
 #
+# # Start timer from a specific date and time
+# $ pomodoro-timer --from '2025-09-24 23:50' 60
+#
 # # Notify end of pomodoro rest time silently after 5 mins.
 # $ pomodoro-timer --rest
 #
@@ -154,8 +157,17 @@ if [[ $1 == --from ]] ; then
 
   dir=$(dirname "$0")
   from=$2
-  to=$(date +'%H:%M')  # Now
   count=$3
+
+  # Detect format and generate appropriate current time
+  if [[ $from =~ ^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]] ; then
+    # Full date format: YYYY-MM-DD HH:MM
+    to=$(date +'%Y-%m-%d %H:%M')
+  else
+    # Time only format: HH:MM
+    to=$(date +'%H:%M')
+  fi
+
   consumed_minutes=$("$dir/date-diff-seconds" "$from" "$to")
 
   # Calculate remaining time in minutes
