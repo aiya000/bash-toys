@@ -85,7 +85,7 @@ $ bash-toys-help --disable-glow rm-dust  # Disable markdown rendering
 
 ## :bookmark_tabs: Installation
 
-In this section, we assumed you are using bash and `~/.bashrc`.
+In this section, we assumed you are using bash and `~/.bashrc`.  
 If you are using zsh, replace `~/.bashrc` with `~/.zshrc`.
 
 ### Install all tools
@@ -102,18 +102,35 @@ $ git clone --depth 1 https://github.com/aiya000/bash-toys.git path/to/bash-toys
 
 2. (**Optional**) Configure your options **if necessary**
 
-NOTE: You can use your favorite editor intead of `vim`.
+NOTE: You can use your favorite editor instead of `vim`.
 
 ```shell-session
 $ cd path/to/bash-toys
 $ vim define-options.sh  # Configure your options
 ```
 
-<details>
-<summary>An example of your define-options.sh</summary>
+Or
 
 ```shell-session
-$ cat define-options.sh
+$ vim path/to/your/.bashrc
+```
+
+For example (.bashrc):
+
+```bash
+# ...
+
+export BASH_TOYS_DUSTBOX_DIR="$HOME/dustbox"
+export BASH_TOYS_MUSIC_PLAYER='afplay /System/Library/Sounds/Funk.aiff'
+export BASH_TOYS_MUSIC_PLAYER_OPTIONS=''
+```
+
+(See ./define-options.sh for each options.)
+
+<details>
+<summary>An example of your define-options.sh (or your .bashrc)</summary>
+
+```bash
 export BASH_TOYS_INTERACTIVE_FILTER=fzf
 export BASH_TOYS_DUSTBOX_DIR="$HOME/dustbox"
 export BASH_TOYS_BATCAT_OPTIONS=''
