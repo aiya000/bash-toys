@@ -130,7 +130,7 @@ fi
 
 for (( minutes = 0; minutes < "$interval"; minutes++ )) ; do
   echo "> $((minutes + 1)) minutes / $interval"
-  sleep 1m
+  sleep 60 # 1min. NOTE: macOS doesn't support `sleep 1m` format. Specify 60 (sec)
 done
 
 echo "> $(date)"
@@ -142,11 +142,11 @@ else
   increase_count_file
 fi
 
-$BASH_TOYS_MUSIC_PLAYER "$BASH_TOYS_MUSIC_PLAYER_OPTIONS" "$BASH_TOYS_POMODORO_NOTIFICATION_MUSIC" 2> /dev/null &
+$BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED 2> /dev/null &
 
 player_pid=$!
 (
-  sleep "$BASH_TOYS_POMODORO_NOTIFICATION_DURATION"
+  sleep "$BASH_TOYS_DURATION_WHEN_POMODORO_TIMER_FINISHED"
   kill "$player_pid" 2> /dev/null
 ) &
 
