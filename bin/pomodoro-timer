@@ -102,7 +102,7 @@ if [[ $1 == --clean ]] ; then
 fi
 
 is_rest_time=false
-interval=30
+interval=${BASH_TOYS_POMODORO_DEFAULT_INTERVAL:-30}
 if [[ $1 == --rest ]] ; then
   is_rest_time=true
   if [[ -n $2 ]] ; then
@@ -110,7 +110,7 @@ if [[ $1 == --rest ]] ; then
   else
     interval=5
   fi
-elif [[ -n $1 ]] ; then
+elif [[ $1 != '' ]] ; then
   interval=$1
 fi
 
