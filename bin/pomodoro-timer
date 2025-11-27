@@ -142,7 +142,7 @@ else
   increase_count_file
 fi
 
-$BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED 2> /dev/null &
+$BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED &
 
 player_pid=$!
 (
