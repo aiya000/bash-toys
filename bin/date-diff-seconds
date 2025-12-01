@@ -54,8 +54,15 @@ function get_fully_qualified_date () {
 from=$(get_fully_qualified_date "$2")
 now=$(get_fully_qualified_date "$1")
 
-from_raw=$(date --date "$from" +%s)
-now_raw=$(date --date "$now" +%s)
+if date --version &> /dev/null ; then
+  # GNU date (Linux)
+  from_raw=$(date --date "$from" +%s)
+  now_raw=$(date --date "$now" +%s)
+else
+  # BSD date (macOS)
+  from_raw=$(date -j -f "%Y-%m-%d %H:%M" "$from" +%s)
+  now_raw=$(date -j -f "%Y-%m-%d %H:%M" "$now" +%s)
+fi
 
 echo "$(( (from_raw - now_raw) / 60 ))"
 
