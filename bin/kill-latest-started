@@ -7,10 +7,47 @@
 # $ nvim  # [B] On other terminal or terminal multiplexer
 # $ kill-latest-started nvim
 # (Only the [B] process is killed. The [A] process is still running.)
+#
+# # With signal support:
+# $ kill-latest-started -9 nvim
+# $ kill-latest-started nvim -9
+# $ kill-latest-started -KILL nvim
 # ```
 
-process_name=$1
-kill $(pgrep "$process_name" | tail -1)
+signal=""
+process_name=""
+
+# Parse arguments to extract signal and process name
+for arg in "$@" ; do
+  if [[ $arg == -* ]] ; then
+    signal="$arg" # a signal like -9, -KILL, -TERM, or etc
+  else
+    process_name="$arg"
+  fi
+done
+
+# Validate that process name is provided
+if [[ $process_name == '' ]] ; then
+  echo "Usage: kill-latest-started [-signal] <process_name>" >&2
+  echo "Examples:" >&2
+  echo "  kill-latest-started nvim" >&2
+  echo "  kill-latest-started -9 nvim" >&2
+  echo "  kill-latest-started nvim -9" >&2
+  exit 1
+fi
+
+latest_pid=$(pgrep "$process_name" | tail -1)
+if [[ $latest_pid == '' ]] ; then
+  echo "Error: No process named '$process_name' found" >&2
+  exit 1
+fi
+
+if kill $signal "$latest_pid" 2>/dev/null ; then
+  echo "Successfully killed process '$process_name' (PID: $latest_pid) with signal ${signal:-TERM}"
+else
+  echo "Error: Failed to kill process '$process_name' (PID: $latest_pid)" >&2
+  exit 1
+fi
 
 # https://github.com/aiya000/bash-toys
 #
