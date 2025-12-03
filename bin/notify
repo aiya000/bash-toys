@@ -1,16 +1,25 @@
 #!/bin/bash
 
 # Send notification with title and message to GUI
+# ```shell-session
+# $ notify title message  # The notification is shown on your Desktop
+# ```
 
 show_help() {
   cat << EOF
-Usage: notify <title> <message>
+Usage: notify <title> <message> [sound]
 
 Send a notification with title and message to the GUI.
 
 Examples:
   notify "Task Complete" "Your build has finished"
-  notify "Warning" "Low disk space detected"
+  notify "Warning" "Low disk space detected" "Glass"
+  notify "Reminder" "Meeting time" "default"
+
+Sound options:
+  - macOS: System sound names (default, Glass, Basso, etc.)
+  - Linux: System sound files (/usr/share/sounds/*)
+  - Windows: System sound names
 
 Supported platforms:
   - Windows (WSL): Uses notifu.exe
@@ -20,12 +29,63 @@ Supported platforms:
 EOF
 }
 
+# TODO: Refactor
+
+title="$1"
+message="$2"
+sound="${3:-}"
+
 if command -v notifu.exe >/dev/null 2>&1 ; then # WSL
-  notifu.exe /p "$1" /m "$2" &> /dev/null
+  if [ -n "$sound" ]; then
+    notifu.exe /p "$title" /m "$message" /d 5000 &> /dev/null
+  else
+    notifu.exe /p "$title" /m "$message" &> /dev/null
+  fi
 elif command -v osascript >/dev/null 2>&1 ; then # macOS
-  osascript -e "display notification \"$2\" with title \"$1\""
+  if [ -n "$sound" ] && [ "$sound" != "none" ]; then
+    # Check if sound is a file path (contains slash) or system sound name
+    if [[ "$sound" == */* ]] && [ -f "$sound" ]; then
+      # Play audio file with afplay
+      osascript -e "display notification \"$message\" with title \"$title\""
+      if command -v afplay >/dev/null 2>&1; then
+        afplay "$sound" &
+      fi
+    elif [ "$sound" = "default" ]; then
+      osascript -e "display notification \"$message\" with title \"$title\" sound name \"default\""
+    else
+      osascript -e "display notification \"$message\" with title \"$title\" sound name \"$sound\""
+    fi
+  else
+    osascript -e "display notification \"$message\" with title \"$title\""
+  fi
 elif command -v notify-send >/dev/null 2>&1 ; then # Pure Linux
-  notify-send "$1" "$2"
+  notify-send "$title" "$message"
+  # Play sound if specified and available
+  if [ -n "$sound" ] && [ "$sound" != "none" ]; then
+    if [ "$sound" = "default" ]; then
+      # Try common default sound files
+      for sound_file in /usr/share/sounds/alsa/Rear_Left.wav /usr/share/sounds/pop.wav /usr/share/sounds/ubuntu/stereo/message-new-instant.ogg; do
+        if [ -f "$sound_file" ] && command -v paplay >/dev/null 2>&1; then
+          paplay "$sound_file" &
+          break
+        elif [ -f "$sound_file" ] && command -v aplay >/dev/null 2>&1; then
+          aplay "$sound_file" &
+          break
+        fi
+      done
+    else
+      # Try to play custom sound file
+      if [ -f "$sound" ] && command -v paplay >/dev/null 2>&1; then
+        paplay "$sound" &
+      elif [ -f "$sound" ] && command -v aplay >/dev/null 2>&1; then
+        aplay "$sound" &
+      elif [ -f "/usr/share/sounds/$sound" ] && command -v paplay >/dev/null 2>&1; then
+        paplay "/usr/share/sounds/$sound" &
+      elif [ -f "/usr/share/sounds/$sound" ] && command -v aplay >/dev/null 2>&1; then
+        aplay "/usr/share/sounds/$sound" &
+      fi
+    fi
+  fi
 else
   echo "Error: No notification system available on this platform."
   echo ""
