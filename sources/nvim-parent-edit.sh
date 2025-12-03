@@ -25,9 +25,9 @@ if [[ $NVIM_PARENT_ADDRESS == '' ]] ; then
   return 1
 fi
 
-function nvim_parent_edit() {
+function nvim-parent-edit() {
   if [[ $# -eq 0 ]] ; then
-    echo 'Usage: nvim <filename>'
+    echo 'Usage: nvim-parent-edit <open_method> <filename>'
     return 1
   fi
 
@@ -36,14 +36,50 @@ function nvim_parent_edit() {
     return 1
   fi
 
+  local open_method="$1"
+  if [[ $open_method == '' ]] ; then
+    echo 'Usage: nvim-parent-edit <open_method> <filename>'
+    return 1
+  fi
+
   # Get the absolute file path
-  local filepath="$1"
+  local filepath="$2"
   if [[ "$filepath" != /* ]] ; then
     filepath="$(realpath "$filepath")"
   fi
 
   # Open file in parent Neovim
-  if command nvim --server "$NVIM_PARENT_ADDRESS" --remote-tab "$filepath" 2>/dev/null ; then
+  local result_code=0
+  case $open_method in
+    tabnew)
+      nvim --server "$NVIM_PARENT_ADDRESS" --remote-tab "$filepath" 2>/dev/null
+      result_code=$?
+      ;;
+    split)
+      echo 'split method is not yet implemented' 2>&1
+      return 1
+      # TODO: Implement
+      # local vim_command
+      # vim_command=$(printf "execute('split ' .. shellescape('%s'))" "$filepath")
+      # nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
+      # result_code=$?
+      ;;
+    vsplit)
+      echo 'vsplit method is not yet implemented' 2>&1
+      return 1
+      # TODO: Implement
+      # local vim_command
+      # vim_command=$(printf "execute('vsplit ' .. shellescape('%s'))" "$filepath")
+      # nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
+      # result_code=$?
+      ;;
+    *)
+      echo "Unknown open method: $open_method"
+      return 1
+      ;;
+  esac
+
+  if [[ $result_code == 0 ]] ; then
     echo "✓ Opened '$filepath' in parent Neovim"
     return
   fi
@@ -52,7 +88,18 @@ function nvim_parent_edit() {
   return 1
 }
 
-alias nvim='nvim_parent_edit'
+function nvim-parent-tabnew() {
+  nvim-parent-edit tabnew "$1"
+}
+
+function nvim-parent-split() {
+  nvim-parent-edit split "$1"
+}
+
+function nvim-parent-vsplit() {
+  nvim-parent-edit vsplit "$1"
+}
+
 echo "✓ Parent Neovim RPC integration ready (server: $NVIM_PARENT_ADDRESS)"
 
 # https://github.com/aiya000/bash-toys
