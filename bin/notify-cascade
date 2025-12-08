@@ -1,0 +1,165 @@
+#!/bin/bash
+
+# Sends cascade of notifications at specified intervals before target time
+#
+# Requirements:
+# - ./notify-at
+# - ./notify
+#
+# ```shell-session
+# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m 10m 5m
+# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m /path/to/sound.wav
+# ```
+
+set -e
+
+if [[ $# -lt 3 ]] ; then
+  echo "Usage: $0 HH:MM title message [timing1] [timing2] ... [sound]"
+  echo "Examples:"
+  echo "  $0 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m"
+  echo "  $0 15:00 'Meeting' 'Team meeting starts' 1h 30m /path/to/sound.wav"
+  echo ""
+  echo "Timing formats: 4h (4 hours), 30m (30 minutes), 45s (45 seconds)"
+  exit 1
+fi
+
+time="$1"
+title="$2"
+message="$3"
+
+# Parse timing arguments and potential sound file
+timings=()
+sound=""
+
+for i in $(seq 4 $#) ; do
+  arg="${!i}"
+
+  # Check if argument looks like a timing (contains h, m, or s)
+  if [[ "$arg" =~ ^[0-9]+[hms]$ ]] ; then
+    timings+=("$arg")
+  else
+    # Assume it's a sound file if it doesn't match timing pattern
+    sound="$arg"
+    break
+  fi
+done
+
+# Use default sound if not specified
+if [[ $sound == '' ]] ; then
+  sound="${BASH_TOYS_NOTIFY_CASCADE_DEFAULT_SOUND:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
+fi
+
+# Function to convert timing to seconds
+function timing_to_seconds() {
+  local timing="$1"
+  local number="${timing%?}"
+  local unit="${timing: -1}"
+
+  case "$unit" in
+    h) echo $((number * 3600)) ;;
+    m) echo $((number * 60)) ;;
+    s) echo "$number" ;;
+    *) echo "0" ;;
+  esac
+}
+
+# Calculate target time
+now=$(date +%s)
+
+# TODO: Create date wrapper for GNU date and BSD date
+if date --version >/dev/null 2>&1 ; then
+  # GNU date (Linux)
+  today=$(date +%Y-%m-%d)
+  target=$(date -d "$today $time" +%s 2>/dev/null || {
+    echo "Error: Invalid time format (HH:MM)"
+    exit 1
+  })
+else
+  # BSD date (macOS)
+  target=$(date -j -f "%H:%M" "$time" +%s 2>/dev/null || {
+    echo "Error: Invalid time format (HH:MM)"
+    exit 1
+  })
+fi
+
+# If specified time is in the past, treat it as tomorrow
+if [[ $target -le $now ]] ; then
+  target=$((target + 86400))
+fi
+
+echo "Cascade notifications scheduled for: $time"
+echo "Title: $title"
+echo "Message: $message"
+echo ""
+
+# TODO: Refactor
+
+# If no timings specified, show single notification at target time
+if [[ ${#timings[@]} -eq 0 ]] ; then
+  seconds=$((target - now))
+  minutes=$((seconds / 60))
+  echo "Single notification: $minutes minutes later"
+
+  (
+    notify-at "$time" "$title" "$message" "$sound"
+  ) &
+
+  echo "Process ID: $!"
+else
+  # Schedule notifications for each timing
+  pids=()
+  for timing in "${timings[@]}" ; do
+    offset_seconds=$(timing_to_seconds "$timing")
+    notification_time=$((target - offset_seconds))
+
+    # Skip if notification time is in the past
+    if [[ $notification_time -le $now ]] ; then
+      echo "Skipping $timing notification (time already passed)"
+      continue
+    fi
+
+    sleep_seconds=$((notification_time - now))
+    minutes=$((sleep_seconds / 60))
+
+    # Create timing-specific message
+    timing_message="$message ($timing before)"
+
+    echo "$timing notification: in $minutes minutes"
+
+    # Calculate the absolute time for this notification
+    notification_hour=$(date -d "@$notification_time" +"%H:%M" 2>/dev/null || date -r "$notification_time" +"%H:%M")
+
+    (
+      notify-at "$notification_hour" "$title" "$timing_message" "$sound"
+    ) &
+
+    pids+=($!)
+  done
+
+  echo ""
+  echo "Process IDs: ${pids[*]}"
+fi
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
