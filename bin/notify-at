@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Send notification at specified time
+# Sends notification at specified time
 #
 # Requirements:
 # - ./notify
@@ -11,7 +11,7 @@
 
 set -e
 
-if [ $# -lt 3 ] ; then
+if [[ $# -lt 3 ]] ; then
   echo "Usage: $0 HH:MM title message [sound]"
   echo "Example: $0 13:30 'Reminder' 'Meeting time' default"
   exit 1
@@ -23,8 +23,8 @@ message="$3"
 sound="${4:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
 now=$(date +%s)
 
-# TODO: Create date wrapper for GNU date and VSD date
-if date --version >/dev/null 2>&1; then
+# TODO: Create date wrapper for GNU date and BSD date
+if date --version >/dev/null 2>&1 ; then
   # GNU date (Linux)
   today=$(date +%Y-%m-%d)
   target=$(date -d "$today $time" +%s 2>/dev/null || {
