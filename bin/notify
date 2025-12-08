@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# Send notification with title and message to GUI
+# Sends notification with title and message to your Desktop
+#
 # ```shell-session
-# $ notify title message  # The notification is shown on your Desktop
+# $ notify title message
 # ```
+#
+# Note for macOS :
+# To make notifications stay longer, go to System Settings > Notifications & Focus,
+# find "Script Editor" and change the alert style to "Alerts" instead of "Banners".
 
-show_help() {
+function show_help() {
   cat << EOF
 Usage: notify <title> <message> [sound]
 
@@ -26,71 +31,48 @@ Supported platforms:
   - macOS: Uses osascript
   - Linux: Uses notify-send
 
+macOS Note:
+  To make notifications stay longer, go to System Settings > Notifications & Focus,
+  find "Script Editor" and change the alert style to "Alerts" instead of "Banners".
+
 EOF
 }
-
-# TODO: Refactor
 
 title="$1"
 message="$2"
 sound="${3:-}"
 
-if command -v notifu.exe >/dev/null 2>&1 ; then # WSL
-  if [ -n "$sound" ]; then
-    notifu.exe /p "$title" /m "$message" /d 5000 &> /dev/null
-  else
-    notifu.exe /p "$title" /m "$message" &> /dev/null
+# WSL
+if command -v notifu.exe >/dev/null 2>&1 ; then
+  if [[ $sound != '' ]] ; then
+    echo "Error: Sorry, this feature is not implemented yet for your environment." 2>&1
+    exit 1
   fi
-elif command -v osascript >/dev/null 2>&1 ; then # macOS
-  if [ -n "$sound" ] && [ "$sound" != "none" ]; then
-    # Check if sound is a file path (contains slash) or system sound name
-    if [[ "$sound" == */* ]] && [ -f "$sound" ]; then
-      # Play audio file with afplay
-      osascript -e "display notification \"$message\" with title \"$title\""
-      if command -v afplay >/dev/null 2>&1; then
-        afplay "$sound" &
-      fi
-    elif [ "$sound" = "default" ]; then
-      osascript -e "display notification \"$message\" with title \"$title\" sound name \"default\""
-    else
-      osascript -e "display notification \"$message\" with title \"$title\" sound name \"$sound\""
-    fi
-  else
-    osascript -e "display notification \"$message\" with title \"$title\""
-  fi
-elif command -v notify-send >/dev/null 2>&1 ; then # Pure Linux
-  notify-send "$title" "$message"
-  # Play sound if specified and available
-  if [ -n "$sound" ] && [ "$sound" != "none" ]; then
-    if [ "$sound" = "default" ]; then
-      # Try common default sound files
-      for sound_file in /usr/share/sounds/alsa/Rear_Left.wav /usr/share/sounds/pop.wav /usr/share/sounds/ubuntu/stereo/message-new-instant.ogg; do
-        if [ -f "$sound_file" ] && command -v paplay >/dev/null 2>&1; then
-          paplay "$sound_file" &
-          break
-        elif [ -f "$sound_file" ] && command -v aplay >/dev/null 2>&1; then
-          aplay "$sound_file" &
-          break
-        fi
-      done
-    else
-      # Try to play custom sound file
-      if [ -f "$sound" ] && command -v paplay >/dev/null 2>&1; then
-        paplay "$sound" &
-      elif [ -f "$sound" ] && command -v aplay >/dev/null 2>&1; then
-        aplay "$sound" &
-      elif [ -f "/usr/share/sounds/$sound" ] && command -v paplay >/dev/null 2>&1; then
-        paplay "/usr/share/sounds/$sound" &
-      elif [ -f "/usr/share/sounds/$sound" ] && command -v aplay >/dev/null 2>&1; then
-        aplay "/usr/share/sounds/$sound" &
-      fi
-    fi
-  fi
-else
-  echo "Error: No notification system available on this platform."
-  echo ""
-  show_help
+  notifu.exe /p "$title" /m "$message" &> /dev/null
+  exit
 fi
+
+# macOS
+if command -v osascript >/dev/null 2>&1 ; then
+  osascript -e "display notification \"$message\" with title \"$title\""
+  if [[ $sound != '' ]] ; then
+    afplay "$sound" &
+  fi
+  exit
+fi
+
+# Pure Linux
+if command -v notify-send >/dev/null 2>&1 ; then
+  notify-send "$title" "$message"
+  if [[ $sound != '' ]] ; then
+      paplay "$sound" &
+  fi
+  exit
+fi
+
+echo "Error: No notification system available on this platform."
+echo ""
+show_help
 
 # https://github.com/aiya000/bash-toys
 #
