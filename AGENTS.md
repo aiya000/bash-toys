@@ -1,12 +1,14 @@
 # AGENTS.md
 
+When contributing or modifying scripts, please ensure adherence to these style guidelines.
+
 ## Bash Coding Style Conventions
 
 This project follows specific bash coding style conventions for consistency and readability.
 
 ### String Comparison Style
 
-**Use explicit string comparison instead of test operators:**
+Use explicit string comparison instead of test operators:
 
 ```bash
 # Preferred (explicit)
@@ -18,9 +20,48 @@ This project follows specific bash coding style conventions for consistency and 
 [[ -z "$bar" ]]
 ```
 
+### Quoting Style
+
+#### Normal Command Arguments
+
+```bash
+# Preferred (no quotes)
+cmd arg1 arg2
+
+# Preferred (variables needs double quotes)
+cmd "$variable"
+
+# Avoid (plain strings doesn't need quotes)
+cmd "arg1" "arg2"
+cmd 'arg1' 'arg2'
+```
+
+#### Test Expressions Lhs
+
+```bash
+# Preferred (no quotes)
+[[ $variable == 'value' ]]
+
+# Avoid (unnecessary quotes)
+[[ "$variable" == 'value' ]]
+
+# Avoid (unnecessary quotes)
+[[ $variable == 'value' ]]
+```
+
+#### Test Expressions Rhs
+
+```bash
+# Preferred (single quotes)
+[[ $variable == 'value' ]]
+
+# Avoid (double quotes)
+[[ "$variable" == "value" ]]
+```
+
 ### Conditional Statement Formatting
 
-**Add spaces around semicolons in conditional statements:**
+Add spaces around semicolons in conditional statements:
 
 ```bash
 # Preferred (spaces around semicolon)
@@ -36,7 +77,7 @@ fi
 
 ### Test Command Style
 
-**Use bash-style double brackets instead of POSIX single brackets:**
+Use bash-style double brackets instead of POSIX single brackets:
 
 ```bash
 # Preferred (bash-style)
@@ -48,7 +89,7 @@ fi
 
 ### Indentation Style
 
-**Use 2 spaces for indentation (not tabs or 4 spaces):**
+Use 2 spaces for indentation (not tabs or 4 spaces):
 
 ```bash
 # Preferred (2 spaces)
@@ -67,22 +108,3 @@ if [[ condition ]] ; then
     fi
 fi
 ```
-
-### Rationale
-
-These conventions prioritize:
-- **Explicitness**: String comparisons are more readable when stated explicitly
-- **Consistency**: Uniform formatting makes code easier to scan and maintain
-- **Bash features**: Using `[[` provides better error handling and feature support than `[`
-- **Spacing**: Consistent whitespace improves readability
-- **Compactness**: 2-space indentation saves horizontal space while maintaining readability
-
-### Application
-
-These conventions should be applied to all bash scripts in this project, including:
-- `bin/notify`
-- `bin/notify-at`
-- `bin/notify-cascade`
-- All other bash utilities
-
-When contributing or modifying scripts, please ensure adherence to these style guidelines.
