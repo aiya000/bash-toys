@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# Runs two commands sequentially, with the second triggered after the first becomes silent
+#
+# Example:
+# ```shell-session
+# $ run-wait-output 1000 "npm run watch" "echo Build complete"
+# ```
+# This executes the first command is immediately.
+# The second command is also executed after the first command's output has been silent for the 100ms.
+
+function show_help() {
+  cat << EOF
+Usage: run-wait-output <milliseconds> <command1> <command2>
+
+Executes command1 immediately, then executes command2 after command1's output
+has been silent for the specified duration.
+
+Arguments:
+  milliseconds    Milliseconds to wait after output stops
+  command1        First command to execute immediately
+  command2        Second command to execute after silence
+
+Examples:
+  run-wait-output 1000 "npm run watch" "echo Build stable"
+  run-wait-output 500 "tsc --watch" "npm test"
+  run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
+
+Exit Status:
+  Returns the exit status of command2.
+  If command1 exits, command2 will execute after the silence period.
+EOF
+}
+
+if [[ $# -lt 3 ]] ; then
+  show_help
+  exit 1
+fi
+
+if [[ $1 == '-h' || $1 == '--help' ]] ; then
+  show_help
+  exit 0
+fi
+
+# TODO: Refactor
+
+milliseconds="$1"
+command1="$2"
+command2="$3"
+
+# Validate milliseconds is a number
+if ! [[ $milliseconds =~ ^[0-9]+$ ]] ; then
+  echo "Error: milliseconds must be a positive integer" >&2
+  show_help
+  exit 1
+fi
+
+seconds=$(echo "scale=3; $milliseconds / 1000" | bc)
+
+# Create temporary file to track output
+tmpfile=$(mktemp)
+trap "rm -f $tmpfile" EXIT
+
+echo "==> Executing: $command1"
+echo "==> Waiting for ${milliseconds}ms of silence before executing command2..."
+
+# Start command1 in background and monitor its output
+eval "$command1" 2>&1 | tee >(cat > "$tmpfile.live") &
+cmd1_pid=$!
+
+last_size=0
+silent_time=0
+check_interval=0.1
+cmd2_executed=false
+
+while kill -0 $cmd1_pid 2>/dev/null || [[ -e "$tmpfile.live" ]] ; do
+  sleep $check_interval
+
+  if [[ -e "$tmpfile.live" ]] ; then
+    current_size=$(wc -c < "$tmpfile.live" 2>/dev/null || echo 0)
+
+    if [[ $current_size -eq $last_size ]] ; then
+      silent_time=$(echo "$silent_time + $check_interval" | bc)
+
+      if (( $(echo "$silent_time >= $seconds" | bc -l) )) && [[ $cmd2_executed == 'false' ]] ; then
+        echo ""
+        echo "==> Output silent for ${milliseconds}ms, executing: $command2"
+        eval "$command2"
+        status2=$?
+        cmd2_executed=true
+
+        rm -f "$tmpfile.live" "$tmpfile.status"
+
+        # Wait for command1 to finish
+        wait $cmd1_pid 2>/dev/null
+        exit $status2
+      fi
+    else
+      silent_time=0
+      last_size=$current_size
+    fi
+  else
+    break
+  fi
+done
+
+# Command1 finished before silence timeout or command2 execution
+if [[ $cmd2_executed == 'false' ]] ; then
+  wait $cmd1_pid 2>/dev/null
+  status1=$?
+
+  echo ""
+  echo "==> First command completed with status: $status1"
+  echo "==> Executing: $command2"
+  eval "$command2"
+  status2=$?
+
+  rm -f "$tmpfile.live" "$tmpfile.status"
+  exit $status2
+else
+  wait $cmd1_pid 2>/dev/null
+  rm -f "$tmpfile.live" "$tmpfile.status"
+  exit $status2
+fi
