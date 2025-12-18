@@ -4,7 +4,7 @@
 # And kills the processs you selected.
 #
 # ```shell-session
-# $ killing-art
+# $ killing-list
 # (Showing a list of processes with `BASH_TOYS_INTERACTIVE_FILTER` like 'peco' and 'fzf')
 # ```
 
@@ -20,17 +20,47 @@ else
 fi
 
 if [[ $(uname) == 'Darwin' ]] ; then
-  target_pids=$(ps -eo pid,lstart,command | sort -k2,6 | awk 'NR!=1 {print}' | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')
+  selected_processes=$(ps -eo pid,lstart,command | sort -k2,6 | awk 'NR>1' | "$BASH_TOYS_INTERACTIVE_FILTER")
 else
-  target_pids=$(ps -ax --format='pid,tty,command' | awk 'NR!=1 {print}' | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')
+  selected_processes=$(ps -ax --format='pid,tty,command' | awk 'NR>1' | "$BASH_TOYS_INTERACTIVE_FILTER")
 fi
 
-if [[ $target_pids == '' ]] ; then
+if [[ -z "$selected_processes" ]] ; then
   echo 'Failed'
   exit 1
 fi
 
-kill "$signal" "$target_pids" && echo 'Succeed' || exit 1
+# Extract PIDs and kill each process
+target_pids=()
+while IFS= read -r line; do
+  pid=$(echo "$line" | awk '{print $1}')
+  if [[ -n "$pid" ]]; then
+    target_pids+=("$pid")
+  fi
+done <<< "$selected_processes"
+
+if [[ ${#target_pids[@]} -eq 0 ]]; then
+  echo 'Failed'
+  exit 1
+fi
+
+# Kill each selected process
+failed_count=0
+for pid in "${target_pids[@]}"; do
+  if kill "$signal" "$pid" 2>/dev/null; then
+    echo "Killed PID: $pid"
+  else
+    echo "Failed to kill PID: $pid"
+    ((failed_count++))
+  fi
+done
+
+if [[ $failed_count -eq 0 ]]; then
+  echo 'Succeed'
+else
+  echo "Failed to kill $failed_count process(es)"
+  exit 1
+fi
 
 # https://github.com/aiya000/bash-toys
 #
