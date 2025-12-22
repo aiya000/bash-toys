@@ -3,7 +3,11 @@
 # Sends notification with title and message to your Desktop
 #
 # ```shell-session
+# # Simple usage:
 # $ notify title message
+#
+# # Notify with sound:
+# $ notify title message /path/to/sound
 # ```
 #
 # Note for macOS :
@@ -17,14 +21,9 @@ Usage: notify <title> <message> [sound]
 Send a notification with title and message to the GUI.
 
 Examples:
-  notify "Task Complete" "Your build has finished"
-  notify "Warning" "Low disk space detected" "Glass"
-  notify "Reminder" "Meeting time" "default"
-
-Sound options:
-  - macOS: System sound names (default, Glass, Basso, etc.)
-  - Linux: System sound files (/usr/share/sounds/*)
-  - Windows: System sound names
+  notify 'Task Complete' 'Your build has finished'
+  notify 'Warning' 'Low disk space detected' /path/to/bash-toys/assets/notification-1.mp3
+  notify 'Reminder' 'Meeting time' 'default' /path/to/sound-you-like.ogg
 
 Supported platforms:
   - Windows (WSL): Uses notifu.exe
@@ -70,8 +69,8 @@ if command -v notify-send >/dev/null 2>&1 ; then
   exit
 fi
 
-echo "Error: No notification system available on this platform."
-echo ""
+echo 'Error: No notification system available on this platform.'
+echo
 show_help
 
 # https://github.com/aiya000/bash-toys
