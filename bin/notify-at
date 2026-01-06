@@ -4,6 +4,7 @@
 #
 # Requirements:
 # - ./notify
+# - ./date-diff-seconds (if you want to specify year-month-day. Not required if only `$ notify-at 12:00 title message` (only specifying a time) is necessary)
 #
 # ```shell-session
 # $ notify-at 12:00 title message  # The notification is shown at 12:00
@@ -12,8 +13,15 @@
 set -e
 
 if [[ $# -lt 3 ]] ; then
-  echo "Usage: $0 HH:MM title message [sound]"
-  echo "Example: $0 13:30 'Reminder' 'Meeting time' default"
+  echo "Usage: $0 TIME title message [sound]"
+  echo "TIME formats:"
+  echo "  HH:MM                - Time today (if past, then tomorrow)"
+  echo "  MM-DD HH:MM          - Month-day-time (must be future)"
+  echo "  YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)"
+  echo "Examples:"
+  echo "  $0 13:30 'Reminder' 'Meeting time'"
+  echo "  $0 '01-15 09:00' 'Reminder' 'New year meeting'"
+  echo "  $0 '2027-01-15 09:00' 'Reminder' 'Future meeting'"
   exit 1
 fi
 
@@ -23,24 +31,91 @@ message="$3"
 sound="${4:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
 now=$(date +%s)
 
-# TODO: Create date wrapper for GNU date and BSD date
-if date --version >/dev/null 2>&1 ; then
-  # GNU date (Linux)
-  today=$(date +%Y-%m-%d)
-  target=$(date -d "$today $time" +%s 2>/dev/null || {
-    echo "Error: Invalid time format (HH:MM)"
-    exit 1
-  })
-else
-  # BSD date (macOS)
-  target=$(date -j -f "%H:%M" "$time" +%s 2>/dev/null || {
-    echo "Error: Invalid time format (HH:MM)"
-    exit 1
-  })
+# Format detection function
+function detect_time_format() {
+  local time_input="$1"
+
+  if [[ $time_input =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}$ ]] ; then
+    echo "YYYY-MM-DD HH:MM"
+  elif [[ $time_input =~ ^[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}$ ]] ; then
+    echo "MM-DD HH:MM"
+  elif [[ $time_input =~ ^[0-9]{2}:[0-9]{2}$ ]] ; then
+    echo "HH:MM"
+  else
+    echo "INVALID"
+  fi
+}
+
+# Date normalization function
+function normalize_datetime() {
+  local time_input="$1"
+  local format="$2"
+  local current_year=$(date +%Y)
+
+  case "$format" in
+    "HH:MM")
+      echo "$(date +%Y-%m-%d) $time_input"
+      ;;
+    "MM-DD HH:MM")
+      echo "$current_year-$time_input"
+      ;;
+    "YYYY-MM-DD HH:MM")
+      echo "$time_input"
+      ;;
+  esac
+}
+
+# Past date validation function
+function validate_future_datetime() {
+  local normalized_datetime="$1"
+  local original_format="$2"
+  local current_timestamp=$(date +%s)
+  local target_timestamp
+
+  # Only validate future dates for new formats
+  if [[ "$original_format" != "HH:MM" ]] ; then
+    if date --version &> /dev/null ; then
+      target_timestamp=$(date -d "$normalized_datetime" +%s 2>/dev/null || return 1)
+    else
+      target_timestamp=$(date -j -f "%Y-%m-%d %H:%M" "$normalized_datetime" +%s 2>/dev/null || return 1)
+    fi
+
+    if [[ $target_timestamp -le $current_timestamp ]] ; then
+      echo "Error: Specified date/time is in the past: $normalized_datetime" >&2
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+# Unified date parsing with new format support
+format=$(detect_time_format "$time")
+if [[ "$format" == "INVALID" ]] ; then
+  echo "Error: Invalid time format. Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM"
+  exit 1
 fi
 
-# If specified time is in the past, treat it as tomorrow
-if [[ $target -le $now ]] ; then
+normalized_datetime=$(normalize_datetime "$time" "$format")
+if ! validate_future_datetime "$normalized_datetime" "$format" ; then
+  exit 1
+fi
+
+# Unified date parsing for both GNU and BSD
+if date --version >/dev/null 2>&1 ; then
+  if ! target=$(date -d "$normalized_datetime" +%s 2>/dev/null) ; then
+    echo "Error: Invalid date/time format"
+    exit 1
+  fi
+else
+  if ! target=$(date -j -f "%Y-%m-%d %H:%M" "$normalized_datetime" +%s 2>/dev/null) ; then
+    echo "Error: Invalid date/time format"
+    exit 1
+  fi
+fi
+
+# Only add 24 hours for HH:MM format when time is in the past
+if [[ "$format" == "HH:MM" && $target -le $now ]] ; then
   target=$((target + 86400))
 fi
 
