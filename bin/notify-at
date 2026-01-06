@@ -1,16 +1,52 @@
 #!/bin/bash
 
-# Sends notification at specified time
+# Sends notification at specified time with flexible date formats
 #
 # Requirements:
 # - ./notify
-# - ./date-diff-seconds (if you want to specify year-month-day. Not required if only `$ notify-at 12:00 title message` (only specifying a time) is necessary)
+#
+# Supported time formats:
+# - HH:MM                - Time today (if past, then tomorrow)
+# - MM-DD HH:MM          - Month-day-time (must be future)
+# - YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
 #
 # ```shell-session
-# $ notify-at 12:00 title message  # The notification is shown at 12:00
+# $ notify-at 12:00 "Meeting" "Team meeting"                    # Today at 12:00
+# $ notify-at "01-15 09:00" "Reminder" "New year meeting"       # January 15 at 09:00
+# $ notify-at "2027-01-15 09:00" "Reminder" "Future meeting"    # Future date
 # ```
+#
+# See also `$ notify-at --help`
 
 set -e
+
+function show_help() {
+  cat << 'EOF'
+notify-at - Sends notification at specified time with flexible date formats
+
+Usage:
+  notify-at TIME title message [sound]
+  notify-at --help
+
+Arguments:
+  TIME      Time in one of the supported formats
+  title     Notification title
+  message   Notification message
+  sound     Optional sound file (default: configured sound)
+
+TIME formats:
+  HH:MM                - Time today (if past, then tomorrow)
+  MM-DD HH:MM          - Month-day-time (must be future)
+  YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
+
+Examples:
+  notify-at 13:30 'Reminder' 'Meeting time'
+  notify-at '01-15 09:00' 'Reminder' 'New year meeting'
+  notify-at '2027-01-15 09:00' 'Reminder' 'Future meeting'
+EOF
+}
+
+[[ $1 == --help ]] && show_help && exit 0
 
 if [[ $# -lt 3 ]] ; then
   echo "Usage: $0 TIME title message [sound]"

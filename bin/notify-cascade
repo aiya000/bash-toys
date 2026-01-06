@@ -6,19 +6,61 @@
 # - ./notify-at
 # - ./notify
 #
+# Supports all notify-at time formats:
+# - HH:MM, MM-DD HH:MM, YYYY-MM-DD HH:MM
+#
 # ```shell-session
 # $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m 10m 5m
-# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m /path/to/sound.wav
+# $ notify-cascade "01-15 09:00" "Meeting" "New year meeting" 1h 30m 10m
+# $ notify-cascade "2027-01-15 09:00" "Event" "Future event" 1d 1h 30m /path/to/sound.wav
 # ```
+#
+# See also `$ notify-cascade --help`
 
 set -e
 
+function show_help() {
+  cat << 'EOF'
+notify-cascade - Sends cascade of notifications at specified intervals before target time
+
+Usage:
+  notify-cascade TIME title message [timing1] [timing2] ... [sound]
+  notify-cascade --help
+
+Arguments:
+  TIME      Target time in one of the supported formats
+  title     Notification title
+  message   Notification message
+  timing    Intervals before target time (e.g., 1h, 30m, 5s)
+  sound     Optional sound file (default: configured sound)
+
+TIME formats (See also `$ notify-at --help`):
+  HH:MM                - Time today (if past, then tomorrow)
+  MM-DD HH:MM          - Month-day-time (must be future)
+  YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
+
+Timing formats:
+  4h        4 hours before
+  30m       30 minutes before
+  45s       45 seconds before
+
+Examples:
+  notify-cascade 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m
+  notify-cascade '01-15 09:00' 'Meeting' 'New year meeting' 1h 30m 10m
+  notify-cascade '2027-01-15 09:00' 'Event' 'Future event' 1d 1h 30m /path/to/sound.wav
+EOF
+}
+
+[[ $1 == --help ]] && show_help && exit 0
+
 if [[ $# -lt 3 ]] ; then
-  echo "Usage: $0 HH:MM title message [timing1] [timing2] ... [sound]"
+  echo "Usage: $0 TIME title message [timing1] [timing2] ... [sound]"
   echo "Examples:"
   echo "  $0 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m"
-  echo "  $0 15:00 'Meeting' 'Team meeting starts' 1h 30m /path/to/sound.wav"
+  echo "  $0 '01-15 09:00' 'Meeting' 'New year meeting' 1h 30m 10m"
+  echo "  $0 '2027-01-15 09:00' 'Event' 'Future event' 1d 1h 30m"
   echo ""
+  echo "TIME formats: HH:MM, MM-DD HH:MM, YYYY-MM-DD HH:MM"
   echo "Timing formats: 4h (4 hours), 30m (30 minutes), 45s (45 seconds)"
   exit 1
 fi
