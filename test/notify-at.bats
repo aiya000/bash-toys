@@ -5,12 +5,43 @@
 # Note: These tests focus on format validation and error handling.
 # Actual notification scheduling is not tested to avoid real notifications.
 
+# Test setup and cleanup
+setup() {
+  # Set a unique test tag for this test run
+  export NOTIFY_TEST_TAG="bats-test-$$-$RANDOM"
+}
+
+# Test-specific cleanup function
+cleanup_test_jobs() {
+  local target_tag="${1:-}"
+
+  # If no target specified, clean all test-related notify-at processes
+  if [[ -z "$target_tag" ]] ; then
+    # Clean all notify-at processes (ps-based approach)
+    # Kill all notify-at processes that contain test job signatures
+    pkill -f "bin/notify-at.*(Test|Message|Job|Title|Multi|Another|Cleanup|Improved)" 2>/dev/null || true
+  else
+    # Clean jobs with specific tag
+    pkill -f "bin/notify-at.*${target_tag}" 2>/dev/null || true
+  fi
+
+  # Wait a moment for processes to terminate
+  sleep 0.1
+}
+
+teardown() {
+  # Clean up any test jobs created during this test
+  cleanup_test_jobs >/dev/null 2>&1 || true
+}
+
 @test '`notify-at` with no arguments should show usage message' {
   run notify-at
   expects "$status" to_be 1
-  expects "${lines[0]}" to_equal 'Usage: /Users/yoichiro.ishikawa/.dotfiles/bash-toys/bin/notify-at TIME title message [sound]'
-  expects "${lines[1]}" to_equal 'TIME formats:'
-  expects "${lines[2]}" to_equal '  HH:MM                - Time today (if past, then tomorrow)'
+  expects "${lines[0]}" to_equal 'notify-at - Sends notification at specified time with flexible date formats'
+  expects "$output" to_contain 'Usage:'
+  expects "$output" to_contain 'TIME formats:'
+  expects "$output" to_contain 'Options:'
+  expects "$output" to_contain 'Job management:'
 }
 
 @test '`notify-at` with insufficient arguments should show usage message' {
@@ -109,3 +140,78 @@
   # Malformed dates may be interpreted as past dates by date command
   expects "$output" to_contain 'Error:'
 }
+
+# Job management tests
+
+@test '`notify-at -l` should show no jobs when none are scheduled' {
+  # Clean up any existing jobs first
+  rm -rf "$HOME/.bash-toys/notify-at/jobs"
+
+  run notify-at -l
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No scheduled jobs found.'
+}
+
+@test '`notify-at --list` should show no jobs when none are scheduled' {
+  # Clean up any existing jobs first
+  rm -rf "$HOME/.bash-toys/notify-at/jobs"
+
+  run notify-at --list
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No scheduled jobs found.'
+}
+
+@test '`notify-at -c` should show error without PID' {
+  run notify-at -c
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: PID required for cancel operation'
+}
+
+@test '`notify-at --cancel` should show error without PID' {
+  run notify-at --cancel
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: PID required for cancel operation'
+}
+
+@test '`notify-at -c` should show error for non-existent job' {
+  run notify-at -c 99999
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: Job with PID 99999 not found'
+}
+
+@test '`notify-at -c` should kill successfully for existent job' {
+  echo TODO
+  return 1
+}
+
+@test '`notify-at` should create and list a scheduled job' {
+  echo TODO  # Below test requires to wait a long time. Fix it
+  return 1
+
+  # Clean up any existing jobs first
+  cleanup_test_jobs
+
+  # Create a test job (use a long future time to avoid immediate execution)
+  timeout 1s notify-at 23:59 'Test Job' 'Test Message' >/dev/null 2>&1 &
+  sleep 0.1
+
+  # List jobs and check output
+  run notify-at -l
+  expects "$status" to_be 0
+  expects "$output" to_contain 'PID'
+  expects "$output" to_contain 'Test Job'
+  expects "$output" to_contain 'Test Message'
+
+  # Clean up is handled by teardown function automatically
+}
+
+@test '`notify-at --list` should correctly parse arguments with spaces' {
+  echo TODO  # Below test requires to wait a long time. Fix it
+  return 1
+
+  # Simple test to verify the list command works without error
+  run notify-at -l
+  expects "$status" to_be 0
+}
+
+
