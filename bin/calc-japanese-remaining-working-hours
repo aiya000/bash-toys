@@ -1,0 +1,93 @@
+#!/usr/bin/env -S deno run --allow-net
+
+/**
+ * Calculate required daily working hours for remaining business days in the month.
+ * Automatically fetches Japanese holidays from public API.
+ */
+
+async function getJapaneseHolidays(year: number, month: number): Promise<Set<string>> {
+  try {
+    const url = `https://holidays-jp.github.io/api/v1/${year}/date.json`;
+    const response = await fetch(url);
+    if (!response.ok) return new Set();
+
+    const holidays = await response.json();
+    const monthStr = month.toString().padStart(2, '0');
+    const prefix = `${year}-${monthStr}-`;
+
+    return new Set(
+      Object.keys(holidays).filter(date => date.startsWith(prefix))
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+function isWeekend(date: Date): boolean {
+  const day = date.getDay();
+  return day === 0 || day === 6; // Sunday or Saturday
+}
+
+async function main() {
+  if (Deno.args.length !== 1) {
+    console.error("Usage: calc-japanese-remaining-working-hours HOURS:MINUTES");
+    console.error("Example: calc-japanese-remaining-working-hours 108:37");
+    Deno.exit(1);
+  }
+
+  // Parse input
+  const parts = Deno.args[0].split(':');
+  if (parts.length !== 2) {
+    console.error("Error: Invalid format. Use HOURS:MINUTES (e.g., 108:37)");
+    Deno.exit(1);
+  }
+
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+
+  if (isNaN(hours) || isNaN(minutes)) {
+    console.error("Error: Invalid format. Use HOURS:MINUTES (e.g., 108:37)");
+    Deno.exit(1);
+  }
+
+  const totalMinutes = hours * 60 + minutes;
+
+  // Calculate remaining business days
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const lastDay = new Date(year, month, 0).getDate();
+
+  // Fetch holidays
+  const holidays = await getJapaneseHolidays(year, month);
+
+  let remainingDays = 0;
+  for (let day = now.getDate() + 1; day <= lastDay; day++) {
+    const date = new Date(year, month - 1, day);
+    const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+    if (isWeekend(date)) continue;
+    if (holidays.has(dateStr)) continue;
+
+    remainingDays++;
+  }
+
+  if (remainingDays === 0) {
+    console.log("今月の営業日は残っていません");
+    Deno.exit(0);
+  }
+
+  // Calculate per day
+  const hoursPerDay = totalMinutes / remainingDays / 60;
+  const hoursInt = Math.floor(hoursPerDay);
+  const minutesInt = Math.floor((hoursPerDay % 1) * 60);
+
+  console.log(`今月の残り営業日数: ${remainingDays}日`);
+  console.log(`残り勤務時間: ${hours}時間${minutes}分 = ${totalMinutes}分`);
+  console.log(`1日あたりの必要勤務時間: ${hoursPerDay.toFixed(2)}時間`);
+  console.log(`  = ${hoursInt}時間${minutesInt}分`);
+}
+
+main();
+
+// vim:set filetype=typescript :
