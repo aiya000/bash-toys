@@ -206,6 +206,50 @@ message="$3"
 sound="${4:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
 now=$(date +%s)
 
+# Format seconds to human-readable duration
+# e.g., "1 day 2 hours 30 minutes later"
+function format_duration() {
+  local total_seconds="$1"
+  local parts=()
+
+  local days=$((total_seconds / 86400))
+  local remaining=$((total_seconds % 86400))
+  local hours=$((remaining / 3600))
+  remaining=$((remaining % 3600))
+  local minutes=$((remaining / 60))
+
+  if [[ $days -gt 0 ]] ; then
+    if [[ $days -eq 1 ]] ; then
+      parts+=("1 day")
+    else
+      parts+=("$days days")
+    fi
+  fi
+
+  if [[ $hours -gt 0 ]] ; then
+    if [[ $hours -eq 1 ]] ; then
+      parts+=("1 hour")
+    else
+      parts+=("$hours hours")
+    fi
+  fi
+
+  if [[ $minutes -gt 0 || ${#parts[@]} -eq 0 ]] ; then
+    if [[ $minutes -eq 1 ]] ; then
+      parts+=("1 minute")
+    else
+      parts+=("$minutes minutes")
+    fi
+  fi
+
+  local result="${parts[0]}"
+  for ((i=1; i<${#parts[@]}; i++)) ; do
+    result="$result ${parts[$i]}"
+  done
+
+  echo "$result later"
+}
+
 # Format detection function
 function detect_time_format() {
   local time_input="$1"
@@ -298,9 +342,9 @@ if [[ $format == "HH:MM" && $target -le $now ]] ; then
 fi
 
 seconds=$((target - now))
-minutes=$((seconds / 60))
+duration=$(format_duration "$seconds")
 
-echo "Notification scheduled: $time ($minutes minutes later)"
+echo "Notification scheduled: $time ($duration)"
 echo "Title: $title"
 echo "Message: $message"
 

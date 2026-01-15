@@ -84,6 +84,50 @@ if [[ $sound == '' ]] ; then
   sound="${BASH_TOYS_NOTIFY_CASCADE_DEFAULT_SOUND:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
 fi
 
+# Format seconds to human-readable duration
+# e.g., "1 day 2 hours 30 minutes later"
+function format_duration() {
+  local total_seconds="$1"
+  local parts=()
+
+  local days=$((total_seconds / 86400))
+  local remaining=$((total_seconds % 86400))
+  local hours=$((remaining / 3600))
+  remaining=$((remaining % 3600))
+  local minutes=$((remaining / 60))
+
+  if [[ $days -gt 0 ]] ; then
+    if [[ $days -eq 1 ]] ; then
+      parts+=("1 day")
+    else
+      parts+=("$days days")
+    fi
+  fi
+
+  if [[ $hours -gt 0 ]] ; then
+    if [[ $hours -eq 1 ]] ; then
+      parts+=("1 hour")
+    else
+      parts+=("$hours hours")
+    fi
+  fi
+
+  if [[ $minutes -gt 0 || ${#parts[@]} -eq 0 ]] ; then
+    if [[ $minutes -eq 1 ]] ; then
+      parts+=("1 minute")
+    else
+      parts+=("$minutes minutes")
+    fi
+  fi
+
+  local result="${parts[0]}"
+  for ((i=1; i<${#parts[@]}; i++)) ; do
+    result="$result ${parts[$i]}"
+  done
+
+  echo "$result"
+}
+
 # Function to convert timing to seconds
 function timing_to_seconds() {
   local timing="$1"
@@ -200,8 +244,8 @@ echo ""
 # If no timings specified, show single notification at target time
 if [[ ${#timings[@]} -eq 0 ]] ; then
   seconds=$((target - now))
-  minutes=$((seconds / 60))
-  echo "Single notification: $minutes minutes later"
+  duration=$(format_duration "$seconds")
+  echo "Single notification: $duration later"
 
   notify-at "$time" "$title" "$message" "$sound" &
 
@@ -222,12 +266,12 @@ for timing in "${timings[@]}" ; do
   fi
 
   sleep_seconds=$((notification_time - now))
-  minutes=$((sleep_seconds / 60))
+  duration=$(format_duration "$sleep_seconds")
 
   # Create timing-specific message
   timing_message="$message ($timing before)"
 
-  echo "$timing notification: in $minutes minutes"
+  echo "$timing notification: in $duration"
 
   # Calculate the absolute time for this notification
   notification_hour=$(date -d "@$notification_time" +"%H:%M" 2>/dev/null || date -r "$notification_time" +"%H:%M")
