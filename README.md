@@ -6,6 +6,9 @@ Welcome to **bash-toys**!
 
 ![](./readme/cat-which-rm-dust.png)
 
+> [!NOTE]
+> Each command in this repository may often contain breaking changes and numerous bugs or work in progress.
+
 ## :bookmark_tabs: Table of Contents
 
 - [Overview](#bookmark_tabs-overview)
