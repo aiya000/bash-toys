@@ -2,7 +2,7 @@
 
 Welcome to **bash-toys**!
 
-![Test](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
+![Test](https://github.com/aiya000/bash-toys/actions/workflows/test.yml/badge.svg)
 
 ![](./readme/cat-which-rm-dust.png)
 
