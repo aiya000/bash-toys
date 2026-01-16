@@ -2,7 +2,33 @@
 
 Welcome to **bash-toys**!
 
-![Test](https://github.com/aiya000/bash-toys/actions/workflows/test.yml/badge.svg)
+## Test Status
+
+Each test file is run separately. Click the badge to see individual test results.
+
+[![Test](https://github.com/aiya000/bash-toys/actions/workflows/test.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test.yml)
+
+<details>
+<summary>Test Files (click to expand)</summary>
+
+The following test files are run in parallel:
+- bak
+- bookmark-open
+- cat-which
+- clamdscan-full
+- date-diff-seconds-now
+- date-diff-seconds
+- dust
+- expects
+- fast-sync
+- get-var
+- gh-issue-view-select
+- notify-at
+- run-wait-output
+- take-until-empty
+
+Each test file must pass for the overall status to be green. Click the badge above to see results for each individual test file.
+</details>
 
 ![](./readme/cat-which-rm-dust.png)
 
