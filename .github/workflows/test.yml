@@ -9,12 +9,31 @@ on:
     branches: ['main']
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    name: Test
+    strategy:
+      fail-fast: false
+      matrix:
+        test-file:
+          - bak
+          - bookmark-open
+          - cat-which
+          - clamdscan-full
+          - date-diff-seconds-now
+          - date-diff-seconds
+          - dust
+          - expects
+          - fast-sync
+          - get-var
+          - gh-issue-view-select
+          - notify-at
+          - run-wait-output
+          - take-until-empty
+    name: Test ${{ matrix.test-file }}
     steps:
       - uses: actions/checkout@v4
-      - name: Run tests
+      - name: Run test for ${{ matrix.test-file }}
         run: |
           git submodule update --init --recursive
-          ./run-tests.sh
+          source ./source-all.sh
+          ./lib/bats/bin/bats ./test/${{ matrix.test-file }}.bats
