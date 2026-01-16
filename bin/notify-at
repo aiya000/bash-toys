@@ -27,7 +27,7 @@ notify-at - Sends notification at specified time with flexible date formats
 Usage:
   notify-at TIME title message [sound]
   notify-at -l | --list
-  notify-at -c PID | --cancel PID
+  notify-at -c JOB_ID | --cancel JOB_ID
   notify-at --help
 
 Arguments:
@@ -35,12 +35,12 @@ Arguments:
   title     Notification title
   message   Notification message
   sound     Optional sound file (default: configured sound)
-  PID       Process ID of scheduled job to cancel
+  JOB_ID    Job ID of scheduled job to cancel (from 'notify-at -l')
 
 Options:
-  -l, --list           List all scheduled jobs
-  -c, --cancel PID     Cancel scheduled job by PID
-  --help               Show this help message
+  -l, --list              List all scheduled jobs
+  -c, --cancel JOB_ID     Cancel scheduled job by Job ID
+  --help                  Show this help message
 
 TIME formats:
   HH:MM                - Time today (if past, then tomorrow)
@@ -54,92 +54,121 @@ Examples:
 
 Job management:
   notify-at -l                    # List scheduled jobs
-  notify-at --cancel 12345        # Cancel job with PID 12345
+  notify-at --cancel 5            # Cancel job with Job ID 5
+
+Note:
+  This tool uses the 'at' command for reliable scheduling.
+  The 'at' daemon must be enabled on your system:
+    macOS: sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.atrun.plist
+    Linux: sudo systemctl enable --now atd
 EOF
+}
+
+# Check if 'at' command is available
+function check_at_available() {
+  if ! command -v at &>/dev/null ; then
+    echo "Error: 'at' command not found. Please install it:"
+    echo "  macOS: The 'at' command is built-in but the daemon needs to be enabled:"
+    echo "         sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.atrun.plist"
+    echo "  Linux: sudo apt install at  (Debian/Ubuntu)"
+    echo "         sudo yum install at  (RHEL/CentOS)"
+    exit 1
+  fi
+}
+
+# Schedule a job using the 'at' command
+# Arguments: $1=target_timestamp $2=title $3=message $4=sound $5=notify_cmd
+# Output: job_id on success, empty on failure
+function schedule_at_job() {
+  local target_timestamp="$1"
+  local title="$2"
+  local message="$3"
+  local sound="$4"
+  local notify_cmd="$5"
+
+  # Convert timestamp to at -t format: YYYYMMDDhhmm
+  local at_time
+  if date --version >/dev/null 2>&1 ; then
+    # GNU date
+    at_time=$(date -d "@$target_timestamp" +"%Y%m%d%H%M")
+  else
+    # BSD date
+    at_time=$(date -r "$target_timestamp" +"%Y%m%d%H%M")
+  fi
+
+  # Escape single quotes in title and message for the tag comment
+  local escaped_title="${title//\'/\'\\\'\'}"
+  local escaped_message="${message//\'/\'\\\'\'}"
+
+  # Create job with identification tag
+  # The tag allows us to identify notify-at jobs when listing
+  local job_output
+  job_output=$(cat << EOF | at -t "$at_time" 2>&1
+# NOTIFY_AT_JOB title='${escaped_title}' message='${escaped_message}'
+"$notify_cmd" '$title' '$message' '$sound'
+EOF
+  )
+
+  # Extract job ID from output
+  # macOS/BSD: "job 5 at Wed Jan 15 12:00:00 2025"
+  # Linux: "job 5 at Wed Jan 15 12:00:00 2025"
+  local job_id
+  job_id=$(echo "$job_output" | grep -o 'job [0-9]*' | awk '{print $2}')
+
+  echo "$job_id"
 }
 
 # Job management functions
 function list_jobs() {
-  # Use ps to find notify-at processes
-  local notify_processes
-  notify_processes=$(ps aux | grep "bin/notify-at" | grep -v grep | grep -v "\-l\|\-\-list\|\-c\|\-\-cancel" || true)
+  # Use atq to list scheduled at jobs
+  local at_jobs
+  at_jobs=$(atq 2>/dev/null || true)
 
-  # Check if there are any valid notify-at processes and collect job info
+  if [[ -z "$at_jobs" ]] ; then
+    echo "No scheduled jobs found."
+    return 0
+  fi
+
   local job_lines=()
 
   while IFS= read -r line ; do
     # Skip empty lines
-    if [[ -z "$line" ]] ; then
-      continue
+    [[ -z "$line" ]] && continue
+
+    # Parse atq output
+    # macOS: "5	Wed Jan 15 12:00:00 2025"
+    # Linux: "5	Wed Jan 15 12:00:00 2025 a user"
+    local job_id
+    job_id=$(echo "$line" | awk '{print $1}')
+
+    # Get job content to check if it's a notify-at job
+    local job_content
+    job_content=$(at -c "$job_id" 2>/dev/null || true)
+
+    # Check for NOTIFY_AT_JOB tag
+    if echo "$job_content" | grep -q "NOTIFY_AT_JOB" ; then
+      # Extract title and message from tag
+      local tag_line
+      tag_line=$(echo "$job_content" | grep "NOTIFY_AT_JOB")
+
+      local title message
+      # Extract title: remove everything before "title='" and after the closing "'"
+      title="${tag_line#*title=\'}"
+      title="${title%%\'*}"
+      # Extract message: remove everything before "message='" and after the closing "'"
+      message="${tag_line#*message=\'}"
+      message="${message%%\'*}"
+
+      # Extract time from atq output (format varies by platform)
+      # Try to get HH:MM from the line
+      local time_str
+      time_str=$(echo "$line" | awk '{print $5}' | cut -d: -f1,2)
+
+      local job_line
+      job_line=$(printf "%-8s %-8s %-15s %s" "$job_id" "$time_str" "${title:0:15}" "${message:0:40}")
+      job_lines+=("$job_line")
     fi
-
-    # Extract command line arguments starting from notify-at
-    local cmd_part
-    cmd_part=$(echo "$line" | grep -o "bin/notify-at.*" || true)
-
-    if [[ -n "$cmd_part" ]] ; then
-      # Extract PID (second column)
-      local pid
-      pid=$(echo "$line" | awk '{print $2}')
-
-      # Parse arguments: notify-at TIME TITLE MESSAGE [SOUND]
-      local args_array
-      read -ra args_array <<< "$cmd_part"
-
-      if [[ ${#args_array[@]} -ge 4 ]] ; then
-        local time="${args_array[1]}"
-
-        # For args with spaces, we need to reconstruct TITLE and MESSAGE
-        # Method: everything after TIME and before the last arg (or last 2 if sound file path) is TITLE+MESSAGE
-        local all_after_time="${args_array[@]:2}"  # All args after TIME
-        local args_count=${#args_array[@]}
-
-        if [[ $args_count -eq 4 ]] ; then
-          # notify-at TIME TITLE MESSAGE (no sound)
-          local title="${args_array[2]}"
-          local message="${args_array[3]}"
-        else
-          # More than 4 args - check if last arg is a sound file
-          local last_arg_idx=$((args_count - 1))
-          local last_arg="${args_array[$last_arg_idx]}"
-
-          if [[ $last_arg =~ \.(mp3|wav|m4a|aiff)$ ]] ; then
-            # Last arg looks like a sound file
-            local remaining_count=$((args_count - 3))  # Exclude notify-at, TIME, and SOUND
-
-            if [[ $remaining_count -eq 1 ]] ; then
-              local title="${args_array[2]}"
-              local message="(no message)"
-            elif [[ $remaining_count -eq 2 ]] ; then
-              local title="${args_array[2]}"
-              local message="${args_array[3]}"
-            else
-              # Multiple words - split roughly in half
-              local mid=$(( remaining_count / 2 + 2 ))  # +2 to account for notify-at and TIME
-              local title_parts=("${args_array[@]:2:$((mid-2))}")
-              local message_parts=("${args_array[@]:$mid:$((remaining_count-(mid-2)))}")
-              local title="${title_parts[*]}"
-              local message="${message_parts[*]}"
-            fi
-          else
-            # No sound file - split remaining args between TITLE and MESSAGE
-            local remaining_count=$((args_count - 2))  # Exclude notify-at and TIME
-            local mid=$(( remaining_count / 2 + 2 ))  # +2 to account for notify-at and TIME
-
-            local title_parts=("${args_array[@]:2:$((mid-2))}")
-            local message_parts=("${args_array[@]:$mid}")
-            local title="${title_parts[*]}"
-            local message="${message_parts[*]}"
-          fi
-        fi
-
-        # Store job info in array
-        local job_line
-        job_line=$(printf "%-8s %-8s %-15s %s" "$pid" "$time" "${title:0:15}" "${message:0:40}")
-        job_lines+=("$job_line")
-      fi
-    fi
-  done <<< "$notify_processes"
+  done <<< "$at_jobs"
 
   # Check if any valid jobs were found
   if [[ ${#job_lines[@]} -eq 0 ]] ; then
@@ -148,8 +177,8 @@ function list_jobs() {
   fi
 
   # Display header and jobs
-  printf "%-8s %-8s %-15s %s\n" "PID" "TIME" "TITLE" "MESSAGE"
-  printf "%-8s %-8s %-15s %s\n" "---" "----" "-----" "-------"
+  printf "%-8s %-8s %-15s %s\n" "JOB_ID" "TIME" "TITLE" "MESSAGE"
+  printf "%-8s %-8s %-15s %s\n" "------" "----" "-----" "-------"
 
   for job_line in "${job_lines[@]}" ; do
     echo "$job_line"
@@ -157,32 +186,44 @@ function list_jobs() {
 }
 
 function cancel_job() {
-  local target_pid="$1"
+  local target_job_id="$1"
 
-  if [[ -z "$target_pid" ]] ; then
-    echo "Error: PID required for cancel operation"
-    echo "Usage: $0 -c PID"
-    echo "       $0 --cancel PID"
+  if [[ -z "$target_job_id" ]] ; then
+    echo "Error: Job ID required for cancel operation"
+    echo "Usage: $0 -c JOB_ID"
+    echo "       $0 --cancel JOB_ID"
     exit 1
   fi
 
-  # Check if PID is actually a notify-at process
-  if ! ps aux | grep -q "^ *[^ ]* *$target_pid .* bin/notify-at" 2>/dev/null ; then
-    echo "Error: Job with PID $target_pid not found"
+  # Verify it's an existing at job
+  local job_content
+  job_content=$(at -c "$target_job_id" 2>/dev/null || true)
+
+  if [[ -z "$job_content" ]] ; then
+    echo "Error: Job with ID $target_job_id not found"
     exit 1
   fi
 
-  # Kill the process
-  if kill "$target_pid" 2>/dev/null ; then
-    echo "Job $target_pid cancelled successfully"
+  # Verify it's a notify-at job
+  if ! echo "$job_content" | grep -q "NOTIFY_AT_JOB" ; then
+    echo "Error: Job $target_job_id is not a notify-at job"
+    exit 1
+  fi
+
+  # Remove the job using atrm
+  if atrm "$target_job_id" 2>/dev/null ; then
+    echo "Job $target_job_id cancelled successfully"
   else
-    echo "Error: Failed to cancel job $target_pid (process may have already finished)"
+    echo "Error: Failed to cancel job $target_job_id"
     exit 1
   fi
 }
 
 # Option parsing
 [[ $1 == --help ]] && show_help && exit 0
+
+# Check if 'at' command is available (required for all operations except --help)
+check_at_available
 
 if [[ $1 == "-l" || $1 == "--list" ]] ; then
   list_jobs
@@ -337,7 +378,8 @@ else
 fi
 
 # Only add 24 hours for HH:MM format when time is in the past
-if [[ $format == "HH:MM" && $target -le $now ]] ; then
+# Use -lt (not -le) because target has seconds=00, so target==now means "this minute"
+if [[ $format == "HH:MM" && $target -lt $now ]] ; then
   target=$((target + 86400))
 fi
 
@@ -348,14 +390,19 @@ echo "Notification scheduled: $time ($duration)"
 echo "Title: $title"
 echo "Message: $message"
 
-# Start background process and capture PID
-{
-  sleep $seconds
-  notify "$title" "$message" "$sound"
-} &
+# Get the full path to notify command
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd)"
+notify_cmd="$script_dir/notify"
 
-job_pid=$!
-echo "Process ID: $job_pid"
+# Schedule using at command
+job_id=$(schedule_at_job "$target" "$title" "$message" "$sound" "$notify_cmd")
+
+if [[ -n "$job_id" ]] ; then
+  echo "Job ID: $job_id"
+else
+  echo "Error: Failed to schedule notification"
+  exit 1
+fi
 
 # https://github.com/aiya000/bash-toys
 #

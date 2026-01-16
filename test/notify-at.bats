@@ -11,26 +11,30 @@ setup() {
   export NOTIFY_TEST_TAG="bats-test-$$-$RANDOM"
 }
 
-# Test-specific cleanup function
 cleanup_test_jobs() {
-  local target_tag="${1:-}"
+  local at_jobs
+  at_jobs=$(atq 2>/dev/null || true)
 
-  # If no target specified, clean all test-related notify-at processes
-  if [[ -z "$target_tag" ]] ; then
-    # Clean all notify-at processes (ps-based approach)
-    # Kill all notify-at processes that contain test job signatures
-    pkill -f "bin/notify-at.*(Test|Message|Job|Title|Multi|Another|Cleanup|Improved)" 2>/dev/null || true
-  else
-    # Clean jobs with specific tag
-    pkill -f "bin/notify-at.*${target_tag}" 2>/dev/null || true
+  if [[ -n $at_jobs ]] ; then
+    while IFS= read -r line ; do
+      local job_id job_content
+
+      if [[ -z $line ]] ; then
+        continue
+      fi
+
+      job_id=$(echo "$line" | awk '{print $1}')
+      job_content=$(at -c "$job_id" 2>/dev/null || true)
+      if echo "$job_content" | grep -q "NOTIFY_AT_JOB" ; then
+        atrm "$job_id" 2>/dev/null || true
+      fi
+    done <<< "$at_jobs"
   fi
 
-  # Wait a moment for processes to terminate
-  sleep 0.1
+  sleep 0.1 # Wait a moment for cleanup to complete
 }
 
 teardown() {
-  # Clean up any test jobs created during this test
   cleanup_test_jobs >/dev/null 2>&1 || true
 }
 
@@ -59,35 +63,26 @@ teardown() {
 
 @test '`notify-at` should accept HH:MM format' {
   # Test with a future time that should work
-  timeout 1s notify-at 23:59 'Test Title' 'Test Message' 2>/dev/null &
-  pid=$!
-  sleep 0.1
-  kill $pid 2>/dev/null || true
-  wait $pid 2>/dev/null || true
-  # If we get here without error, the format was accepted
-  expects 0 to_be 0
+  run notify-at 23:59 'Test Title' 'Test Message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+  expects "$output" to_contain 'Job ID:'
 }
 
 @test '`notify-at` should accept MM-DD HH:MM format for future dates' {
   # Test with future date (assuming current date is before 12-31)
-  timeout 1s notify-at '12-31 23:59' 'Test Title' 'Test Message' 2>/dev/null &
-  pid=$!
-  sleep 0.1
-  kill $pid 2>/dev/null || true
-  wait $pid 2>/dev/null || true
-  # If we get here without error, the format was accepted
-  expects 0 to_be 0
+  run notify-at '12-31 23:59' 'Test Title' 'Test Message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+  expects "$output" to_contain 'Job ID:'
 }
 
 @test '`notify-at` should accept YYYY-MM-DD HH:MM format for future dates' {
   # Test with future date
-  timeout 1s notify-at '2027-01-15 09:00' 'Test Title' 'Test Message' 2>/dev/null &
-  pid=$!
-  sleep 0.1
-  kill $pid 2>/dev/null || true
-  wait $pid 2>/dev/null || true
-  # If we get here without error, the format was accepted
-  expects 0 to_be 0
+  run notify-at '2027-01-15 09:00' 'Test Title' 'Test Message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+  expects "$output" to_contain 'Job ID:'
 }
 
 @test '`notify-at` should reject MM-DD HH:MM format for past dates' {
@@ -145,7 +140,7 @@ teardown() {
 
 @test '`notify-at -l` should show no jobs when none are scheduled' {
   # Clean up any existing jobs first
-  rm -rf "$HOME/.bash-toys/notify-at/jobs"
+  cleanup_test_jobs
 
   run notify-at -l
   expects "$status" to_be 0
@@ -154,51 +149,62 @@ teardown() {
 
 @test '`notify-at --list` should show no jobs when none are scheduled' {
   # Clean up any existing jobs first
-  rm -rf "$HOME/.bash-toys/notify-at/jobs"
+  cleanup_test_jobs
 
   run notify-at --list
   expects "$status" to_be 0
   expects "$output" to_equal 'No scheduled jobs found.'
 }
 
-@test '`notify-at -c` should show error without PID' {
+@test '`notify-at -c` should show error without Job ID' {
   run notify-at -c
   expects "$status" to_be 1
-  expects "$output" to_contain 'Error: PID required for cancel operation'
+  expects "$output" to_contain 'Error: Job ID required for cancel operation'
 }
 
-@test '`notify-at --cancel` should show error without PID' {
+@test '`notify-at --cancel` should show error without Job ID' {
   run notify-at --cancel
   expects "$status" to_be 1
-  expects "$output" to_contain 'Error: PID required for cancel operation'
+  expects "$output" to_contain 'Error: Job ID required for cancel operation'
 }
 
 @test '`notify-at -c` should show error for non-existent job' {
   run notify-at -c 99999
   expects "$status" to_be 1
-  expects "$output" to_contain 'Error: Job with PID 99999 not found'
+  expects "$output" to_contain 'Error: Job with ID 99999 not found'
 }
 
-@test '`notify-at -c` should kill successfully for existent job' {
-  echo TODO
-  return 1
-}
-
-@test '`notify-at` should create and list a scheduled job' {
-  echo TODO  # Below test requires to wait a long time. Fix it
-  return 1
-
+@test '`notify-at -c` should cancel successfully for existent job' {
   # Clean up any existing jobs first
   cleanup_test_jobs
 
-  # Create a test job (use a long future time to avoid immediate execution)
-  timeout 1s notify-at 23:59 'Test Job' 'Test Message' >/dev/null 2>&1 &
-  sleep 0.1
+  # Create a test job
+  run notify-at 23:59 'Cancel Test' 'Cancel Message'
+  expects "$status" to_be 0
+
+  # Extract job ID from output
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" not to_equal ''
+
+  # Cancel the job
+  run notify-at -c "$job_id"
+  expects "$status" to_be 0
+  expects "$output" to_contain "cancelled successfully"
+}
+
+@test '`notify-at` should create and list a scheduled job' {
+  # Clean up any existing jobs first
+  cleanup_test_jobs
+
+  # Create a test job
+  run notify-at 23:59 'Test Job' 'Test Message'
+  expects "$status" to_be 0
 
   # List jobs and check output
   run notify-at -l
   expects "$status" to_be 0
-  expects "$output" to_contain 'PID'
+  expects "$output" to_contain 'JOB_ID'
   expects "$output" to_contain 'Test Job'
   expects "$output" to_contain 'Test Message'
 
@@ -206,12 +212,20 @@ teardown() {
 }
 
 @test '`notify-at --list` should correctly parse arguments with spaces' {
-  echo TODO  # Below test requires to wait a long time. Fix it
-  return 1
-
   # Simple test to verify the list command works without error
   run notify-at -l
   expects "$status" to_be 0
 }
 
+@test '`notify-at` with current time should not schedule for next day' {
+  # When specifying the current minute, it should schedule for "now" (0 minutes later)
+  # not "1 day later" - this was a bug where target == now caused +86400 seconds
+  local current_time
+  current_time=$(date +%H:%M)
 
+  run notify-at "$current_time" 'Current Time Test' 'Test message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+  # Check the first line (schedule info) does not contain "1 day"
+  expects "${lines[0]}" not to_contain '1 day'
+}
