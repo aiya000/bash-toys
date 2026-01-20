@@ -1,0 +1,459 @@
+#!/bin/bash
+
+# Sends notification at specified time using launchd (macOS only)
+#
+# NOTE:
+# This script is intended to be called indirectly from `./notify-at`.
+# If called directly, discrepancies may occur with the command name in the help output.
+# Please consider implementing an alias or similar workaround.
+#
+# NOTE:
+# Use `./notify-at-at` instead if using Linux or WSL (not macOS).
+#
+# Requirements:
+# - ./notify
+#
+# Supported time formats:
+# - HH:MM                - Time today (if past, then tomorrow)
+# - MM-DD HH:MM          - Month-day-time (must be future)
+# - YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
+#
+# ```shell-session
+# $ notify-at-launchd 12:00 "Meeting" "Team meeting"                    # Today at 12:00
+# $ notify-at-launchd "01-15 09:00" "Reminder" "New year meeting"       # January 15 at 09:00
+# $ notify-at-launchd "2027-01-15 09:00" "Reminder" "Future meeting"    # Future date
+# ```
+#
+# See also `$ notify-at-launchd --help`
+
+set -e
+
+LAUNCHD_PREFIX="com.bash-toys.notify-at"
+LAUNCHD_DIR="$HOME/Library/LaunchAgents"
+
+function show_help() {
+  cat << 'EOF'
+notify-at - Sends notification at specified time using launchd (macOS version)
+
+Usage:
+  notify-at TIME title message [sound]
+  notify-at -l | --list
+  notify-at -c JOB_ID | --cancel JOB_ID
+  notify-at --help
+
+Arguments:
+  TIME      Time in one of the supported formats
+  title     Notification title
+  message   Notification message
+  sound     Optional sound file (default: configured sound)
+  JOB_ID    Job ID of scheduled job to cancel (from 'notify-at -l')
+
+Options:
+  -l, --list              List all scheduled jobs
+  -c, --cancel JOB_ID     Cancel scheduled job by Job ID
+  --help                  Show this help message
+
+TIME formats:
+  HH:MM                - Time today (if past, then tomorrow)
+  MM-DD HH:MM          - Month-day-time (must be future)
+  YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
+
+Examples:
+  notify-at 13:30 'Reminder' 'Meeting time'
+  notify-at '01-15 09:00' 'Reminder' 'New year meeting'
+  notify-at '2027-01-15 09:00' 'Reminder' 'Future meeting'
+
+Job management:
+  notify-at -l                    # List scheduled jobs
+  notify-at --cancel abc123       # Cancel job with Job ID abc123
+
+Note:
+  This tool uses launchd for reliable scheduling on macOS.
+  Jobs are stored in ~/Library/LaunchAgents/
+EOF
+}
+
+# Generate unique job ID
+function generate_job_id() {
+  date +%s%N | shasum | head -c 8
+}
+
+# Get plist path for a job ID
+function get_plist_path() {
+  local job_id="$1"
+  echo "$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
+}
+
+# Get label for a job ID
+function get_label() {
+  local job_id="$1"
+  echo "$LAUNCHD_PREFIX.$job_id"
+}
+
+# Schedule a job using launchd
+# Arguments: $1=target_timestamp $2=title $3=message $4=sound $5=notify_cmd
+# Output: job_id on success
+function schedule_launchd_job() {
+  local target_timestamp="$1"
+  local title="$2"
+  local message="$3"
+  local sound="$4"
+  local notify_cmd="$5"
+
+  local now
+  now=$(date +%s)
+  local seconds=$((target_timestamp - now))
+
+  if [[ $seconds -lt 0 ]] ; then
+    echo "Error: Target time is in the past" >&2
+    return 1
+  fi
+
+  local job_id
+  job_id=$(generate_job_id)
+  local plist_path
+  plist_path=$(get_plist_path "$job_id")
+  local label
+  label=$(get_label "$job_id")
+
+  # Ensure LaunchAgents directory exists
+  mkdir -p "$LAUNCHD_DIR"
+
+  # Escape special characters for AppleScript string
+  local escaped_title="${title//\\/\\\\}"
+  escaped_title="${escaped_title//\"/\\\"}"
+  local escaped_message="${message//\\/\\\\}"
+  escaped_message="${escaped_message//\"/\\\"}"
+
+  # Build AppleScript command
+  # Using osascript directly instead of bash to avoid "bash background activity" notification
+  local applescript="delay $seconds
+display notification \"$escaped_message\" with title \"$escaped_title\""
+
+  # Add sound playback if specified
+  if [[ -n "$sound" && "$sound" != "default" ]] ; then
+    applescript="$applescript
+do shell script \"afplay '$sound' &\""
+  fi
+
+  # Add cleanup (delete plist after execution)
+  applescript="$applescript
+do shell script \"rm -f '$plist_path'\""
+
+  # Create plist file
+  # Using osascript directly to avoid bash being registered as background activity
+  cat > "$plist_path" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$label</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/osascript</string>
+        <string>-e</string>
+        <string>$applescript</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/tmp/notify-at-$job_id.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/notify-at-$job_id.log</string>
+</dict>
+</plist>
+EOF
+
+  # Store metadata as extended attributes for job listing
+  xattr -w "$LAUNCHD_PREFIX.title" "$title" "$plist_path" 2>/dev/null || true
+  xattr -w "$LAUNCHD_PREFIX.message" "$message" "$plist_path" 2>/dev/null || true
+  xattr -w "$LAUNCHD_PREFIX.target" "$target_timestamp" "$plist_path" 2>/dev/null || true
+
+  # Load the job
+  if launchctl load "$plist_path" 2>/dev/null ; then
+    echo "$job_id"
+  else
+    rm -f "$plist_path"
+    echo "Error: Failed to load launchd job" >&2
+    return 1
+  fi
+}
+
+# Job management functions
+function list_jobs() {
+  local found=0
+
+  # Check for plist files
+  if [[ ! -d "$LAUNCHD_DIR" ]] ; then
+    echo "No scheduled jobs found."
+    return 0
+  fi
+
+  local job_lines=()
+
+  for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
+    [[ -f "$plist" ]] || continue
+
+    # Extract job ID from filename
+    local filename
+    filename=$(basename "$plist")
+    local job_id="${filename#$LAUNCHD_PREFIX.}"
+    job_id="${job_id%.plist}"
+
+    # Get metadata from extended attributes
+    local title message target_timestamp
+    title=$(xattr -p "$LAUNCHD_PREFIX.title" "$plist" 2>/dev/null || echo "N/A")
+    message=$(xattr -p "$LAUNCHD_PREFIX.message" "$plist" 2>/dev/null || echo "N/A")
+    target_timestamp=$(xattr -p "$LAUNCHD_PREFIX.target" "$plist" 2>/dev/null || echo "0")
+
+    # Format target time
+    local time_str="N/A"
+    if [[ "$target_timestamp" != "0" ]] ; then
+      time_str=$(date -r "$target_timestamp" +"%H:%M" 2>/dev/null || echo "N/A")
+    fi
+
+    local job_line
+    job_line=$(printf "%-10s %-8s %-15s %s" "$job_id" "$time_str" "${title:0:15}" "${message:0:40}")
+    job_lines+=("$job_line")
+    found=1
+  done
+
+  if [[ $found -eq 0 ]] ; then
+    echo "No scheduled jobs found."
+    return 0
+  fi
+
+  # Display header and jobs
+  printf "%-10s %-8s %-15s %s\n" "JOB_ID" "TIME" "TITLE" "MESSAGE"
+  printf "%-10s %-8s %-15s %s\n" "--------" "----" "-----" "-------"
+
+  for job_line in "${job_lines[@]}" ; do
+    echo "$job_line"
+  done
+}
+
+function cancel_job() {
+  local target_job_id="$1"
+
+  if [[ -z "$target_job_id" ]] ; then
+    echo "Error: Job ID required for cancel operation"
+    echo "Usage: $0 -c JOB_ID"
+    echo "       $0 --cancel JOB_ID"
+    exit 1
+  fi
+
+  local plist_path
+  plist_path=$(get_plist_path "$target_job_id")
+  local label
+  label=$(get_label "$target_job_id")
+
+  if [[ ! -f "$plist_path" ]] ; then
+    echo "Error: Job with ID $target_job_id not found"
+    exit 1
+  fi
+
+  # Unload and remove
+  launchctl unload "$plist_path" 2>/dev/null || true
+  rm -f "$plist_path"
+  rm -f "/tmp/notify-at-$target_job_id.log"
+
+  echo "Job $target_job_id cancelled successfully"
+}
+
+# Option parsing
+[[ $1 == --help ]] && show_help && exit 0
+
+if [[ $1 == "-l" || $1 == "--list" ]] ; then
+  list_jobs
+  exit 0
+fi
+
+if [[ $1 == "-c" || $1 == "--cancel" ]] ; then
+  cancel_job "$2"
+  exit 0
+fi
+
+
+if [[ $# -lt 3 ]] ; then
+  show_help
+  exit 1
+fi
+
+time="$1"
+title="$2"
+message="$3"
+sound="${4:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
+now=$(date +%s)
+
+# Format seconds to human-readable duration
+# e.g., "1 day 2 hours 30 minutes later"
+function format_duration() {
+  local total_seconds="$1"
+  local parts=()
+
+  local days=$((total_seconds / 86400))
+  local remaining=$((total_seconds % 86400))
+  local hours=$((remaining / 3600))
+  remaining=$((remaining % 3600))
+  local minutes=$((remaining / 60))
+
+  if [[ $days -gt 0 ]] ; then
+    if [[ $days -eq 1 ]] ; then
+      parts+=("1 day")
+    else
+      parts+=("$days days")
+    fi
+  fi
+
+  if [[ $hours -gt 0 ]] ; then
+    if [[ $hours -eq 1 ]] ; then
+      parts+=("1 hour")
+    else
+      parts+=("$hours hours")
+    fi
+  fi
+
+  if [[ $minutes -gt 0 || ${#parts[@]} -eq 0 ]] ; then
+    if [[ $minutes -eq 1 ]] ; then
+      parts+=("1 minute")
+    else
+      parts+=("$minutes minutes")
+    fi
+  fi
+
+  local result="${parts[0]}"
+  for ((i=1; i<${#parts[@]}; i++)) ; do
+    result="$result ${parts[$i]}"
+  done
+
+  echo "$result later"
+}
+
+# Format detection function
+function detect_time_format() {
+  local time_input="$1"
+
+  if [[ $time_input =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}$ ]] ; then
+    echo "YYYY-MM-DD HH:MM"
+  elif [[ $time_input =~ ^[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}$ ]] ; then
+    echo "MM-DD HH:MM"
+  elif [[ $time_input =~ ^[0-9]{2}:[0-9]{2}$ ]] ; then
+    echo "HH:MM"
+  else
+    echo "INVALID"
+  fi
+}
+
+# Date normalization function
+function normalize_datetime() {
+  local time_input="$1"
+  local format="$2"
+
+  local current_year
+  current_year=$(date +%Y)
+
+  case "$format" in
+    "HH:MM")
+      echo "$(date +%Y-%m-%d) $time_input"
+      ;;
+    "MM-DD HH:MM")
+      echo "$current_year-$time_input"
+      ;;
+    "YYYY-MM-DD HH:MM")
+      echo "$time_input"
+      ;;
+  esac
+}
+
+# Past date validation function
+function validate_future_datetime() {
+  local normalized_datetime="$1"
+  local original_format="$2"
+  local target_timestamp
+  local current_timestamp
+  current_timestamp=$(date +%s)
+
+  # Only validate future dates for new formats
+  if [[ "$original_format" != "HH:MM" ]] ; then
+    target_timestamp=$(date -j -f "%Y-%m-%d %H:%M" "$normalized_datetime" +%s 2>/dev/null || return 1)
+
+    if [[ $target_timestamp -le $current_timestamp ]] ; then
+      echo "Error: Specified date/time is in the past: $normalized_datetime" >&2
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+# Unified date parsing with new format support
+format=$(detect_time_format "$time")
+if [[ $format == "INVALID" ]] ; then
+  echo "Error: Invalid time format. Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM"
+  exit 1
+fi
+
+normalized_datetime=$(normalize_datetime "$time" "$format")
+if ! validate_future_datetime "$normalized_datetime" "$format" ; then
+  exit 1
+fi
+
+# BSD date parsing (macOS)
+if ! target=$(date -j -f "%Y-%m-%d %H:%M" "$normalized_datetime" +%s 2>/dev/null) ; then
+  echo "Error: Invalid date/time format"
+  exit 1
+fi
+
+# Only add 24 hours for HH:MM format when time is in the past
+# Use -lt (not -le) because target has seconds=00, so target==now means "this minute"
+if [[ $format == "HH:MM" && $target -lt $now ]] ; then
+  target=$((target + 86400))
+fi
+
+seconds=$((target - now))
+duration=$(format_duration "$seconds")
+
+echo "Notification scheduled: $time ($duration)"
+echo "Title: $title"
+echo "Message: $message"
+
+# Get the full path to notify command
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd)"
+notify_cmd="$script_dir/notify"
+
+# Schedule using launchd
+job_id=$(schedule_launchd_job "$target" "$title" "$message" "$sound" "$notify_cmd")
+
+if [[ -n "$job_id" ]] ; then
+  echo "Job ID: $job_id"
+else
+  echo "Error: Failed to schedule notification"
+  exit 1
+fi
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
