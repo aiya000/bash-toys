@@ -5,13 +5,17 @@
 # Note: These tests focus on format validation and error handling.
 # Actual notification scheduling is not tested to avoid real notifications.
 
+LAUNCHD_PREFIX="com.bash-toys.notify-at"
+LAUNCHD_DIR="$HOME/Library/LaunchAgents"
+
 # Test setup and cleanup
 setup() {
   # Set a unique test tag for this test run
   export NOTIFY_TEST_TAG="bats-test-$$-$RANDOM"
 }
 
-cleanup_test_jobs() {
+# Cleanup for Linux (at command)
+cleanup_at_jobs() {
   local at_jobs
   at_jobs=$(atq 2>/dev/null || true)
 
@@ -30,7 +34,31 @@ cleanup_test_jobs() {
       fi
     done <<< "$at_jobs"
   fi
+}
 
+# Cleanup for macOS (launchd)
+cleanup_launchd_jobs() {
+  if [[ -d "$LAUNCHD_DIR" ]] ; then
+    for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
+      [[ -f "$plist" ]] || continue
+      launchctl unload "$plist" 2>/dev/null || true
+      rm -f "$plist"
+    done
+  fi
+  # Also clean up log files
+  rm -f /tmp/notify-at-*.log 2>/dev/null || true
+}
+
+# Platform-aware cleanup
+cleanup_test_jobs() {
+  case "$(uname -s)" in
+    Darwin)
+      cleanup_launchd_jobs
+      ;;
+    *)
+      cleanup_at_jobs
+      ;;
+  esac
   sleep 0.1 # Wait a moment for cleanup to complete
 }
 
@@ -41,7 +69,8 @@ teardown() {
 @test '`notify-at` with no arguments should show usage message' {
   run notify-at
   expects "$status" to_be 1
-  expects "${lines[0]}" to_equal 'notify-at - Sends notification at specified time with flexible date formats'
+  # Help message varies by platform (launchd on macOS, at on Linux)
+  expects "${lines[0]}" to_contain 'notify-at - Sends notification at specified time'
   expects "$output" to_contain 'Usage:'
   expects "$output" to_contain 'TIME formats:'
   expects "$output" to_contain 'Options:'
