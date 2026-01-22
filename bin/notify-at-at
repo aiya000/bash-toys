@@ -124,6 +124,13 @@ function schedule_at_job() {
   local escaped_title="${title//\'/\'\\\'\'}"
   local escaped_message="${message//\'/\'\\\'\'}"
 
+  # Build target mode string
+  local target_modes=()
+  [[ "$local_mode" == true ]] && target_modes+=("local")
+  [[ "$mobile_mode" == true ]] && target_modes+=("mobile")
+  local target_mode_str
+  IFS=',' ; target_mode_str="${target_modes[*]}" ; IFS=' '
+
   # Build command list
   # Note: at jobs don't inherit user environment, so we export BASH_TOYS_NTFY_TOPIC explicitly
   local commands=""
@@ -144,7 +151,7 @@ $ntfy_command"
   # The tag allows us to identify notify-at jobs when listing
   local job_output
   job_output=$(cat << EOF | at -t "$at_time" 2>&1
-# NOTIFY_AT_JOB title='${escaped_title}' message='${escaped_message}'
+# NOTIFY_AT_JOB title='${escaped_title}' message='${escaped_message}' mode='${target_mode_str}'
 $commands
 EOF
   )
@@ -169,7 +176,8 @@ function list_jobs() {
     return 0
   fi
 
-  local job_lines=()
+  # Array to store "timestamp|job_line" for sorting
+  local job_entries=()
 
   while IFS= read -r line ; do
     # Skip empty lines
@@ -187,42 +195,52 @@ function list_jobs() {
 
     # Check for NOTIFY_AT_JOB tag
     if echo "$job_content" | grep -q "NOTIFY_AT_JOB" ; then
-      # Extract title and message from tag
+      # Extract title, message, and mode from tag
       local tag_line
       tag_line=$(echo "$job_content" | grep "NOTIFY_AT_JOB")
 
-      local title message
+      local title message target_mode
       # Extract title: remove everything before "title='" and after the closing "'"
       title="${tag_line#*title=\'}"
       title="${title%%\'*}"
       # Extract message: remove everything before "message='" and after the closing "'"
       message="${tag_line#*message=\'}"
       message="${message%%\'*}"
+      # Extract mode: remove everything before "mode='" and after the closing "'"
+      if [[ "$tag_line" == *"mode='"* ]] ; then
+        target_mode="${tag_line#*mode=\'}"
+        target_mode="${target_mode%%\'*}"
+      else
+        target_mode="local"
+      fi
 
       # Extract time from atq output (format varies by platform)
       # Try to get HH:MM from the line
       local time_str
       time_str=$(echo "$line" | awk '{print $5}' | cut -d: -f1,2)
 
+      # Convert time to sortable timestamp (using today's date as base)
+      local sort_key
+      sort_key=$(date -j -f "%H:%M" "$time_str" +%s 2>/dev/null || echo "0")
+
       local job_line
-      job_line=$(printf "%-8s %-8s %-15s %s" "$job_id" "$time_str" "${title:0:15}" "${message:0:40}")
-      job_lines+=("$job_line")
+      job_line=$(printf "%-8s %-8s %-14s %-15s %s" "$job_id" "$time_str" "$target_mode" "${title:0:15}" "${message:0:40}")
+      job_entries+=("${sort_key}|${job_line}")
     fi
   done <<< "$at_jobs"
 
   # Check if any valid jobs were found
-  if [[ ${#job_lines[@]} -eq 0 ]] ; then
+  if [[ ${#job_entries[@]} -eq 0 ]] ; then
     echo "No scheduled jobs found."
     return 0
   fi
 
   # Display header and jobs
-  printf "%-8s %-8s %-15s %s\n" "JOB_ID" "TIME" "TITLE" "MESSAGE"
-  printf "%-8s %-8s %-15s %s\n" "------" "----" "-----" "-------"
+  printf "%-8s %-8s %-14s %-15s %s\n" "JOB_ID" "TIME" "TARGET" "TITLE" "MESSAGE"
+  printf "%-8s %-8s %-14s %-15s %s\n" "------" "----" "------" "-----" "-------"
 
-  for job_line in "${job_lines[@]}" ; do
-    echo "$job_line"
-  done
+  # Sort by timestamp and display (remove timestamp prefix)
+  printf '%s\n' "${job_entries[@]}" | sort -t'|' -k1 -n | cut -d'|' -f2-
 }
 
 function cancel_job() {

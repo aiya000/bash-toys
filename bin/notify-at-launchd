@@ -202,6 +202,14 @@ EOF
   xattr -w "$LAUNCHD_PREFIX.message" "$message" "$plist_path" 2>/dev/null || true
   xattr -w "$LAUNCHD_PREFIX.target" "$target_timestamp" "$plist_path" 2>/dev/null || true
 
+  # Store target mode (local,mobile)
+  local target_modes=()
+  [[ "$local_mode" == true ]] && target_modes+=("local")
+  [[ "$mobile_mode" == true ]] && target_modes+=("mobile")
+  local target_mode_str
+  IFS=',' ; target_mode_str="${target_modes[*]}" ; IFS=' '
+  xattr -w "$LAUNCHD_PREFIX.mode" "$target_mode_str" "$plist_path" 2>/dev/null || true
+
   # Load the job
   if launchctl load "$plist_path" 2>/dev/null ; then
     echo "$job_id"
@@ -235,10 +243,11 @@ function list_jobs() {
     job_id="${job_id%.plist}"
 
     # Get metadata from extended attributes
-    local title message target_timestamp
+    local title message target_timestamp target_mode
     title=$(xattr -p "$LAUNCHD_PREFIX.title" "$plist" 2>/dev/null || echo "N/A")
     message=$(xattr -p "$LAUNCHD_PREFIX.message" "$plist" 2>/dev/null || echo "N/A")
     target_timestamp=$(xattr -p "$LAUNCHD_PREFIX.target" "$plist" 2>/dev/null || echo "0")
+    target_mode=$(xattr -p "$LAUNCHD_PREFIX.mode" "$plist" 2>/dev/null || echo "local")
 
     # Format target time
     local time_str="N/A"
@@ -247,7 +256,7 @@ function list_jobs() {
     fi
 
     local job_line
-    job_line=$(printf "%-10s %-8s %-15s %s" "$job_id" "$time_str" "${title:0:15}" "${message:0:40}")
+    job_line=$(printf "%-10s %-8s %-14s %-15s %s" "$job_id" "$time_str" "$target_mode" "${title:0:15}" "${message:0:40}")
     # Store with timestamp prefix for sorting
     job_entries+=("${target_timestamp}|${job_line}")
     found=1
@@ -259,8 +268,8 @@ function list_jobs() {
   fi
 
   # Display header and jobs
-  printf "%-10s %-8s %-15s %s\n" "JOB_ID" "TIME" "TITLE" "MESSAGE"
-  printf "%-10s %-8s %-15s %s\n" "--------" "----" "-----" "-------"
+  printf "%-10s %-8s %-14s %-15s %s\n" "JOB_ID" "TIME" "TARGET" "TITLE" "MESSAGE"
+  printf "%-10s %-8s %-14s %-15s %s\n" "--------" "----" "------" "-----" "-------"
 
   # Sort by timestamp and display (remove timestamp prefix)
   printf '%s\n' "${job_entries[@]}" | sort -t'|' -k1 -n | cut -d'|' -f2-
