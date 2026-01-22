@@ -222,7 +222,8 @@ function list_jobs() {
     return 0
   fi
 
-  local job_lines=()
+  # Array to store "timestamp|job_line" for sorting
+  local job_entries=()
 
   for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
     [[ -f "$plist" ]] || continue
@@ -247,7 +248,8 @@ function list_jobs() {
 
     local job_line
     job_line=$(printf "%-10s %-8s %-15s %s" "$job_id" "$time_str" "${title:0:15}" "${message:0:40}")
-    job_lines+=("$job_line")
+    # Store with timestamp prefix for sorting
+    job_entries+=("${target_timestamp}|${job_line}")
     found=1
   done
 
@@ -260,9 +262,8 @@ function list_jobs() {
   printf "%-10s %-8s %-15s %s\n" "JOB_ID" "TIME" "TITLE" "MESSAGE"
   printf "%-10s %-8s %-15s %s\n" "--------" "----" "-----" "-------"
 
-  for job_line in "${job_lines[@]}" ; do
-    echo "$job_line"
-  done
+  # Sort by timestamp and display (remove timestamp prefix)
+  printf '%s\n' "${job_entries[@]}" | sort -t'|' -k1 -n | cut -d'|' -f2-
 }
 
 function cancel_job() {
