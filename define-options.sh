@@ -19,6 +19,9 @@ dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 [[ -z $BASH_TOYS_OPEN_BOOKMARK_OPENER ]] && export BASH_TOYS_OPEN_BOOKMARK_OPENER=xdg-open
 [[ -z $BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS ]] && export BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS='(Google=https://www.google.co.jp)|(GitHub=https://github.com)'
 
+# Specify your ntfy.sh topic
+# export BASH_TOYS_NTFY_TOPIC=''
+
 if [[ -z $BASH_TOYS_NOTIFY_DEFAULT_PLAYER ]] ; then
   if [[ -n $WSL_INTEROP ]] ; then
     # WSL
