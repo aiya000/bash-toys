@@ -41,7 +41,7 @@ notify-at - Sends notification at specified time using launchd (macOS version)
 Usage:
   notify-at [options] TIME title message [sound]
   notify-at -l | --list
-  notify-at -c JOB_ID | --cancel JOB_ID
+  notify-at -c JOB_ID [-c JOB_ID ...] | --cancel JOB_ID [--cancel JOB_ID ...]
   notify-at --help
 
 Arguments:
@@ -271,9 +271,9 @@ function cancel_job() {
 
   if [[ -z "$target_job_id" ]] ; then
     echo "Error: Job ID required for cancel operation"
-    echo "Usage: $0 -c JOB_ID"
-    echo "       $0 --cancel JOB_ID"
-    exit 1
+    echo "Usage: $0 -c JOB_ID [-c JOB_ID ...]"
+    echo "       $0 --cancel JOB_ID [--cancel JOB_ID ...]"
+    return 1
   fi
 
   local plist_path
@@ -283,7 +283,7 @@ function cancel_job() {
 
   if [[ ! -f "$plist_path" ]] ; then
     echo "Error: Job with ID $target_job_id not found"
-    exit 1
+    return 1
   fi
 
   # Unload and remove
@@ -302,9 +302,38 @@ if [[ $1 == "-l" || $1 == "--list" ]] ; then
   exit 0
 fi
 
+# Handle multiple -c/--cancel options
 if [[ $1 == "-c" || $1 == "--cancel" ]] ; then
-  cancel_job "$2"
-  exit 0
+  job_ids=()
+  exit_code=0
+
+  # Collect all job IDs from -c/--cancel options
+  while [[ $# -gt 0 ]] ; do
+    case "$1" in
+      -c|--cancel)
+        if [[ -n "$2" && ! "$2" =~ ^- ]] ; then
+          job_ids+=("$2")
+          shift 2
+        else
+          echo "Error: -c/--cancel requires a job ID argument"
+          exit 1
+        fi
+        ;;
+      *)
+        echo "Error: Unexpected argument: $1"
+        exit 1
+        ;;
+    esac
+  done
+
+  # Cancel all collected jobs
+  for job_id in "${job_ids[@]}" ; do
+    if ! cancel_job "$job_id" ; then
+      exit_code=1
+    fi
+  done
+
+  exit $exit_code
 fi
 
 # Parse arguments - extract --mobile and --local options

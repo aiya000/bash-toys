@@ -38,7 +38,7 @@ notify-at - Sends notification at specified time with flexible date formats
 Usage:
   notify-at [options] TIME title message [sound]
   notify-at -l | --list
-  notify-at -c JOB_ID | --cancel JOB_ID
+  notify-at -c JOB_ID [-c JOB_ID ...] | --cancel JOB_ID [--cancel JOB_ID ...]
   notify-at --help
 
 Arguments:
@@ -230,9 +230,9 @@ function cancel_job() {
 
   if [[ -z "$target_job_id" ]] ; then
     echo "Error: Job ID required for cancel operation"
-    echo "Usage: $0 -c JOB_ID"
-    echo "       $0 --cancel JOB_ID"
-    exit 1
+    echo "Usage: $0 -c JOB_ID [-c JOB_ID ...]"
+    echo "       $0 --cancel JOB_ID [--cancel JOB_ID ...]"
+    return 1
   fi
 
   # Verify it's an existing at job
@@ -241,13 +241,13 @@ function cancel_job() {
 
   if [[ -z "$job_content" ]] ; then
     echo "Error: Job with ID $target_job_id not found"
-    exit 1
+    return 1
   fi
 
   # Verify it's a notify-at job
   if ! echo "$job_content" | grep -q "NOTIFY_AT_JOB" ; then
     echo "Error: Job $target_job_id is not a notify-at job"
-    exit 1
+    return 1
   fi
 
   # Remove the job using atrm
@@ -255,7 +255,7 @@ function cancel_job() {
     echo "Job $target_job_id cancelled successfully"
   else
     echo "Error: Failed to cancel job $target_job_id"
-    exit 1
+    return 1
   fi
 }
 
@@ -270,9 +270,38 @@ if [[ $1 == "-l" || $1 == "--list" ]] ; then
   exit 0
 fi
 
+# Handle multiple -c/--cancel options
 if [[ $1 == "-c" || $1 == "--cancel" ]] ; then
-  cancel_job "$2"
-  exit 0
+  job_ids=()
+  exit_code=0
+
+  # Collect all job IDs from -c/--cancel options
+  while [[ $# -gt 0 ]] ; do
+    case "$1" in
+      -c|--cancel)
+        if [[ -n "$2" && ! "$2" =~ ^- ]] ; then
+          job_ids+=("$2")
+          shift 2
+        else
+          echo "Error: -c/--cancel requires a job ID argument"
+          exit 1
+        fi
+        ;;
+      *)
+        echo "Error: Unexpected argument: $1"
+        exit 1
+        ;;
+    esac
+  done
+
+  # Cancel all collected jobs
+  for job_id in "${job_ids[@]}" ; do
+    if ! cancel_job "$job_id" ; then
+      exit_code=1
+    fi
+  done
+
+  exit $exit_code
 fi
 
 # Parse arguments - extract --mobile and --local options
