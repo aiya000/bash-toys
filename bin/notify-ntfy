@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Sends notification with title and message to mobile via ntfy.sh
+#
+# ```shell-session
+# $ notify-ntfy title message
+# ```
+#
+# Requirements:
+# - curl
+# - BASH_TOYS_NTFY_TOPIC environment variable
+
+function show_help() {
+  cat << EOF
+Usage: notify-ntfy <title> <message>
+
+Send a notification to mobile devices via ntfy.sh.
+
+Environment Variables:
+  BASH_TOYS_NTFY_TOPIC    Required. Your ntfy.sh topic name.
+
+Examples:
+  notify-ntfy 'Task Complete' 'Your build has finished'
+  notify-ntfy 'Warning' 'Low disk space detected'
+
+EOF
+}
+
+[[ $1 == --help ]] && show_help && exit 0
+
+if [[ $# -lt 2 ]] ; then
+  show_help
+  exit 1
+fi
+
+if [[ -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
+  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required" >&2
+  exit 1
+fi
+
+title="$1"
+message="$2"
+
+if ! curl -s \
+  -H "Title: $title" \
+  -d "$message" \
+  "https://ntfy.sh/$BASH_TOYS_NTFY_TOPIC" > /dev/null ; then
+  echo "Error: Failed to send notification to ntfy.sh" >&2
+  exit 1
+fi
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.

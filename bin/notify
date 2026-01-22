@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Sends notification with title and message to your Desktop and/or mobile via ntfy.sh
+# Sends notification with title and message to your Desktop
 #
 # ```shell-session
 # # Simple usage:
@@ -8,13 +8,6 @@
 #
 # # Notify with sound:
 # $ notify title message /path/to/sound
-#
-# # Mobile notification via ntfy.sh:
-# $ notify title message --mobile
-# $ notify --mobile title message  # Options can be anywhere
-#
-# # Both local and mobile:
-# $ notify title message --mobile --local
 # ```
 #
 # Note for macOS :
@@ -23,34 +16,16 @@
 
 function show_help() {
   cat << EOF
-Usage: notify [options] <title> <message> [sound]
+Usage: notify <title> <message> [sound]
 
-Send a notification with title and message to your Desktop and/or mobile devices via ntfy.sh.
-
-Options:
-  --mobile    Send notification to mobile via ntfy.sh
-  --local     Send notification to local desktop (default if no options specified)
-  --help      Show this help message
-
-Note: Options can be placed anywhere in the argument list.
-      If --mobile is specified without --local, only mobile notification is sent.
-      If neither is specified, --local is assumed.
-
-Environment Variables:
-  BASH_TOYS_NTFY_TOPIC    Required when using --mobile. Your ntfy.sh topic name.
+Send a notification with title and message to the GUI.
 
 Examples:
   notify 'Task Complete' 'Your build has finished'
   notify 'Warning' 'Low disk space detected' /path/to/bash-toys/assets/notification-1.mp3
-  notify 'Reminder' 'Meeting time' --mobile
+  notify 'Reminder' 'Meeting time' 'default' /path/to/sound-you-like.ogg
 
-NOTE:
-  # Specify both --mobile and --local if you want to send to both
-  notify --mobile --local 'Alert' 'Important message'
-  # Send notification only to your mobile device, when specified only --mobile
-  notify --mobile --local 'Alert' 'Important message'
-
-Supported platforms (for --local):
+Supported platforms:
   - Windows (WSL): Uses notifu.exe
   - macOS: Uses osascript
   - Linux: Uses notify-send
@@ -62,118 +37,48 @@ macOS Note:
 EOF
 }
 
-# Parse arguments - options can be anywhere
-mobile_mode=false
-local_mode=false
-positional_args=()
+[[ $1 == --help ]] && show_help && exit 0
 
-for arg in "$@" ; do
-  case "$arg" in
-    --mobile)
-      mobile_mode=true
-      ;;
-    --local)
-      local_mode=true
-      ;;
-    --help)
-      show_help
-      exit 0
-      ;;
-    *)
-      positional_args+=("$arg")
-      ;;
-  esac
-done
-
-# Default to local mode if neither is specified
-if [[ "$mobile_mode" == false && "$local_mode" == false ]] ; then
-  local_mode=true
-fi
-
-# Validate ntfy topic when mobile mode is requested
-if [[ "$mobile_mode" == true && -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
-  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --mobile option" >&2
-  exit 1
-fi
-
-title="${positional_args[0]:-}"
-message="${positional_args[1]:-}"
-sound="${positional_args[2]:-}"
-
-# Function to send mobile notification via ntfy.sh
-function send_mobile_notification() {
-  local ntfy_title="$1"
-  local ntfy_message="$2"
-
-  if ! curl -s \
-    -H "Title: $ntfy_title" \
-    -d "$ntfy_message" \
-    "https://ntfy.sh/$BASH_TOYS_NTFY_TOPIC" > /dev/null ; then
-    echo "Error: Failed to send notification to ntfy.sh" >&2
-    return 1
-  fi
-}
-
-# Function to send local notification
-function send_local_notification() {
-  local local_title="$1"
-  local local_message="$2"
-  local local_sound="$3"
-
-  # WSL
-  if command -v notifu.exe >/dev/null 2>&1 ; then
-    if [[ $local_sound != '' ]] ; then
-      echo "Error: Sorry, sound feature is not implemented yet for WSL." >&2
-      return 1
-    fi
-    notifu.exe /p "$local_title" /m "$local_message" &> /dev/null
-    return 0
-  fi
-
-  # macOS
-  if command -v osascript >/dev/null 2>&1 ; then
-    osascript -e "display notification \"$local_message\" with title \"$local_title\""
-    if [[ $local_sound != '' ]] ; then
-      afplay "$local_sound" &
-    fi
-    return 0
-  fi
-
-  # Pure Linux
-  if command -v notify-send >/dev/null 2>&1 ; then
-    notify-send "$local_title" "$local_message"
-    if [[ $local_sound != '' ]] ; then
-      paplay "$local_sound" &
-    fi
-    return 0
-  fi
-
-  echo 'Error: No notification system available on this platform.' >&2
-  return 1
-}
-
-# Validate required arguments
-if [[ -z "$title" || -z "$message" ]] ; then
+if [[ $# -lt 2 ]] ; then
   show_help
   exit 1
 fi
 
-# Send notifications based on mode
-exit_code=0
+title="$1"
+message="$2"
+sound="${3:-}"
 
-if [[ "$mobile_mode" == true ]] ; then
-  if ! send_mobile_notification "$title" "$message" ; then
-    exit_code=1
+# WSL
+if command -v notifu.exe >/dev/null 2>&1 ; then
+  if [[ $sound != '' ]] ; then
+    echo "Error: Sorry, this feature is not implemented yet for your environment." 2>&1
+    exit 1
   fi
+  notifu.exe /p "$title" /m "$message" &> /dev/null
+  exit
 fi
 
-if [[ "$local_mode" == true ]] ; then
-  if ! send_local_notification "$title" "$message" "$sound" ; then
-    exit_code=1
+# macOS
+if command -v osascript >/dev/null 2>&1 ; then
+  osascript -e "display notification \"$message\" with title \"$title\""
+  if [[ $sound != '' ]] ; then
+    afplay "$sound" &
   fi
+  exit
 fi
 
-exit $exit_code
+# Pure Linux
+if command -v notify-send >/dev/null 2>&1 ; then
+  notify-send "$title" "$message"
+  if [[ $sound != '' ]] ; then
+    paplay "$sound" &
+  fi
+  exit
+fi
+
+echo 'Error: No notification system available on this platform.'
+echo
+show_help
 
 # https://github.com/aiya000/bash-toys
 #

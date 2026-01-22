@@ -11,7 +11,8 @@
 # Use `./notify-at-launchd` instead if using macOS.
 #
 # Requirements:
-# - ./notify
+# - ./notify (for local notifications)
+# - ./notify-ntfy (for mobile notifications)
 #
 # Supported time formats:
 # - HH:MM                - Time today (if past, then tomorrow)
@@ -22,6 +23,8 @@
 # $ notify-at 12:00 "Meeting" "Team meeting"                    # Today at 12:00
 # $ notify-at "01-15 09:00" "Reminder" "New year meeting"       # January 15 at 09:00
 # $ notify-at "2027-01-15 09:00" "Reminder" "Future meeting"    # Future date
+# $ notify-at 12:00 "Meeting" "Team meeting" --mobile           # Mobile only
+# $ notify-at 12:00 "Meeting" "Team meeting" --mobile --local   # Both
 # ```
 #
 # See also `$ notify-at-at --help`
@@ -33,7 +36,7 @@ function show_help() {
 notify-at - Sends notification at specified time with flexible date formats
 
 Usage:
-  notify-at TIME title message [sound]
+  notify-at [options] TIME title message [sound]
   notify-at -l | --list
   notify-at -c JOB_ID | --cancel JOB_ID
   notify-at --help
@@ -42,13 +45,21 @@ Arguments:
   TIME      Time in one of the supported formats
   title     Notification title
   message   Notification message
-  sound     Optional sound file (default: configured sound)
+  sound     Optional sound file (default: configured sound, only for --local)
   JOB_ID    Job ID of scheduled job to cancel (from 'notify-at -l')
 
 Options:
-  -l, --list              List all scheduled jobs
-  -c, --cancel JOB_ID     Cancel scheduled job by Job ID
-  --help                  Show this help message
+  --mobile              Send notification to mobile via ntfy.sh
+  --local               Send notification to local desktop (default if no options specified)
+  -l, --list            List all scheduled jobs
+  -c, --cancel JOB_ID   Cancel scheduled job by Job ID
+  --help                Show this help message
+
+Note: If --mobile is specified without --local, only mobile notification is sent.
+      If neither is specified, --local is assumed.
+
+Environment Variables:
+  BASH_TOYS_NTFY_TOPIC    Required when using --mobile. Your ntfy.sh topic name.
 
 TIME formats:
   HH:MM                - Time today (if past, then tomorrow)
@@ -59,6 +70,8 @@ Examples:
   notify-at 13:30 'Reminder' 'Meeting time'
   notify-at '01-15 09:00' 'Reminder' 'New year meeting'
   notify-at '2027-01-15 09:00' 'Reminder' 'Future meeting'
+  notify-at 13:30 'Reminder' 'Meeting time' --mobile
+  notify-at 13:30 'Reminder' 'Meeting time' --mobile --local
 
 Job management:
   notify-at -l                    # List scheduled jobs
@@ -85,7 +98,7 @@ function check_at_available() {
 }
 
 # Schedule a job using the 'at' command
-# Arguments: $1=target_timestamp $2=title $3=message $4=sound $5=notify_cmd
+# Arguments: $1=target_timestamp $2=title $3=message $4=sound $5=notify_cmd $6=notify_ntfy_cmd $7=local_mode $8=mobile_mode
 # Output: job_id on success, empty on failure
 function schedule_at_job() {
   local target_timestamp="$1"
@@ -93,6 +106,9 @@ function schedule_at_job() {
   local message="$3"
   local sound="$4"
   local notify_cmd="$5"
+  local notify_ntfy_cmd="$6"
+  local local_mode="$7"
+  local mobile_mode="$8"
 
   # Convert timestamp to at -t format: YYYYMMDDhhmm
   local at_time
@@ -108,12 +124,28 @@ function schedule_at_job() {
   local escaped_title="${title//\'/\'\\\'\'}"
   local escaped_message="${message//\'/\'\\\'\'}"
 
+  # Build command list
+  # Note: at jobs don't inherit user environment, so we export BASH_TOYS_NTFY_TOPIC explicitly
+  local commands=""
+  if [[ "$local_mode" == true ]] ; then
+    commands="\"$notify_cmd\" '$title' '$message' '$sound'"
+  fi
+  if [[ "$mobile_mode" == true ]] ; then
+    local ntfy_command="export BASH_TOYS_NTFY_TOPIC='$BASH_TOYS_NTFY_TOPIC'; \"$notify_ntfy_cmd\" '$title' '$message'"
+    if [[ -n "$commands" ]] ; then
+      commands="$commands
+$ntfy_command"
+    else
+      commands="$ntfy_command"
+    fi
+  fi
+
   # Create job with identification tag
   # The tag allows us to identify notify-at jobs when listing
   local job_output
   job_output=$(cat << EOF | at -t "$at_time" 2>&1
 # NOTIFY_AT_JOB title='${escaped_title}' message='${escaped_message}'
-"$notify_cmd" '$title' '$message' '$sound'
+$commands
 EOF
   )
 
@@ -243,16 +275,45 @@ if [[ $1 == "-c" || $1 == "--cancel" ]] ; then
   exit 0
 fi
 
+# Parse arguments - extract --mobile and --local options
+mobile_mode=false
+local_mode=false
+positional_args=()
 
-if [[ $# -lt 3 ]] ; then
+for arg in "$@" ; do
+  case "$arg" in
+    --mobile)
+      mobile_mode=true
+      ;;
+    --local)
+      local_mode=true
+      ;;
+    *)
+      positional_args+=("$arg")
+      ;;
+  esac
+done
+
+# Default to local mode if neither is specified
+if [[ "$mobile_mode" == false && "$local_mode" == false ]] ; then
+  local_mode=true
+fi
+
+# Validate ntfy topic when mobile mode is requested
+if [[ "$mobile_mode" == true && -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
+  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --mobile option" >&2
+  exit 1
+fi
+
+if [[ ${#positional_args[@]} -lt 3 ]] ; then
   show_help
   exit 1
 fi
 
-time="$1"
-title="$2"
-message="$3"
-sound="${4:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
+time="${positional_args[0]}"
+title="${positional_args[1]}"
+message="${positional_args[2]}"
+sound="${positional_args[3]:-${BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND:-default}}"
 now=$(date +%s)
 
 # Format seconds to human-readable duration
@@ -397,13 +458,20 @@ duration=$(format_duration "$seconds")
 echo "Notification scheduled: $time ($duration)"
 echo "Title: $title"
 echo "Message: $message"
+if [[ "$local_mode" == true ]] ; then
+  echo "Target: local"
+fi
+if [[ "$mobile_mode" == true ]] ; then
+  echo "Target: mobile (ntfy.sh)"
+fi
 
-# Get the full path to notify command
+# Get the full path to notify commands
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd)"
 notify_cmd="$script_dir/notify"
+notify_ntfy_cmd="$script_dir/notify-ntfy"
 
 # Schedule using at command
-job_id=$(schedule_at_job "$target" "$title" "$message" "$sound" "$notify_cmd")
+job_id=$(schedule_at_job "$target" "$title" "$message" "$sound" "$notify_cmd" "$notify_ntfy_cmd" "$local_mode" "$mobile_mode")
 
 if [[ -n "$job_id" ]] ; then
   echo "Job ID: $job_id"
