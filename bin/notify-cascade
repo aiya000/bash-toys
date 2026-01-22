@@ -13,6 +13,8 @@
 # $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m 10m 5m
 # $ notify-cascade "01-15 09:00" "Meeting" "New year meeting" 1h 30m 10m
 # $ notify-cascade "2027-01-15 09:00" "Event" "Future event" 1d 1h 30m /path/to/sound.wav
+# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --mobile
+# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --mobile --local
 # ```
 #
 # See also `$ notify-cascade --help`
@@ -24,7 +26,7 @@ function show_help() {
 notify-cascade - Sends cascade of notifications at specified intervals before target time
 
 Usage:
-  notify-cascade TIME title message [timing1] [timing2] ... [sound]
+  notify-cascade [options] TIME title message [timing1] [timing2] ... [sound]
   notify-cascade --help
 
 Arguments:
@@ -33,6 +35,15 @@ Arguments:
   message   Notification message
   timing    Intervals before target time (e.g., 1h, 30m, 5s)
   sound     Optional sound file (default: configured sound)
+
+Options:
+  --mobile    Send notifications to mobile via ntfy.sh
+  --local     Send notifications to local desktop (default if no options specified)
+  --help      Show this help message
+
+Note: Options can be placed anywhere in the argument list.
+      If --mobile is specified without --local, only mobile notifications are sent.
+      If neither is specified, --local is assumed.
 
 TIME formats (See also `$ notify-at --help`):
   HH:MM                - Time today (if past, then tomorrow)
@@ -44,30 +55,69 @@ Timing formats:
   30m       30 minutes before
   45s       45 seconds before
 
+Environment Variables:
+  BASH_TOYS_NTFY_TOPIC    Required when using --mobile. Your ntfy.sh topic name.
+
 Examples:
   notify-cascade 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m
   notify-cascade '01-15 09:00' 'Meeting' 'New year meeting' 1h 30m 10m
   notify-cascade '2027-01-15 09:00' 'Event' 'Future event' 1d 1h 30m /path/to/sound.wav
+  notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile
+  notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile --local
 EOF
 }
 
 [[ $1 == --help ]] && show_help && exit 0
 
-if [[ $# -lt 3 ]] ; then
+# Parse arguments - extract --mobile and --local options first
+mobile_mode=false
+local_mode=false
+positional_args=()
+
+for arg in "$@" ; do
+  case "$arg" in
+    --mobile)
+      mobile_mode=true
+      ;;
+    --local)
+      local_mode=true
+      ;;
+    *)
+      positional_args+=("$arg")
+      ;;
+  esac
+done
+
+# Build notify-at options to pass through
+notify_at_options=()
+if [[ "$mobile_mode" == true ]] ; then
+  notify_at_options+=("--mobile")
+fi
+if [[ "$local_mode" == true ]] ; then
+  notify_at_options+=("--local")
+fi
+
+# Validate ntfy topic when mobile mode is requested
+if [[ "$mobile_mode" == true && -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
+  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --mobile option" >&2
+  exit 1
+fi
+
+if [[ ${#positional_args[@]} -lt 3 ]] ; then
   show_help
   exit 1
 fi
 
-time="$1"
-title="$2"
-message="$3"
+time="${positional_args[0]}"
+title="${positional_args[1]}"
+message="${positional_args[2]}"
 
 # Parse timing arguments and potential sound file
 timings=()
 sound=""
 
-for i in $(seq 4 $#) ; do
-  arg="${!i}"
+for i in $(seq 3 $((${#positional_args[@]} - 1))) ; do
+  arg="${positional_args[$i]}"
 
   # Check if argument looks like a timing (contains h, m, or s)
   if [[ "$arg" =~ ^[0-9]+[hms]$ ]] ; then
@@ -247,7 +297,7 @@ if [[ ${#timings[@]} -eq 0 ]] ; then
   duration=$(format_duration "$seconds")
   echo "Single notification: $duration later"
 
-  notify-at "$time" "$title" "$message" "$sound" &
+  notify-at "$time" "$title" "$message" "$sound" "${notify_at_options[@]}" &
 
   echo "Process ID: $!"
   exit 0
@@ -277,7 +327,7 @@ for timing in "${timings[@]}" ; do
   notification_hour=$(date -d "@$notification_time" +"%H:%M" 2>/dev/null || date -r "$notification_time" +"%H:%M")
 
   (
-    notify-at "$notification_hour" "$title" "$timing_message" "$sound"
+    notify-at "$notification_hour" "$title" "$timing_message" "$sound" "${notify_at_options[@]}"
   ) &
 
   pids+=($!)

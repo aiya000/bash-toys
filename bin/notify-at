@@ -5,11 +5,13 @@
 # This is a wrapper that delegates to platform-specific implementations:
 # - macOS: notify-at-launchd (uses launchd for reliable GUI notifications)
 # - Linux: notify-at-at (uses at command)
+# - Mobile: notify-at-ntfy (uses ntfy.sh for mobile notifications)
 #
 # Requirements:
 # - ./notify
 # - ./notify-at-at (if using Linux or WSL (not macOS))
 # - ./notify-at-launchd (if using macOS)
+# - ./notify-at-ntfy (if using --mobile)
 #
 # Supported time formats:
 # - HH:MM                - Time today (if past, then tomorrow)
@@ -20,6 +22,8 @@
 # $ notify-at 12:00 "Meeting" "Team meeting"                    # Today at 12:00
 # $ notify-at "01-15 09:00" "Reminder" "New year meeting"       # January 15 at 09:00
 # $ notify-at "2027-01-15 09:00" "Reminder" "Future meeting"    # Future date
+# $ notify-at 12:00 "Meeting" "Team meeting" --mobile           # Mobile only
+# $ notify-at 12:00 "Meeting" "Team meeting" --mobile --local   # Both mobile and local
 # ```
 #
 # See also `$ notify-at --help`
@@ -28,17 +32,66 @@ set -e
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd)"
 
-# Detect platform and delegate to appropriate implementation
-case "$(uname -s)" in
-  Darwin)
-    # macOS: use launchd for reliable GUI notifications
-    exec "$script_dir/notify-at-launchd" "$@"
-    ;;
-  *)
-    # Linux and others: use at command
-    exec "$script_dir/notify-at-at" "$@"
-    ;;
-esac
+# Parse arguments - extract --mobile and --local options
+mobile_mode=false
+local_mode=false
+passthrough_args=()
+
+for arg in "$@" ; do
+  case "$arg" in
+    --mobile)
+      mobile_mode=true
+      ;;
+    --local)
+      local_mode=true
+      ;;
+    *)
+      passthrough_args+=("$arg")
+      ;;
+  esac
+done
+
+# Default to local mode if neither is specified
+if [[ "$mobile_mode" == false && "$local_mode" == false ]] ; then
+  local_mode=true
+fi
+
+# Validate ntfy topic when mobile mode is requested
+if [[ "$mobile_mode" == true && -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
+  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --mobile option" >&2
+  exit 1
+fi
+
+exit_code=0
+
+# Schedule mobile notification if requested
+if [[ "$mobile_mode" == true ]] ; then
+  if ! "$script_dir/notify-at-ntfy" "${passthrough_args[@]}" ; then
+    exit_code=1
+  fi
+  echo ""
+fi
+
+# Schedule local notification if requested
+if [[ "$local_mode" == true ]] ; then
+  # Detect platform and delegate to appropriate implementation
+  case "$(uname -s)" in
+    Darwin)
+      # macOS: use launchd for reliable GUI notifications
+      if ! "$script_dir/notify-at-launchd" "${passthrough_args[@]}" ; then
+        exit_code=1
+      fi
+      ;;
+    *)
+      # Linux and others: use at command
+      if ! "$script_dir/notify-at-at" "${passthrough_args[@]}" ; then
+        exit_code=1
+      fi
+      ;;
+  esac
+fi
+
+exit $exit_code
 
 # https://github.com/aiya000/bash-toys
 #
