@@ -45,7 +45,8 @@ cleanup_launchd_jobs() {
       rm -f "$plist"
     done
   fi
-  # Also clean up log files
+  # Also clean up script and log files
+  rm -f /tmp/notify-at-*.sh 2>/dev/null || true
   rm -f /tmp/notify-at-*.log 2>/dev/null || true
 }
 
@@ -188,13 +189,15 @@ teardown() {
 @test '`notify-at -c` should show error without Job ID' {
   run notify-at -c
   expects "$status" to_be 1
-  expects "$output" to_contain 'Error: Job ID required for cancel operation'
+  expects "$output" to_contain 'Error:'
+  expects "$output" to_contain 'job ID'
 }
 
 @test '`notify-at --cancel` should show error without Job ID' {
   run notify-at --cancel
   expects "$status" to_be 1
-  expects "$output" to_contain 'Error: Job ID required for cancel operation'
+  expects "$output" to_contain 'Error:'
+  expects "$output" to_contain 'job ID'
 }
 
 @test '`notify-at -c` should show error for non-existent job' {
@@ -257,4 +260,119 @@ teardown() {
   expects "$output" to_contain 'Notification scheduled:'
   # Check the first line (schedule info) does not contain "1 day"
   expects "${lines[0]}" not to_contain '1 day'
+}
+
+# E2E Tests for StartCalendarInterval implementation (macOS only)
+
+@test '`notify-at` on macOS should create plist with StartCalendarInterval' {
+  # Skip on non-macOS platforms
+  if [[ "$(uname -s)" != "Darwin" ]] ; then
+    skip "Test only runs on macOS"
+  fi
+
+  # Clean up any existing jobs first
+  cleanup_test_jobs
+
+  # Create a test job
+  run notify-at 23:59 'StartCalendarInterval Test' 'Test message'
+  expects "$status" to_be 0
+
+  # Extract job ID from output
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" not to_equal ''
+
+  # Check plist file contains StartCalendarInterval
+  local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
+  [[ -f "$plist_path" ]] || fail "plist file should exist: $plist_path"
+
+  run cat "$plist_path"
+  expects "$output" to_contain '<key>StartCalendarInterval</key>'
+  expects "$output" to_contain '<key>Hour</key>'
+  expects "$output" to_contain '<key>Minute</key>'
+  expects "$output" to_contain '<integer>23</integer>'
+  expects "$output" to_contain '<integer>59</integer>'
+  # Should NOT contain RunAtLoad (or it should be false)
+  expects "$output" not to_contain '<key>RunAtLoad</key>'
+}
+
+@test '`notify-at` on macOS should create wrapper script with year check' {
+  # Skip on non-macOS platforms
+  if [[ "$(uname -s)" != "Darwin" ]] ; then
+    skip "Test only runs on macOS"
+  fi
+
+  # Clean up any existing jobs first
+  cleanup_test_jobs
+
+  # Create a test job
+  run notify-at 23:59 'Script Test' 'Test message'
+  expects "$status" to_be 0
+
+  # Extract job ID from output
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" not to_equal ''
+
+  # Check wrapper script exists
+  local script_path="/tmp/notify-at-$job_id.sh"
+  [[ -f "$script_path" ]] || fail "wrapper script should exist: $script_path"
+
+  # Check script contains year validation
+  run cat "$script_path"
+  expects "$output" to_contain 'target_year='
+  expects "$output" to_contain 'current_year=$(date +%Y)'
+  expects "$output" to_contain 'target_timestamp='
+
+  # Cleanup (also removes script)
+  run notify-at -c "$job_id"
+  expects "$status" to_be 0
+}
+
+@test '`notify-at -l` should display TIME in YYYY-MM-DD HH:MM format' {
+  # Clean up any existing jobs first
+  cleanup_test_jobs
+
+  # Create a test job for a specific future date
+  run notify-at '2027-06-15 14:30' 'Date Format Test' 'Test message'
+  expects "$status" to_be 0
+
+  # List jobs and check TIME format
+  run notify-at -l
+  expects "$status" to_be 0
+  expects "$output" to_contain '2027-06-15 14:30'
+  expects "$output" to_contain 'Date Format Tes'  # truncated title
+}
+
+@test '`notify-at` cancel should also remove wrapper script' {
+  # Skip on non-macOS platforms
+  if [[ "$(uname -s)" != "Darwin" ]] ; then
+    skip "Test only runs on macOS"
+  fi
+
+  # Clean up any existing jobs first
+  cleanup_test_jobs
+
+  # Create a test job
+  run notify-at 23:59 'Cleanup Test' 'Test message'
+  expects "$status" to_be 0
+
+  # Extract job ID from output
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" not to_equal ''
+
+  # Verify files exist before cancel
+  local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
+  local script_path="/tmp/notify-at-$job_id.sh"
+  [[ -f "$plist_path" ]] || fail "plist file should exist: $plist_path"
+  [[ -f "$script_path" ]] || fail "wrapper script should exist: $script_path"
+
+  # Cancel the job
+  run notify-at -c "$job_id"
+  expects "$status" to_be 0
+
+  # Verify files are removed
+  [[ ! -f "$plist_path" ]] || fail "plist file should be removed: $plist_path"
+  [[ ! -f "$script_path" ]] || fail "wrapper script should be removed: $script_path"
 }

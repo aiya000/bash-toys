@@ -117,9 +117,8 @@ function schedule_launchd_job() {
 
   local now
   now=$(date +%s)
-  local seconds=$((target_timestamp - now))
 
-  if [[ $seconds -lt 0 ]] ; then
+  if [[ $target_timestamp -lt $now ]] ; then
     echo "Error: Target time is in the past" >&2
     return 1
   fi
@@ -134,44 +133,98 @@ function schedule_launchd_job() {
   # Ensure LaunchAgents directory exists
   mkdir -p "$LAUNCHD_DIR"
 
-  # Escape special characters for AppleScript string
-  local escaped_title="${title//\\/\\\\}"
-  escaped_title="${escaped_title//\"/\\\"}"
-  local escaped_message="${message//\\/\\\\}"
-  escaped_message="${escaped_message//\"/\\\"}"
+  # Extract date components for StartCalendarInterval
+  local target_year target_month target_day target_hour target_minute
+  target_year=$(date -r "$target_timestamp" +%Y)
+  target_month=$(date -r "$target_timestamp" +%-m)  # Without leading zero
+  target_day=$(date -r "$target_timestamp" +%-d)    # Without leading zero
+  target_hour=$(date -r "$target_timestamp" +%-H)   # Without leading zero
+  target_minute=$(date -r "$target_timestamp" +%-M) # Without leading zero
 
-  # Build AppleScript command
-  # Using osascript directly instead of bash to avoid "bash background activity" notification
-  local applescript="delay $seconds"
+  # Create a wrapper script that checks the year and executes the notification
+  # This is needed because StartCalendarInterval doesn't support Year field
+  local script_path="/tmp/notify-at-$job_id.sh"
+
+  # Escape special characters for shell script
+  local shell_escaped_title="${title//\\/\\\\}"
+  shell_escaped_title="${shell_escaped_title//\"/\\\"}"
+  shell_escaped_title="${shell_escaped_title//\$/\\\$}"
+  local shell_escaped_message="${message//\\/\\\\}"
+  shell_escaped_message="${shell_escaped_message//\"/\\\"}"
+  shell_escaped_message="${shell_escaped_message//\$/\\\$}"
+
+  # Build the wrapper script
+  cat > "$script_path" << 'SCRIPT_HEADER'
+#!/bin/bash
+set -e
+
+target_year="TARGET_YEAR_PLACEHOLDER"
+target_timestamp="TARGET_TIMESTAMP_PLACEHOLDER"
+plist_path="PLIST_PATH_PLACEHOLDER"
+label="LABEL_PLACEHOLDER"
+script_path="SCRIPT_PATH_PLACEHOLDER"
+
+# Check if current year matches target year
+current_year=$(date +%Y)
+if [[ "$current_year" != "$target_year" ]] ; then
+  exit 0
+fi
+
+# Check if we're within 2 minutes of target time (handles slight delays)
+current_timestamp=$(date +%s)
+time_diff=$((current_timestamp - target_timestamp))
+if [[ $time_diff -lt -120 || $time_diff -gt 120 ]] ; then
+  # Not the right time, exit silently
+  exit 0
+fi
+
+SCRIPT_HEADER
+
+  # Replace placeholders
+  sed -i '' "s|TARGET_YEAR_PLACEHOLDER|$target_year|g" "$script_path"
+  sed -i '' "s|TARGET_TIMESTAMP_PLACEHOLDER|$target_timestamp|g" "$script_path"
+  sed -i '' "s|PLIST_PATH_PLACEHOLDER|$plist_path|g" "$script_path"
+  sed -i '' "s|LABEL_PLACEHOLDER|$label|g" "$script_path"
+  sed -i '' "s|SCRIPT_PATH_PLACEHOLDER|$script_path|g" "$script_path"
 
   # Add local notification if requested
   if [[ "$local_mode" == true ]] ; then
-    applescript="$applescript
-display notification \"$escaped_message\" with title \"$escaped_title\""
+    cat >> "$script_path" << EOF
+# Send local notification
+osascript -e 'display notification "$shell_escaped_message" with title "$shell_escaped_title"'
+EOF
 
     # Add sound playback if specified
     if [[ -n "$sound" && "$sound" != "default" ]] ; then
-      applescript="$applescript
-do shell script \"afplay '$sound' &\""
+      cat >> "$script_path" << EOF
+afplay '$sound' &
+EOF
     fi
   fi
 
   # Add mobile notification if requested
   if [[ "$mobile_mode" == true ]] ; then
-    # Escape for shell command within AppleScript
-    local shell_escaped_title="${title//\'/\'\\\'\'}"
-    local shell_escaped_message="${message//\'/\'\\\'\'}"
-    # Pass environment variable explicitly since launchd jobs don't inherit user environment
-    applescript="$applescript
-do shell script \"export BASH_TOYS_NTFY_TOPIC='$BASH_TOYS_NTFY_TOPIC'; '$notify_ntfy_cmd' '$shell_escaped_title' '$shell_escaped_message'\""
+    # Escape for shell command
+    local ntfy_escaped_title="${title//\'/\'\\\'\'}"
+    local ntfy_escaped_message="${message//\'/\'\\\'\'}"
+    cat >> "$script_path" << EOF
+# Send mobile notification
+export BASH_TOYS_NTFY_TOPIC='$BASH_TOYS_NTFY_TOPIC'
+'$notify_ntfy_cmd' '$ntfy_escaped_title' '$ntfy_escaped_message'
+EOF
   fi
 
-  # Add cleanup (delete plist after execution)
-  applescript="$applescript
-do shell script \"rm -f '$plist_path'\""
+  # Add cleanup
+  cat >> "$script_path" << 'EOF'
+# Cleanup: unload and remove plist, remove script
+launchctl unload "$plist_path" 2>/dev/null || true
+rm -f "$plist_path"
+rm -f "$script_path"
+EOF
 
-  # Create plist file
-  # Using osascript directly to avoid bash being registered as background activity
+  chmod +x "$script_path"
+
+  # Create plist file with StartCalendarInterval
   cat > "$plist_path" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -181,14 +234,20 @@ do shell script \"rm -f '$plist_path'\""
     <string>$label</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/osascript</string>
-        <string>-e</string>
-        <string>$applescript</string>
+        <string>/bin/bash</string>
+        <string>$script_path</string>
     </array>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <false/>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Month</key>
+        <integer>$target_month</integer>
+        <key>Day</key>
+        <integer>$target_day</integer>
+        <key>Hour</key>
+        <integer>$target_hour</integer>
+        <key>Minute</key>
+        <integer>$target_minute</integer>
+    </dict>
     <key>StandardOutPath</key>
     <string>/tmp/notify-at-$job_id.log</string>
     <key>StandardErrorPath</key>
@@ -215,6 +274,7 @@ EOF
     echo "$job_id"
   else
     rm -f "$plist_path"
+    rm -f "$script_path"
     echo "Error: Failed to load launchd job" >&2
     return 1
   fi
@@ -249,14 +309,14 @@ function list_jobs() {
     target_timestamp=$(xattr -p "$LAUNCHD_PREFIX.target" "$plist" 2>/dev/null || echo "0")
     target_mode=$(xattr -p "$LAUNCHD_PREFIX.mode" "$plist" 2>/dev/null || echo "local")
 
-    # Format target time
+    # Format target time (YYYY-MM-DD HH:MM)
     local time_str="N/A"
     if [[ "$target_timestamp" != "0" ]] ; then
-      time_str=$(date -r "$target_timestamp" +"%H:%M" 2>/dev/null || echo "N/A")
+      time_str=$(date -r "$target_timestamp" +"%Y-%m-%d %H:%M" 2>/dev/null || echo "N/A")
     fi
 
     local job_line
-    job_line=$(printf "%-10s %-8s %-14s %-15s %s" "$job_id" "$time_str" "$target_mode" "${title:0:15}" "${message:0:40}")
+    job_line=$(printf "%-10s %-18s %-14s %-15s %s" "$job_id" "$time_str" "$target_mode" "${title:0:15}" "${message:0:40}")
     # Store with timestamp prefix for sorting
     job_entries+=("${target_timestamp}|${job_line}")
     found=1
@@ -268,8 +328,8 @@ function list_jobs() {
   fi
 
   # Display header and jobs
-  printf "%-10s %-8s %-14s %-15s %s\n" "JOB_ID" "TIME" "TARGET" "TITLE" "MESSAGE"
-  printf "%-10s %-8s %-14s %-15s %s\n" "--------" "----" "------" "-----" "-------"
+  printf "%-10s %-18s %-14s %-15s %s\n" "JOB_ID" "DATETIME" "TARGET" "TITLE" "MESSAGE"
+  printf "%-10s %-18s %-14s %-15s %s\n" "--------" "----------------" "------" "-----" "-------"
 
   # Sort by timestamp and display (remove timestamp prefix)
   printf '%s\n' "${job_entries[@]}" | sort -t'|' -k1 -n | cut -d'|' -f2-
@@ -295,9 +355,10 @@ function cancel_job() {
     return 1
   fi
 
-  # Unload and remove
+  # Unload and remove plist, script, and log files
   launchctl unload "$plist_path" 2>/dev/null || true
   rm -f "$plist_path"
+  rm -f "/tmp/notify-at-$target_job_id.sh"
   rm -f "/tmp/notify-at-$target_job_id.log"
 
   echo "Job $target_job_id cancelled successfully"
