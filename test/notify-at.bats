@@ -4,9 +4,22 @@
 
 # Note: These tests focus on format validation and error handling.
 # Actual notification scheduling is not tested to avoid real notifications.
+#
+# WARNING: Some tests create/delete real launchd jobs on the host OS.
+# To run these tests, set BASH_TOYS_TEST_REAL_JOBS=1
+#
+# Example:
+#   BASH_TOYS_TEST_REAL_JOBS=1 bats test/notify-at.bats
 
 LAUNCHD_PREFIX="com.bash-toys.notify-at"
 LAUNCHD_DIR="$HOME/Library/LaunchAgents"
+
+# Helper function to skip tests that affect real jobs
+skip_unless_real_jobs_enabled() {
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != "1" ]] ; then
+    skip "This test affects real jobs on the host OS. Set BASH_TOYS_TEST_REAL_JOBS=1 to run."
+  fi
+}
 
 # Test setup and cleanup
 setup() {
@@ -64,7 +77,10 @@ cleanup_test_jobs() {
 }
 
 teardown() {
-  cleanup_test_jobs >/dev/null 2>&1 || true
+  # Only cleanup if real jobs testing is enabled
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" == "1" ]] ; then
+    cleanup_test_jobs >/dev/null 2>&1 || true
+  fi
 }
 
 @test '`notify-at` with no arguments should show usage message' {
@@ -92,6 +108,7 @@ teardown() {
 }
 
 @test '`notify-at` should accept HH:MM format' {
+  skip_unless_real_jobs_enabled
   # Test with a future time that should work
   run notify-at 23:59 'Test Title' 'Test Message'
   expects "$status" to_be 0
@@ -100,6 +117,7 @@ teardown() {
 }
 
 @test '`notify-at` should accept MM-DD HH:MM format for future dates' {
+  skip_unless_real_jobs_enabled
   # Test with future date (assuming current date is before 12-31)
   run notify-at '12-31 23:59' 'Test Title' 'Test Message'
   expects "$status" to_be 0
@@ -108,6 +126,7 @@ teardown() {
 }
 
 @test '`notify-at` should accept YYYY-MM-DD HH:MM format for future dates' {
+  skip_unless_real_jobs_enabled
   # Test with future date
   run notify-at '2027-01-15 09:00' 'Test Title' 'Test Message'
   expects "$status" to_be 0
@@ -169,6 +188,7 @@ teardown() {
 # Job management tests
 
 @test '`notify-at -l` should show no jobs when none are scheduled' {
+  skip_unless_real_jobs_enabled
   # Clean up any existing jobs first
   cleanup_test_jobs
 
@@ -178,6 +198,7 @@ teardown() {
 }
 
 @test '`notify-at --list` should show no jobs when none are scheduled' {
+  skip_unless_real_jobs_enabled
   # Clean up any existing jobs first
   cleanup_test_jobs
 
@@ -207,6 +228,7 @@ teardown() {
 }
 
 @test '`notify-at -c` should cancel successfully for existent job' {
+  skip_unless_real_jobs_enabled
   # Clean up any existing jobs first
   cleanup_test_jobs
 
@@ -226,6 +248,7 @@ teardown() {
 }
 
 @test '`notify-at` should create and list a scheduled job' {
+  skip_unless_real_jobs_enabled
   # Clean up any existing jobs first
   cleanup_test_jobs
 
@@ -250,6 +273,7 @@ teardown() {
 }
 
 @test '`notify-at` with current time should not schedule for next day' {
+  skip_unless_real_jobs_enabled
   # When specifying the current minute, it should schedule for "now" (0 minutes later)
   # not "1 day later" - this was a bug where target == now caused +86400 seconds
   local current_time
@@ -265,6 +289,7 @@ teardown() {
 # E2E Tests for StartCalendarInterval implementation (macOS only)
 
 @test '`notify-at` on macOS should create plist with StartCalendarInterval' {
+  skip_unless_real_jobs_enabled
   # Skip on non-macOS platforms
   if [[ "$(uname -s)" != "Darwin" ]] ; then
     skip "Test only runs on macOS"
@@ -297,6 +322,7 @@ teardown() {
 }
 
 @test '`notify-at` on macOS should create wrapper script with year check' {
+  skip_unless_real_jobs_enabled
   # Skip on non-macOS platforms
   if [[ "$(uname -s)" != "Darwin" ]] ; then
     skip "Test only runs on macOS"
@@ -330,6 +356,7 @@ teardown() {
 }
 
 @test '`notify-at -l` should display TIME in YYYY-MM-DD HH:MM format' {
+  skip_unless_real_jobs_enabled
   # Clean up any existing jobs first
   cleanup_test_jobs
 
@@ -345,6 +372,7 @@ teardown() {
 }
 
 @test '`notify-at` cancel should also remove wrapper script' {
+  skip_unless_real_jobs_enabled
   # Skip on non-macOS platforms
   if [[ "$(uname -s)" != "Darwin" ]] ; then
     skip "Test only runs on macOS"
