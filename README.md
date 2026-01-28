@@ -1,75 +1,67 @@
+<div align="center">
+
 # :dog2: bash-toys :dog2:
 
-Welcome to **bash-toys**!
+**Tiny Tools that Reach the Finer Details**
 
-![Test](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
+[![Test](https://github.com/aiya000/bash-toys/actions/workflows/test.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Shell: bash/zsh](https://img.shields.io/badge/Shell-bash%20%7C%20zsh-green)
+![Dependencies: minimal](https://img.shields.io/badge/Dependencies-minimal-blue)
 
 ![](./readme/cat-which-rm-dust.png)
+
+</div>
 
 > [!NOTE]
 > Each command in this repository may often contain breaking changes and numerous bugs or work in progress.
 
 ## :bookmark_tabs: Table of Contents
 
-- [Overview](#bookmark_tabs-overview)
+- [Quick Start](#quick-start)
 - [Scripts](#bookmark_tabs-scripts)
-    - [Bin](#bin)
-    - [Sources](#sources)
-- [Show help for commands](#bookmark_tabs-show-help-for-commands)
 - [Installation](#bookmark_tabs-installation)
-    - [Install all tools](#install-all-tools)
-    - [Simple](#simple)
-    - [Custom](#custom)
-    - [Install each of the tools](#install-each-of-the-tools)
-- [All Options](#bookmark_tabs-all-options)
-- [Optional Dependencies](#bookmark_tabs-optional-dependencies)
+- [Help](#bookmark_tabs-show-help-for-commands)
 - [Contributing](#bookmark_tabs-contributing)
 - [License](#bookmark_tabs-license)
 
-## :bookmark_tabs: Overview
+## Quick Start
 
-**bash-toys** is "Tiny Tools that Reach the Finer Details."
-
-It's a collection of shell scripts and aliases for bash/zsh designed to simplify your life and make your terminal experience more enjoyable.
-
-**Nothing complicated.**
+```shell-session
+$ git clone --depth 1 https://github.com/aiya000/bash-toys.git path/to/bash-toys
+$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
+```
 
 ## :bookmark_tabs: Scripts
 
-Rest assured, bash-toys scripts are almost with **few of dependencies**.
+bash-toys scripts are almost with **minimal dependencies**.
 
-For a complete list of scripts, please visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./sources](https://github.com/aiya000/bash-toys/tree/main/sources).
-
-### Bin
-
-'bin' contains utility scripts that can run as child processes (in a subshell).
-
-- `rm-dust`: An alternative to `rm`, moving files to a dustbox instead. Similar to [gomi](https://github.com/babarot/gomi), but with no dependencies (no Golang required).
-    - `$ alias rm=rm-dust` is highly recommended!
-- `pomodoro-timer`: A simplest **Pomodoro Timer** implementation in shell script
-  - Please also see `pomodoro-timer-start-from`
-- `clamdscan-full`: Performs a full virus scan using ClamAV. Or scans only specified directories.
-- `cat-which`: A shorthand for `cat $(which cmd)`. Automatically uses [bat (batcat)](https://github.com/sharkdp/bat) instead of `cat` if available.
-- `expects`: A smaller test API like [jest](https://jestjs.io/ja/docs/expect) for bash script.
-- `take-until-empty`: Takes input lines until a blank line appears. [Example](./test/take-until-empty.bats)
-- `git-root`: Shows the git root directory of the current directory. This is a shorthand for `git rev-parse --show-toplevel 2> /dev/null || return 1`.
-- `start`: A shorthand for `"$@" > /dev/null 2>&1 &`. Starts a process in the background without output. This is often useful for running GUI applications from the CLI.
-- `vim-configure`: Executes `./configure` for Vim source with modern flags. Requires some packages. See [here](https://vim-jp.org/docs/build_linux.html) for details.
-
-and etc.
+| Script | Description |
+|--------|-------------|
+| `rm-dust` | An alternative to `rm`, moving files to a dustbox instead. `alias rm=rm-dust` is recommended! |
+| `pomodoro-timer` | A simplest Pomodoro Timer implementation in shell script |
+| `clamdscan-full` | Performs a full virus scan using ClamAV |
+| `cat-which` | A shorthand for `cat $(which cmd)`. Uses [bat](https://github.com/sharkdp/bat) if available |
+| `expects` | A smaller test API like [jest](https://jestjs.io/ja/docs/expect) for bash script |
+| `take-until-empty` | Takes input lines until a blank line appears |
+| `git-root` | Shows the git root directory of the current directory |
+| `start` | Starts a process in the background without output |
+| `vim-configure` | Executes `./configure` for Vim source with modern flags |
 
 ### Sources
 
-'Sources' are utility scripts that affect the parent shell. In simple terms, they are like the `cd` command.
+'Sources' are utility scripts that affect the parent shell (like the `cd` command).
 
-- `define-alt`: Defines a shell variable named 'foo' if the 'foo' variable is not defined.
-- `define-alt-export`: Similar to `define-alt`, but this defines environment variables.
-- `force-unexport`: Unexports an environment variable.
-- `cd-finddir`: Shows all directories up to 6 levels deep (if `fd` is available, or 3 levels for `find`), and `cd` to a directory you select.
-- `contains_value`: A simple utility that checks if an array contains a value.
-- `alias_of`: Creates an alias and overwrites a taken name if you have a specified command (e.g., `alias_of rg 'rg --color always --hidden'` defines a ripgrep alias only if you have the command).
+| Script | Description |
+|--------|-------------|
+| `define-alt` | Defines a shell variable named 'foo' if not defined |
+| `define-alt-export` | Similar to `define-alt`, but for environment variables |
+| `force-unexport` | Unexports an environment variable |
+| `cd-finddir` | Shows directories and `cd` to a selected one via interactive filter |
+| `contains_value` | Checks if an array contains a value |
+| `alias_of` | Creates an alias only if the command exists |
 
-and etc.
+For a complete list of scripts, visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./sources](https://github.com/aiya000/bash-toys/tree/main/sources).
 
 ## :bookmark_tabs: Show help for commands
 
@@ -82,56 +74,45 @@ $ bash-toys-help rm-dust
 # Show help for source commands (Don't forget appending .sh extension)
 $ bash-toys-help cd-to-git-root.sh
 
-# Show help with markdown rendering (if glow is available)
-$ bash-toys-help --disable-glow rm-dust  # Disable markdown rendering
+# Disable markdown rendering (if glow is available)
+$ bash-toys-help --disable-glow rm-dust
 ```
 
 ## :bookmark_tabs: Installation
 
-In this section, we assumed you are using bash and `~/.bashrc`.  
+In this section, we assumed you are using bash and `~/.bashrc`.
 If you are using zsh, replace `~/.bashrc` with `~/.zshrc`.
 
 ### Install all tools
 
-Please see the ['Install each of the tools'](#install-each-of-the-tools) section for instructions on how to download each of the tools.
-
-This section presents the easiest way to do this.
-
-1. Clone the repository and start exploring the scripts
+1. Clone the repository
 
 ```shell-session
 $ git clone --depth 1 https://github.com/aiya000/bash-toys.git path/to/bash-toys
 ```
 
-2. (**Optional**) Configure your options **if necessary**
-
-NOTE: You can use your favorite editor instead of `vim`.
+2. Source the `source-all.sh` script in your `.bashrc` or `.zshrc`
 
 ```shell-session
-$ cd path/to/bash-toys
-$ vim define-options.sh  # Configure your options
+$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
 ```
 
-Or
+3. (**Optional**) Configure options if necessary
 
 ```shell-session
-$ vim path/to/your/.bashrc
+$ vim path/to/bash-toys/define-options.sh
 ```
 
-For example (.bashrc):
+Or set in your `.bashrc`:
 
 ```bash
-# ...
-
 export BASH_TOYS_DUSTBOX_DIR="$HOME/dustbox"
 export BASH_TOYS_MUSIC_PLAYER='afplay /System/Library/Sounds/Funk.aiff'
 export BASH_TOYS_MUSIC_PLAYER_OPTIONS=''
 ```
 
-(See ./define-options.sh for each options.)
-
 <details>
-<summary>An example of your define-options.sh (or your .bashrc)</summary>
+<summary>Example configuration</summary>
 
 ```bash
 export BASH_TOYS_INTERACTIVE_FILTER=fzf
@@ -141,74 +122,51 @@ export BASH_TOYS_BATCAT_OPTIONS=''
 
 </details>
 
-3. Source the `source-all.sh` script in your `.bashrc` or `.zshrc`
+### Options
 
-```shell-session
-$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
-```
+Please see `./define-options.sh` and configure your options as needed.
+
+### Optional Dependencies
+
+- `vlc`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value)
 
 ### Install each of the tools
 
-Here is how to install each of the tools.
+Here is how to install individual tools.
 
 1. Create base directory
 
-You can choice a path instead of `~/lib/bash-toys` freely.
-
 ```shell-session
 $ mkdir -p ~/lib/bash-toys || true
-$ echo ~/lib/bash-toys
 $ echo 'export PATH=$PATH:~/lib/bash-toys' >> ~/.bashrc
 ```
 
-2. Install a few of dependencies
-    - **You can skip this step** if the script you want is doing like `source ../lib/fun.sh`
-        - Not necessary downloading fun.sh if the script you want is not doing it
-    - [fun.sh](https://github.com/ssledz/bash-fun)
+2. (**Optional**) Install dependencies if needed
 
 ```shell-session
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/fun.sh -o ~/lib/bash-toys/fun.sh
 $ echo 'source ~/lib/bash-toys/fun.sh' >> ~/.bashrc
 ```
 
-3. Install a utility script. This defines necessary environment variables
-    - **You can skip this step** if the script you want is not using any environment variables
-
-```shell-session
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o ~/lib/bash-toys/define-options.sh
-$ echo 'source path/to/sources/define-options.sh' >> ~/.bashrc
-```
-
-4. Install a tool you want into your `$PATH`
-
-For example, in this case, assumed you want to install 'bak'.
-Also the following assumes that `$PATH` contains `~/bin`.
-You can choice an another path contained by `$PATH` instead of `~/bin`.
+3. Install a tool you want
 
 ```shell-session
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -o ~/bin/bak
 ```
 
-For `./sources/*`, please don't forget, execute `$ source`.
+For `./sources/*`, don't forget to `source`:
+
 ```shell-session
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/sources/cd-to-git-root.sh -o path/to/sources/cd-to-git-root.sh
-$ echo 'source path/to/sources/cd-to-git-root.sh' >> ~/.bashrc  # or your .zshrc
+$ echo 'source path/to/sources/cd-to-git-root.sh' >> ~/.bashrc
 ```
-
-## :bookmark_tabs: All Options
-
-Please see `./define-options.sh` and configure your options as needed.
-
-## :bookmark_tabs: Optional Dependencies
-
-- `vlc`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value).
 
 ## :bookmark_tabs: Contributing
 
 We welcome contributions! Please follow these steps.
 
-1. Create an issue for the feature you want to add.
-1. Wait for maintainers to approve the feature.
+1. Create an issue for the feature you want to add
+1. Wait for maintainers to approve the feature
    - Unless it's a really bad idea, they probably won't say no :dog2:
 1. Open a pull request!
 
