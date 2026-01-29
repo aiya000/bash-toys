@@ -1,0 +1,29 @@
+name: Test date-diff-seconds-now
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bin/date-diff-seconds-now'
+      - 'test/date-diff-seconds-now.bats'
+      - 'lib/**'
+      - 'sources/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'bin/date-diff-seconds-now'
+      - 'test/date-diff-seconds-now.bats'
+      - 'lib/**'
+      - 'sources/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+      - name: Run test
+        run: |
+          source ./source-all.sh
+          ./lib/bats/bin/bats ./test/date-diff-seconds-now.bats
