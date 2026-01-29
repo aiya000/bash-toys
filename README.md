@@ -25,7 +25,7 @@
 - [Contributing](#bookmark_tabs-contributing)
 - [License](#bookmark_tabs-license)
 
-## Quick Start
+## :bookmark_tabs: Quick Start
 
 ```shell-session
 $ git clone --depth 1 https://github.com/aiya000/bash-toys.git path/to/bash-toys
@@ -48,7 +48,7 @@ bash-toys scripts are almost with **minimal dependencies**.
 | `start` | Starts a process in the background without output |
 | `vim-configure` | Executes `./configure` for Vim source with modern flags |
 
-### Sources
+### :small_blue_diamond: Sources
 
 'Sources' are utility scripts that affect the parent shell (like the `cd` command).
 
@@ -94,7 +94,7 @@ $ bash-toys-help --disable-glow rm-dust
 In this section, we assumed you are using bash and `~/.bashrc`.
 If you are using zsh, replace `~/.bashrc` with `~/.zshrc`.
 
-### Install all tools
+### :small_blue_diamond: Install all tools
 
 1. Clone the repository
 
@@ -133,15 +133,15 @@ export BASH_TOYS_BATCAT_OPTIONS=''
 
 </details>
 
-### Options
+### :small_blue_diamond: Options
 
 Please see `./define-options.sh` and configure your options as needed.
 
-### Optional Dependencies
+### :small_blue_diamond: Optional Dependencies
 
 - `vlc`: For `pomodoro-start` (if `$BASH_TOYS_MUSIC_PLAYER` is set to the default value)
 
-### Install each of the tools
+### :small_blue_diamond: Install each of the tools
 
 Here is how to install individual tools.
 
