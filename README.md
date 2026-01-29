@@ -219,8 +219,8 @@ $ echo 'source ~/lib/bash-toys/define-options.sh' >> ~/.bashrc
 Or set the variables directly in your `.bashrc`:
 
 ```bash
-export BASH_TOYS_DUSTBOX_DIR="$HOME/dustbox"
 export BASH_TOYS_INTERACTIVE_FILTER=fzf
+export BASH_TOYS_DUSTBOX_DIR="$HOME/dustbox"
 export BASH_TOYS_BATCAT_OPTIONS=''
 ```
 
