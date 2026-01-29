@@ -51,15 +51,45 @@ bash-toys scripts are almost with **minimal dependencies**.
 
 | Script | Description |
 |--------|-------------|
-| `rm-dust` | An alternative to `rm`, moving files to a dustbox instead. `alias rm=rm-dust` is recommended! |
-| `pomodoro-timer` | A simplest Pomodoro Timer implementation in shell script |
-| `clamdscan-full` | Performs a full virus scan using ClamAV |
+| `bak` | Toggle backup (.bak) extension for files |
+| `bash-toys-help` | Show help for bash-toys commands |
+| `bookmark-open` | Opens a selected bookmark in the default browser |
+| `calc-japanese-remaining-working-hours` | Calculate required daily working hours for remaining business days |
 | `cat-which` | A shorthand for `cat $(which cmd)`. Uses [bat](https://github.com/sharkdp/bat) if available |
+| `clamdscan-full` | Performs a full virus scan using ClamAV |
+| `ctags-auto` | Automatically determine git project and generate ctags |
+| `date-diff-seconds` | Calculate time difference in minutes between two times |
+| `date-diff-seconds-now` | Calculate time difference between given time and now |
+| `docker-attach-menu` | Attach to a Docker container selected from interactive menu |
+| `docker-kill-menu` | Kill a Docker container selected from interactive menu |
 | `expects` | A smaller test API like [jest](https://jestjs.io/ja/docs/expect) for bash script |
-| `take-until-empty` | Takes input lines until a blank line appears |
+| `fast-sync` | Efficiently sync files from source to target by comparing file lists |
+| `gh-issue-view-select` | Show GitHub issues in interactive filter and open selected issue |
+| `gh-run-view-latest` | Show the latest GitHub Actions run preview and log |
 | `git-root` | Shows the git root directory of the current directory |
+| `is-in-wsl` | Check if current shell is running in WSL |
+| `kill-latest-started` | Kill the latest started background process |
+| `kill-list` | Display and kill processes selected from interactive menu |
+| `list-dpkg-executables` | List executable files provided by a dpkg package |
+| `notify` | Send desktop notification with title and message |
+| `notify-at` | Send notification at specified time with flexible date formats |
+| `notify-at-at` | Send notification at specified time using at command (Linux/WSL) |
+| `notify-at-launchd` | Send notification at specified time using launchd (macOS) |
+| `notify-cascade` | Send cascade of notifications at specified intervals before target time |
+| `notify-ntfy` | Send notification to mobile via ntfy.sh |
+| `pathshorten` | Abbreviate file path with shortened parent directories |
+| `peco-reverse` | Reverse order interactive filter using peco |
+| `photoframe` | Display photos in fullscreen slideshow mode using feh |
+| `pomodoro-timer` | A simplest Pomodoro Timer implementation in shell script |
+| `rm-dust` | An alternative to `rm`, moving files to a dustbox instead. `alias rm=rm-dust` is recommended! |
+| `run-wait-output` | Run two commands sequentially, with second triggered after first becomes silent |
+| `skip` | Skip n-lines from the beginning of output |
+| `slice` | Slice fields from input lines |
 | `start` | Starts a process in the background without output |
+| `take-until-empty` | Takes input lines until a blank line appears |
 | `vim-configure` | Executes `./configure` for Vim source with modern flags |
+| `vim-configure-debug` | Execute Vim source configure script with debug flags |
+| `vim-configure-macos` | Execute Vim source configure script with modern macOS flags |
 
 ### :small_blue_diamond: Sources ([./sources](https://github.com/aiya000/bash-toys/tree/main/sources))
 
@@ -67,12 +97,20 @@ bash-toys scripts are almost with **minimal dependencies**.
 
 | Script | Description |
 |--------|-------------|
+| `alias_of` | Creates an alias only if the command exists |
+| `cd-finddir` | Shows directories and `cd` to a selected one via interactive filter |
+| `cd-to-git-root` | Change directory to the git root, with WSL path recovery support |
+| `cd-to-node-root` | Change directory to the nearest parent directory containing `package.json` |
+| `contains_value` | Checks if an array contains a value |
 | `define-alt` | Defines a shell variable named 'foo' if not defined |
 | `define-alt-export` | Similar to `define-alt`, but for environment variables |
 | `force-unexport` | Unexports an environment variable |
-| `cd-finddir` | Shows directories and `cd` to a selected one via interactive filter |
-| `contains_value` | Checks if an array contains a value |
-| `alias_of` | Creates an alias only if the command exists |
+| `get-var` | Read and output the value of a variable by name |
+| `i_have` | Check if a specified command exists in the system |
+| `is_array` | Detect if a variable is an array (supports Bash and Zsh) |
+| `load-my-env` | Load environment-specific settings and aliases for various tools and runtimes |
+| `nvim-parent-edit` | Open files in parent Neovim instance via RPC from child terminal |
+| `source_if_exists` | Conditionally source a file if it exists |
 
 ## :bookmark_tabs: Show help for commands
 
