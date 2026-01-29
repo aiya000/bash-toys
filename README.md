@@ -44,7 +44,7 @@ For a complete list of scripts, visit [./bin](https://github.com/aiya000/bash-to
 
 ### :small_blue_diamond: Executables ([./bin](https://github.com/aiya000/bash-toys/tree/main/bin))
 
-bash-toys scripts are almost with **minimal dependencies**.
+bash-toys scripts have **minimal dependencies**.
 
 | Script | Description | Test |
 |--------|-------------|:----:|
