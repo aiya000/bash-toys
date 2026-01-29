@@ -216,7 +216,7 @@ $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/defin
 $ echo 'source ~/lib/bash-toys/define-options.sh' >> ~/.bashrc
 ```
 
-Or set the variables directly in your `.bashrc`:
+Or set the variables directly in your `.bashrc` (or `.zshrc` for zsh):
 
 ```bash
 export BASH_TOYS_INTERACTIVE_FILTER=fzf
