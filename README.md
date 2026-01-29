@@ -37,6 +37,168 @@ If using zsh:
 $ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.zshrc
 ```
 
+### :star: Recommended Scripts
+
+Here are some scripts that can boost your daily workflow:
+
+#### File Operations
+
+**[`rm-dust`](./bin/rm-dust)** - Safe alternative to `rm`. Never lose files by accident again!
+
+```shell-session
+$ rm-dust important.txt        # Moves to dustbox instead of deleting
+$ rm-dust *.log                # Clean up logs safely
+$ alias rm=rm-dust             # Recommended: replace rm globally
+```
+
+**[`bak`](./bin/bak)** - Quick backup toggle. One command to backup, one to restore.
+
+```shell-session
+$ bak config.yaml              # Creates config.bak.yaml
+$ vim config.yaml              # Edit the original
+$ bak config.yaml              # Restore from backup if needed
+```
+
+**[`fast-sync`](./bin/fast-sync)** - Efficient file sync by comparing file lists first.
+
+```shell-session
+$ fast-sync --init ~/photos    # Initialize sync state
+$ fast-sync ~/photos /backup   # Only syncs new/changed files
+# Much faster than full rsync for large directories
+```
+
+#### Notifications & Timers
+
+**[`notify`](./bin/notify)** - Simple desktop notification. Works on macOS, Linux, and WSL.
+
+```shell-session
+$ notify "Build Done" "Your project compiled successfully"
+$ make && notify "Success" "Build complete" || notify "Failed" "Build error"
+```
+
+**[`notify-at`](./bin/notify-at)** - Schedule notifications with human-friendly time formats.
+
+```shell-session
+$ notify-at 15:00 "Meeting" "Team standup starting"
+$ notify-at "01-15 09:00" "Reminder" "Project deadline"
+$ notify-at 12:00 "Lunch" "Take a break" --mobile  # Send to phone via ntfy.sh
+```
+
+**[`notify-cascade`](./bin/notify-cascade)** - Get reminded at multiple intervals before an event.
+
+```shell-session
+$ notify-cascade 15:00 "Meeting" "Standup" 30m 10m 5m  # Alerts at 14:30, 14:50, 14:55
+$ notify-cascade 18:00 "Dinner" "Time to cook" 1h 30m  # Alerts at 17:00, 17:30
+```
+
+**[`pomodoro-timer`](./bin/pomodoro-timer)** - Simple Pomodoro technique timer with notifications.
+
+```shell-session
+$ pomodoro-timer              # Default 30 minutes
+$ pomodoro-timer 25           # Classic 25-minute pomodoro
+$ pomodoro-timer --rest 5     # 5-minute break timer
+```
+
+#### Text Processing
+
+**[`skip`](./bin/skip)** & **[`slice`](./bin/slice)** - Simple but powerful text manipulation.
+
+```shell-session
+$ cat data.csv | skip 1                    # Skip header row
+$ echo "a,b,c,d" | slice , 2 3             # Extract fields 2-3: "b,c"
+$ ps aux | skip 1 | slice ' ' 1 2          # Get PID and user columns
+```
+
+**[`take-until-empty`](./bin/take-until-empty)** - Read until blank line. Perfect for parsing sections.
+
+```shell-session
+$ cat changelog.md | take-until-empty      # Get first section only
+$ git log --format="%B" -1 | take-until-empty  # Get commit title only
+```
+
+**[`pathshorten`](./bin/pathshorten)** - Shorten paths like Vim's `pathshorten()`. Great for prompts!
+
+```shell-session
+$ pathshorten ~/Documents/Projects/myapp/src  # => ~/Docu/Proj/myap/src
+$ PS1="\$(pathshorten \$PWD) $ "              # Use in bash prompt
+```
+
+#### Navigation & Development
+
+**[`cd-finddir`](./sources/cd-finddir.sh)** - Fuzzy directory navigation. Never type long paths again!
+
+```shell-session
+$ cd-finddir                  # Shows directory picker
+# Type partial name to filter, select to cd
+```
+
+**[`cd-to-git-root`](./sources/cd-to-git-root.sh)** & **[`git-root`](./bin/git-root)** - Quick access to repository root.
+
+```shell-session
+$ cd-to-git-root              # Jump to repo root from anywhere
+$ cat $(git-root)/README.md   # Reference files from repo root
+```
+
+**[`cd-to-node-root`](./sources/cd-to-node-root.sh)** - Jump to nearest `package.json` directory.
+
+```shell-session
+$ pwd                         # /project/src/components/ui
+$ cd-to-node-root             # Jumps to /project (where package.json is)
+$ npm test                    # Now you can run npm commands
+```
+
+**[`cat-which`](./bin/cat-which)** - Instantly view any script's source code.
+
+```shell-session
+$ cat-which rm-dust           # See how rm-dust works
+$ cat-which my-script         # Debug your own scripts
+```
+
+**[`nvim-parent-edit`](./sources/nvim-parent-edit.sh)** - Edit files in parent Neovim from nested terminal.
+
+```shell-session
+# Inside Neovim's :terminal
+$ nvim-parent-edit file.txt   # Opens in parent Neovim, not a nested instance
+$ nvim-parent-edit *.js       # Open multiple files
+```
+
+#### Background Processes
+
+**[`start`](./bin/start)** - Launch GUI apps without terminal noise.
+
+```shell-session
+$ start firefox               # Opens Firefox, returns prompt immediately
+$ start code .                # Open VS Code without blocking
+$ start vlc music.mp3         # Play music in background
+```
+
+**[`kill-list`](./bin/kill-list)** - Interactive process killer. No more memorizing PIDs!
+
+```shell-session
+$ kill-list                   # Shows process picker, select to kill
+```
+
+#### Security
+
+**[`clamdscan-full`](./bin/clamdscan-full)** - Full system virus scan with ClamAV.
+
+```shell-session
+$ clamdscan-full /            # Scan entire system
+$ clamdscan-full ~/Downloads  # Scan specific directory
+# Requires ClamAV daemon (clamd) running
+```
+
+#### Testing
+
+**[`expects`](./bin/expects)** - Jest-like assertions for shell scripts. Write readable tests!
+
+```shell-session
+$ x=42
+$ expects "$x" to_be 42 && echo "PASS"           # Equality check
+$ expects "$x" not to_be 0 && echo "PASS"        # Negation
+$ expects "hello world" to_contain "world"       # String containment
+```
+
 ## :bookmark_tabs: Scripts
 
 For a complete list of scripts, visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./sources](https://github.com/aiya000/bash-toys/tree/main/sources).
