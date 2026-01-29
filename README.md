@@ -15,7 +15,7 @@
 
 ## :bookmark_tabs: Table of Contents
 
-- [Quick Start](#quick-start)
+- [Quick Start](#bookmark_tabs-quick-start)
 - [Scripts](#bookmark_tabs-scripts)
 - [Installation](#bookmark_tabs-installation)
 - [Help](#bookmark_tabs-show-help-for-commands)
