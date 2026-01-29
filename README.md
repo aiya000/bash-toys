@@ -5,7 +5,6 @@
 **Tiny Tools that Reach the Finer Details**
 
 ![Shell: bash/zsh](https://img.shields.io/badge/Shell-bash%20%7C%20zsh-green)
-[![Test](https://github.com/aiya000/bash-toys/actions/workflows/test.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Dependencies: minimal](https://img.shields.io/badge/Dependencies-minimal-blue)
 
