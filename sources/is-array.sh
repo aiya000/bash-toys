@@ -1,16 +1,32 @@
 #!/bin/bash
 
-# TODO: Add the help and the description.
+# Checks a taken var name is an array.
 #
 # ```shell-session
-# TODO: Write an example
+# $ foo=()
+# $ is-array foo && echo yes || echo no
+# yes
+#
+# $ foo=1
+# $ is-array foo && echo yes || echo no
+# no
 # ```
 
-function source_if_exists () {
-  if [[ -f $1 ]] ; then
-    # shellcheck disable=SC1090
-    source "$1"
+function is-array () {
+  local target_var_name=$1 target_var_type
+  target_var_type=$(declare -p "$target_var_name" 2>/dev/null)
+
+  # Bash
+  if [[ $target_var_type =~ declare\ -[aA] ]] ; then
+    return 0
   fi
+
+  # Zsh
+  if [[ $target_var_type =~ typeset\ -g\ -a ]] ; then
+    return 0
+  fi
+
+  return 1
 }
 
 # https://github.com/aiya000/bash-toys

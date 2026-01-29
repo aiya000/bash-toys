@@ -93,20 +93,20 @@ bash-toys scripts have **minimal dependencies**.
 
 | Script | Description | Test |
 |--------|-------------|:----:|
-| `alias_of` | Creates an alias only if the command exists | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| `alias-of` | Creates an alias only if the command exists | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `cd-finddir` | Shows directories and `cd` to a selected one via interactive filter | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `cd-to-git-root` | Change directory to the git root, with WSL path recovery support | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `cd-to-node-root` | Change directory to the nearest parent directory containing `package.json` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `contains_value` | Checks if an array contains a value | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| `contains-value` | Checks if an array contains a value | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `define-alt` | Defines a shell variable named 'foo' if not defined | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `define-alt-export` | Similar to `define-alt`, but for environment variables | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `force-unexport` | Unexports an environment variable | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `get-var` | Read and output the value of a variable by name | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-get-var.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-get-var.yml) |
-| `i_have` | Check if a specified command exists in the system | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `is_array` | Detect if a variable is an array (supports Bash and Zsh) | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| `i-have` | Check if a specified command exists in the system | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| `is-array` | Detect if a variable is an array (supports Bash and Zsh) | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `load-my-env` | Load environment-specific settings and aliases for various tools and runtimes | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | `nvim-parent-edit` | Open files in parent Neovim instance via RPC from child terminal | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `source_if_exists` | Conditionally source a file if it exists | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| `source-if-exists` | Conditionally source a file if it exists | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 
 ## :bookmark_tabs: Show help for commands
 

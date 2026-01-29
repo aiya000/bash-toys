@@ -1,18 +1,15 @@
 #!/bin/bash
 
-# If `$1` exists, create an alias for `$1` with the contents of `$2` and overwrite it.
+# A shorthand to check a specified command does exist or not.
 #
-# ```shell-session
-# $ alias_of rg 'rg --color always --hidden'
-# $ alias rg
-# rg='rg --color always --hidden'
+# ```bash
+# if i-have batcat ; then
+#   alias bat=batcat
+# fi
 # ```
 
-function alias_of () {
-  local name=$1 detail=$2
-  if command -v "$name" > /dev/null 2>&1 ; then
-    eval "alias $name='$detail'"
-  fi
+function i-have () {
+  command -v "$1" > /dev/null 2>&1
 }
 
 # https://github.com/aiya000/bash-toys

@@ -1,31 +1,25 @@
 #!/bin/bash
 
-# Checks a taken var name is an array.
-#
-# ```shell-session
-# $ foo=()
-# $ is_array foo && echo yes || echo no
-# yes
-#
-# $ foo=1
-# $ is_array foo && echo yes || echo no
-# no
+# ```bash
+# target=banana
+# my_array=(apple banana cherry)
+# if contains-value \"${my_array[@]}\" \"$target\" ';' then
+#   echo 'It is in the array'
+# else
+#   echo 'It is not in the array'
+# fi
 # ```
 
-function is_array () {
-  local target_var_name=$1 target_var_type
-  target_var_type=$(declare -p "$target_var_name" 2>/dev/null)
+function contains-value() {
+  local array=("$@")
+  local value_to_check="${array[-1]}"
+  unset 'array[-1]'
 
-  # Bash
-  if [[ $target_var_type =~ declare\ -[aA] ]] ; then
-    return 0
-  fi
-
-  # Zsh
-  if [[ $target_var_type =~ typeset\ -g\ -a ]] ; then
-    return 0
-  fi
-
+  for element in "${array[@]}"; do
+    if [[ $element == "$value_to_check" ]] ; then
+      return 0
+    fi
+  done
   return 1
 }
 

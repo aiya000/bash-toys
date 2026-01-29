@@ -27,14 +27,14 @@
 # Define an array variable if two or more arguments of value specified.
 # ```shell-session
 # $ define-alt xs 1 2
-# $ is_array xs && echo yes || echo no
+# $ is-array xs && echo yes || echo no
 # yes
 # ```
 #
 # Define an empty with --empty-array.
 # ```shell-session
 # $ define-alt --empty-array xs
-# $ is_array xs && echo yes || echo no
+# $ is-array xs && echo yes || echo no
 # yes
 # $ echo ${#xs}
 # 0
