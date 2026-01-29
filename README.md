@@ -205,7 +205,26 @@ $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/f
 $ echo 'source ~/lib/bash-toys/fun.sh' >> ~/.bashrc
 ```
 
-3. Install a tool you want
+3. (**Optional**) Configure environment variables if necessary
+
+Some scripts require environment variables to be configured. You can either:
+
+Download and source `define-options.sh`:
+
+```shell-session
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o ~/lib/bash-toys/define-options.sh
+$ echo 'source ~/lib/bash-toys/define-options.sh' >> ~/.bashrc
+```
+
+Or set the variables directly in your `.bashrc` (or `.zshrc` for zsh):
+
+```bash
+export BASH_TOYS_INTERACTIVE_FILTER=fzf
+export BASH_TOYS_DUSTBOX_DIR="$HOME/dustbox"
+export BASH_TOYS_BATCAT_OPTIONS=''
+```
+
+4. Install a tool you want
 
 ```shell-session
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -o ~/bin/bak
