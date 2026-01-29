@@ -18,6 +18,7 @@ dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 [[ -z $BASH_TOYS_BATCAT_OPTIONS ]] && export BASH_TOYS_BATCAT_OPTIONS=--number
 [[ -z $BASH_TOYS_OPEN_BOOKMARK_OPENER ]] && export BASH_TOYS_OPEN_BOOKMARK_OPENER=xdg-open
 [[ -z $BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS ]] && export BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS='(Google=https://www.google.co.jp)|(GitHub=https://github.com)'
+[[ -z $BASH_TOYS_NO_BAT ]] && export BASH_TOYS_NO_BAT=
 
 # Specify your ntfy.sh topic
 # export BASH_TOYS_NTFY_TOPIC=''

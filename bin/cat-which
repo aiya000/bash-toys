@@ -28,6 +28,10 @@ Arguments:
 
 Options:
   --help            Show this help message
+  --no-bat          Use cat instead of bat/batcat
+
+Environment Variables:
+  BASH_TOYS_NO_BAT  If set to 1, use cat instead of bat/batcat
 
 Notes:
   - Uses bat/batcat if available, falls back to cat
@@ -36,6 +40,17 @@ EOF
 }
 
 [[ $1 == --help ]] && show_help && exit 0
+
+no_bat=false
+args=()
+for arg in "$@"; do
+  if [[ $arg == --no-bat ]]; then
+    no_bat=true
+  else
+    args+=("$arg")
+  fi
+done
+set -- "${args[@]}"
 
 dir=$(dirname "$0")
 
@@ -47,7 +62,9 @@ if [[ $1 == '' ]] ; then
   exit 1
 fi
 
-if command -v bat > /dev/null 2>&1 ; then
+if [[ $no_bat == true ]] || [[ $BASH_TOYS_NO_BAT == 1 ]]; then
+  cat='cat'
+elif command -v bat > /dev/null 2>&1 ; then
   cat="bat $BASH_TOYS_BATCAT_OPTIONS"
 elif command -v batcat > /dev/null 2>&1 ; then
   cat="batcat $BASH_TOYS_BATCAT_OPTIONS"
