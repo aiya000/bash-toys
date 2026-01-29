@@ -145,19 +145,19 @@ If you are using zsh, replace `~/.bashrc` with `~/.zshrc`.
 1. Clone the repository
 
 ```shell-session
-$ git clone --depth 1 https://github.com/aiya000/bash-toys.git path/to/bash-toys
+$ git clone --depth 1 https://github.com/aiya000/bash-toys.git /path/to/bash-toys
 ```
 
 2. Source the `source-all.sh` script in your `.bashrc` or `.zshrc`
 
 ```shell-session
-$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
+$ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.bashrc
 ```
 
 3. (**Optional**) Configure options if necessary
 
 ```shell-session
-$ vim path/to/bash-toys/define-options.sh
+$ vim /path/to/bash-toys/define-options.sh
 ```
 
 Or set in your `.bashrc`:
@@ -214,8 +214,8 @@ $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/b
 For `./sources/*`, don't forget to `source`:
 
 ```shell-session
-$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/sources/cd-to-git-root.sh -o path/to/sources/cd-to-git-root.sh
-$ echo 'source path/to/sources/cd-to-git-root.sh' >> ~/.bashrc
+$ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/sources/cd-to-git-root.sh -o /path/to/sources/cd-to-git-root.sh
+$ echo 'source /path/to/sources/cd-to-git-root.sh' >> ~/.bashrc
 ```
 
 ## :bookmark_tabs: Contributing
