@@ -28,11 +28,24 @@
 ## :bookmark_tabs: Quick Start
 
 ```shell-session
-$ git clone --depth 1 https://github.com/aiya000/bash-toys.git path/to/bash-toys
-$ echo 'source path/to/bash-toys/source-all.sh' >> ~/.bashrc
+$ git clone --depth 1 https://github.com/aiya000/bash-toys.git /path/to/bash-toys
+```
+
+If using bash:
+```shell-session
+$ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.bashrc
+```
+
+If using zsh:
+```shell-session
+$ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.zshrc
 ```
 
 ## :bookmark_tabs: Scripts
+
+For a complete list of scripts, visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./sources](https://github.com/aiya000/bash-toys/tree/main/sources).
+
+### :small_blue_diamond: Executables ([./bin](https://github.com/aiya000/bash-toys/tree/main/bin))
 
 bash-toys scripts are almost with **minimal dependencies**.
 
@@ -48,7 +61,7 @@ bash-toys scripts are almost with **minimal dependencies**.
 | `start` | Starts a process in the background without output |
 | `vim-configure` | Executes `./configure` for Vim source with modern flags |
 
-### :small_blue_diamond: Sources
+### :small_blue_diamond: Sources ([./sources](https://github.com/aiya000/bash-toys/tree/main/sources))
 
 'Sources' are utility scripts that affect the parent shell (like the `cd` command).
 
@@ -60,8 +73,6 @@ bash-toys scripts are almost with **minimal dependencies**.
 | `cd-finddir` | Shows directories and `cd` to a selected one via interactive filter |
 | `contains_value` | Checks if an array contains a value |
 | `alias_of` | Creates an alias only if the command exists |
-
-For a complete list of scripts, visit [./bin](https://github.com/aiya000/bash-toys/tree/main/bin) and [./sources](https://github.com/aiya000/bash-toys/tree/main/sources).
 
 ## :bookmark_tabs: Show help for commands
 
@@ -82,7 +93,7 @@ If a command doesn't have `--help`, use `bash-toys-help` to extract help from sc
 ```shell-session
 $ bash-toys-help rm-dust
 
-# For source commands (don't forget .sh extension)
+# For 'source' commands (don't forget .sh extension)
 $ bash-toys-help cd-to-git-root.sh
 
 # Disable markdown rendering
