@@ -65,16 +65,27 @@ For a complete list of scripts, visit [./bin](https://github.com/aiya000/bash-to
 
 ## :bookmark_tabs: Show help for commands
 
-Use `bash-toys-help` to display help for any command:
+Most commands support `--help` option:
 
 ```shell-session
-# Show help for bin commands
+$ rm-dust --help
+rm-dust - Alternative to rm that moves files to dustbox instead of deletion
+
+Usage:
+  rm-dust FILE...
+  rm-dust --help
+...
+```
+
+If a command doesn't have `--help`, use `bash-toys-help` to extract help from script comments:
+
+```shell-session
 $ bash-toys-help rm-dust
 
-# Show help for source commands (Don't forget appending .sh extension)
+# For source commands (don't forget .sh extension)
 $ bash-toys-help cd-to-git-root.sh
 
-# Disable markdown rendering (if glow is available)
+# Disable markdown rendering
 $ bash-toys-help --disable-glow rm-dust
 ```
 
