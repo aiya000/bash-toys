@@ -47,7 +47,9 @@ if [[ $1 == '' ]] ; then
   exit 1
 fi
 
-if command -v batcat > /dev/null 2>&1 || command -v bat > /dev/null 2>&1 ; then
+if command -v bat > /dev/null 2>&1 ; then
+  cat="bat $BASH_TOYS_BATCAT_OPTIONS"
+elif command -v batcat > /dev/null 2>&1 ; then
   cat="batcat $BASH_TOYS_BATCAT_OPTIONS"
 else
   cat='cat'
