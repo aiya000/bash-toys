@@ -108,3 +108,30 @@ if [[ condition ]] ; then
     fi
 fi
 ```
+
+## Option Implementation Guidelines
+
+### Position-Independent Options
+
+When adding command-line options to scripts, options must work regardless of their position in the argument list:
+
+```bash
+# Both of these must work identically
+script --option arg
+script arg --option
+```
+
+Implementation pattern:
+
+```bash
+option_flag=false
+args=()
+for arg in "$@"; do
+  if [[ $arg == --option ]]; then
+    option_flag=true
+  else
+    args+=("$arg")
+  fi
+done
+set -- "${args[@]}"
+```
