@@ -20,10 +20,10 @@ function cd-finddir () {
   fi
 
   local filter
-  if [[ $BASH_TOYS_INTERACTIVE_FILTER == 'peco' ]] ; then
-    filter='peco --select-1 --initial-filter Fuzzy'
-  else
+  if [[ $BASH_TOYS_INTERACTIVE_FILTER == '' ]] ; then
     filter=fzf
+  else
+    filter=$BASH_TOYS_INTERACTIVE_FILTER
   fi
 
   local target_dir
