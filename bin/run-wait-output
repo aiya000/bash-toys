@@ -32,14 +32,14 @@ Exit Status:
 EOF
 }
 
-if [[ $# -lt 3 ]] ; then
-  show_help
-  exit 1
-fi
-
 if [[ $1 == '-h' || $1 == '--help' ]] ; then
   show_help
   exit 0
+fi
+
+if [[ $# -lt 3 ]] ; then
+  show_help
+  exit 1
 fi
 
 # TODO: Refactor
@@ -84,7 +84,7 @@ while kill -0 $cmd1_pid 2>/dev/null || [[ -e "$tmpfile.live" ]] ; do
 
       if (( $(echo "$silent_time >= $seconds" | bc -l) )) && [[ $cmd2_executed == 'false' ]] ; then
         echo ""
-        echo "==> Output silent for ${milliseconds}ms, executing: $command2"
+        echo "==> Output silent for ${milliseconds}ms, Executing: $command2"
         eval "$command2"
         status2=$?
         cmd2_executed=true

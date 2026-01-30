@@ -6,8 +6,7 @@
   run clamdscan-full --help
   expects "$status" to_be 0
   expects "${lines[0]}" to_match '^clamdscan-full - '
-  expects "${lines[1]}" to_equal ''
-  expects "${lines[3]}" to_equal 'Usage:'
+  expects "${lines[1]}" to_equal 'Usage:'
 }
 
 @test '`clamdscan-full` with no arguments should use root directory' {

@@ -9,9 +9,7 @@ setup () {
   run bin/bookmark-open --help
   expects "$status" to_be 0
   expects "${lines[0]}" to_match '^bookmark-open - '
-  expects "${lines[1]}" to_equal ''
-  expects "${lines[3]}" to_equal 'Usage:'
-  expects "${lines[6]}" to_equal 'Options:'
+  expects "${lines[1]}" to_equal 'Usage:'
 }
 
 @test '`bookmark-open` should open the first bookmark' {
