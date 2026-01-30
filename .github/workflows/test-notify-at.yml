@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Initialize submodules
         run: git submodule update --init --recursive
+      - name: Install at command
+        run: sudo apt-get update && sudo apt-get install -y at
       - name: Run test
         run: |
           source ./source-all.sh

@@ -6,8 +6,7 @@
   run bak --help
   expects "$status" to_be 0
   expects "${lines[0]}" to_equal "bak - Toggle backup (.bak) extension for files"
-  expects "${lines[1]}" to_equal ""
-  expects "${lines[2]}" to_equal "Usage:"
+  expects "${lines[1]}" to_equal "Usage:"
 }
 
 @test '`bak` with no arguments should show error' {

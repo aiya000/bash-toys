@@ -44,69 +44,309 @@ For a complete list of scripts, visit [./bin](https://github.com/aiya000/bash-to
 ### :small_blue_diamond: Executables ([./bin](https://github.com/aiya000/bash-toys/tree/main/bin))
 
 bash-toys scripts have **minimal dependencies**.
+These dependencies are documented at the beginning of the script.
 
-| Script | Description | Test |
-|--------|-------------|:----:|
-| `bak` | Toggle backup (.bak) extension for files | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-bak.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-bak.yml) |
-| `bash-toys-help` | Show help for bash-toys commands | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `bookmark-open` | Opens a selected bookmark in the default browser | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-bookmark-open.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-bookmark-open.yml) |
-| `calc-japanese-remaining-working-hours` | Calculate required daily working hours for remaining business days | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `cat-which` | A shorthand for `cat $(which cmd)`. Uses [bat](https://github.com/sharkdp/bat) if available | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-cat-which.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-cat-which.yml) |
-| `clamdscan-full` | Performs a full virus scan using ClamAV | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-clamdscan-full.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-clamdscan-full.yml) |
-| `ctags-auto` | Automatically determine git project and generate ctags | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `date-diff-seconds` | Calculate time difference in minutes between two times | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds.yml) |
-| `date-diff-seconds-now` | Calculate time difference between given time and now | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds-now.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds-now.yml) |
-| `docker-attach-menu` | Attach to a Docker container selected from interactive menu | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `docker-kill-menu` | Kill a Docker container selected from interactive menu | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `expects` | A smaller test API like [jest](https://jestjs.io/ja/docs/expect) for bash script | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-expects.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-expects.yml) |
-| `fast-sync` | Efficiently sync files from source to target by comparing file lists | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-fast-sync.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-fast-sync.yml) |
-| `gh-issue-view-select` | Show GitHub issues in interactive filter and open selected issue | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-gh-issue-view-select.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-gh-issue-view-select.yml) |
-| `gh-run-view-latest` | Show the latest GitHub Actions run preview and log | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `git-root` | Shows the git root directory of the current directory | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `is-in-wsl` | Check if current shell is running in WSL | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `kill-latest-started` | Kill the latest started background process | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `kill-list` | Display and kill processes selected from interactive menu | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `list-dpkg-executables` | List executable files provided by a dpkg package | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `notify` | Send desktop notification with title and message | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `notify-at` | Send notification at specified time with flexible date formats | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-notify-at.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-notify-at.yml) |
-| `notify-at-at` | Send notification at specified time using at command (Linux/WSL) | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `notify-at-launchd` | Send notification at specified time using launchd (macOS) | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `notify-cascade` | Send cascade of notifications at specified intervals before target time | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `notify-ntfy` | Send notification to mobile via ntfy.sh | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `pathshorten` | Abbreviate file path with shortened parent directories | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `peco-reverse` | Reverse order interactive filter using peco | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `photoframe` | Display photos in fullscreen slideshow mode using feh | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `pomodoro-timer` | A simplest Pomodoro Timer implementation in shell script | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `rm-dust` | An alternative to `rm`, moving files to a dustbox instead. `alias rm=rm-dust` is recommended! | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml) |
-| `run-wait-output` | Run two commands sequentially, with second triggered after first becomes silent | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml) |
-| `skip` | Skip n-lines from the beginning of output | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `slice` | Slice fields from input lines | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `start` | Starts a process in the background without output | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `take-until-empty` | Takes input lines until a blank line appears | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-take-until-empty.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-take-until-empty.yml) |
-| `vim-configure` | Executes `./configure` for Vim source with modern flags | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `vim-configure-debug` | Execute Vim source configure script with debug flags | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `vim-configure-macos` | Execute Vim source configure script with modern macOS flags | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| Script | Description | Quick Example | Test |
+|--------|-------------|---------------|:----:|
+| [`bak`](./bin/bak) | Toggle backup (.bak) extension for files | `$ bak file.txt # mv to file.bak.txt` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-bak.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-bak.yml) |
+| [`bash-toys-help`](./bin/bash-toys-help) | Show help for bash-toys commands | `$ bash-toys-help rm-dust # show help` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`bookmark-open`](./bin/bookmark-open) | Opens a selected bookmark in the default browser | `$ bookmark-open # select & open` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-bookmark-open.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-bookmark-open.yml) |
+| [`calc-japanese-remaining-working-hours`](./bin/calc-japanese-remaining-working-hours) | Calculate required daily working hours for remaining business days | `$ calc-japanese-remaining-working-hours # calc hours` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`cat-which`](./bin/cat-which) | A shorthand for `cat $(which cmd)`. Uses [bat](https://github.com/sharkdp/bat) if available | `$ cat-which rm-dust # show source` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-cat-which.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-cat-which.yml) |
+| [`clamdscan-full`](./bin/clamdscan-full) | Performs a full virus scan using ClamAV | `$ clamdscan-full / # scan root` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-clamdscan-full.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-clamdscan-full.yml) |
+| [`ctags-auto`](./bin/ctags-auto) | Automatically determine git project and generate ctags | `$ ctags-auto # generate tags` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`date-diff-seconds`](./bin/date-diff-seconds) | Calculate time difference in minutes between two times | `$ date-diff-seconds 21:47 22:33 # => 46 mins` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds.yml) |
+| [`date-diff-seconds-now`](./bin/date-diff-seconds-now) | Calculate time difference between given time and now | `$ date-diff-seconds-now 22:30 # mins until` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds-now.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-date-diff-seconds-now.yml) |
+| [`docker-attach-menu`](./bin/docker-attach-menu) | Attach to a Docker container selected from interactive menu | `$ docker-attach-menu # select & attach` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`docker-kill-menu`](./bin/docker-kill-menu) | Kill a Docker container selected from interactive menu | `$ docker-kill-menu # select & kill` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`expects`](./bin/expects) | A smaller test API like [jest](https://jestjs.io/ja/docs/expect) for bash script | `$ expects "$x" to_be 10 # assert x=10` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-expects.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-expects.yml) |
+| [`fast-sync`](./bin/fast-sync) | Efficiently sync files from source to target by comparing file lists | `$ fast-sync /src /dst # sync new only` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-fast-sync.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-fast-sync.yml) |
+| [`gh-issue-view-select`](./bin/gh-issue-view-select) | Show GitHub issues in interactive filter and open selected issue | `$ gh-issue-view-select # select & view` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-gh-issue-view-select.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-gh-issue-view-select.yml) |
+| [`gh-run-view-latest`](./bin/gh-run-view-latest) | Show the latest GitHub Actions run preview and log | `$ gh-run-view-latest # view latest run` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`git-root`](./bin/git-root) | Shows the git root directory of the current directory | `$ git-root # => /path/to/repo` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`is-in-wsl`](./bin/is-in-wsl) | Check if current shell is running in WSL | `$ is-in-wsl && echo WSL # detect WSL` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`kill-latest-started`](./bin/kill-latest-started) | Kill the latest started background process | `$ kill-latest-started # kill last bg` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`kill-list`](./bin/kill-list) | Display and kill processes selected from interactive menu | `$ kill-list # select & kill` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`list-dpkg-executables`](./bin/list-dpkg-executables) | List executable files provided by a dpkg package | `$ list-dpkg-executables git # list bins` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`notify`](./bin/notify) | Send desktop notification with title and message | `$ notify "Title" "Msg" # show popup` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`notify-at`](./bin/notify-at) | Send notification at specified time with flexible date formats | `$ notify-at 12:00 "T" "M" # at noon` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-notify-at.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-notify-at.yml) |
+| [`notify-at-at`](./bin/notify-at-at) | Send notification at specified time using at command (Linux/WSL) | `$ notify-at-at 12:00 "T" "M" # Linux` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`notify-at-launchd`](./bin/notify-at-launchd) | Send notification at specified time using launchd (macOS) | `$ notify-at-launchd 12:00 "T" "M" # macOS` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`notify-cascade`](./bin/notify-cascade) | Send cascade of notifications at specified intervals before target time | `$ notify-cascade 15:00 "M" "M" 30m 5m # 30m,5m before` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`notify-ntfy`](./bin/notify-ntfy) | Send notification to mobile via ntfy.sh | `$ notify-ntfy "T" "M" # to mobile` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`pathshorten`](./bin/pathshorten) | Abbreviate file path with shortened parent directories | `$ pathshorten ~/Documents/Proj # => ~/Docu/Proj` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`peco-reverse`](./bin/peco-reverse) | Reverse order interactive filter using peco | `$ ls \| peco-reverse # reversed filter` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`photoframe`](./bin/photoframe) | Display photos in fullscreen slideshow mode using feh | `$ photoframe ~/Pictures # slideshow` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`pomodoro-timer`](./bin/pomodoro-timer) | A simplest Pomodoro Timer implementation in shell script | `$ pomodoro-timer 25 # start 25min` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`rm-dust`](./bin/rm-dust) | An alternative to `rm`, moving files to a dustbox instead. `alias rm=rm-dust` is recommended! | `$ rm-dust file.txt # mv to dustbox` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml) |
+| [`run-wait-output`](./bin/run-wait-output) | Run two commands sequentially, with second triggered after first becomes silent | `$ run-wait-output 1000 "npm watch" "echo Done" # after silent` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml) |
+| [`skip`](./bin/skip) | Skip n-lines from the beginning of output | `$ seq 10 \| skip 3 # => 4,5,...,10` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`slice`](./bin/slice) | Slice fields from input lines | `$ echo "a,b,c" \| slice , 2 3 # => b,c` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`start`](./bin/start) | Starts a process in the background without output | `$ start firefox # run silently` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`take-until-empty`](./bin/take-until-empty) | Takes input lines until a blank line appears | `$ cat file \| take-until-empty # stop at blank` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-take-until-empty.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-take-until-empty.yml) |
+| [`vim-configure`](./bin/vim-configure) | Executes `./configure` for Vim source with modern flags | `$ vim-configure # run ./configure` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`vim-configure-debug`](./bin/vim-configure-debug) | Execute Vim source configure script with debug flags | `$ vim-configure-debug # with debug` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`vim-configure-macos`](./bin/vim-configure-macos) | Execute Vim source configure script with modern macOS flags | `$ vim-configure-macos # for macOS` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 
 ### :small_blue_diamond: Sources ([./sources](https://github.com/aiya000/bash-toys/tree/main/sources))
 
 'Sources' are utility scripts that affect the parent shell (like the `cd` command).
 
-| Script | Description | Test |
-|--------|-------------|:----:|
-| `alias-of` | Creates an alias only if the command exists | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `cd-finddir` | Shows directories and `cd` to a selected one via interactive filter | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `cd-to-git-root` | Change directory to the git root, with WSL path recovery support | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `cd-to-node-root` | Change directory to the nearest parent directory containing `package.json` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `contains-value` | Checks if an array contains a value | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `define-alt` | Defines a shell variable named 'foo' if not defined | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `define-alt-export` | Similar to `define-alt`, but for environment variables | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `force-unexport` | Unexports an environment variable | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `get-var` | Read and output the value of a variable by name | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-get-var.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-get-var.yml) |
-| `i-have` | Check if a specified command exists in the system | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `is-array` | Detect if a variable is an array (supports Bash and Zsh) | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `load-my-env` | Load environment-specific settings and aliases for various tools and runtimes | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `nvim-parent-edit` | Open files in parent Neovim instance via RPC from child terminal | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| `source-if-exists` | Conditionally source a file if it exists | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| Script | Description | Quick Example | Test |
+|--------|-------------|---------------|:----:|
+| [`alias-of`](./sources/alias-of.sh) | Creates an alias only if the command exists | `$ alias-of rg 'rg --color always' # if rg exists` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`cd-finddir`](./sources/cd-finddir.sh) | Shows directories and `cd` to a selected one via interactive filter | `$ cd-finddir # fuzzy cd` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`cd-to-git-root`](./sources/cd-to-git-root.sh) | Change directory to the git root, with WSL path recovery support | `$ cd-to-git-root # cd to repo root` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`cd-to-node-root`](./sources/cd-to-node-root.sh) | Change directory to the nearest parent directory containing `package.json` | `$ cd-to-node-root # cd to pkg dir` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`contains-value`](./sources/contains-value.sh) | Checks if an array contains a value | `$ contains-value "${arr[@]}" "val" # check in arr` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`define-alt`](./sources/define-alt.sh) | Defines a shell variable named 'foo' if not defined | `$ define-alt EDITOR vim # set if unset` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`define-alt-export`](./sources/define-alt-export.sh) | Similar to `define-alt`, but for environment variables | `$ define-alt-export EDITOR vim # export if unset` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`force-unexport`](./sources/force-unexport.sh) | Unexports an environment variable | `$ force-unexport MY_VAR # remove env` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`get-var`](./sources/get-var.sh) | Read and output the value of a variable by name | `$ get-var HOME # => /home/user` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-get-var.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-get-var.yml) |
+| [`i-have`](./sources/i-have.sh) | Check if a specified command exists in the system | `$ i-have bat && echo yes # check cmd` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`is-array`](./sources/is-array.sh) | Detect if a variable is an array (supports Bash and Zsh) | `$ is-array arr && echo yes # check array` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`load-my-env`](./sources/load-my-env.sh) | Load environment-specific settings and aliases for various tools and runtimes | `$ load-my-env # load settings` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`nvim-parent-edit`](./sources/nvim-parent-edit.sh) | Open files in parent Neovim instance via RPC from child terminal | `$ nvim-parent-edit file.txt # edit in parent` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`source-if-exists`](./sources/source-if-exists.sh) | Conditionally source a file if it exists | `$ source-if-exists ~/.local.sh # source if exists` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+
+### :small_blue_diamond: Recommended Scripts
+
+Here are some scripts that can boost your daily workflow:
+
+<details>
+<summary>File Operations</summary> <!-- {{{ -->
+
+**[`rm-dust`](./bin/rm-dust)** - Safe alternative to `rm`. Never lose files by accident again!
+
+```shell-session
+$ rm-dust important.txt        # Moves to dustbox instead of deleting
+$ rm-dust *.log                # Clean up logs safely
+$ alias rm=rm-dust             # Recommended: replace rm globally
+```
+
+**[`bak`](./bin/bak)** - Quick backup toggle. One command to backup, one to restore.
+
+```shell-session
+$ bak config.yaml              # Creates config.bak.yaml
+$ vim config.yaml              # Edit the original
+$ bak config.yaml              # Restore from backup if needed
+```
+
+**[`nvim-parent-edit`](./sources/nvim-parent-edit.sh)** - Edit files in parent Neovim from nested terminal. (Show also an example: [nvim.lua](https://github.com/aiya000/dotfiles/blob/906c7ed230e74c3dbaf2be7797d7537616470647/.config/nvim/lua/nvim.lua#L305-L307), [keymaps.lua](https://github.com/aiya000/dotfiles/blob/906c7ed230e74c3dbaf2be7797d7537616470647/.config/nvim/lua/keymaps.lua#L212-L217))
+
+```shell-session
+# Inside Neovim's :terminal
+$ nvim-parent-edit file.txt   # Opens in parent Neovim, not a nested instance (not Neovim in Neovim)
+$ nvim-parent-edit *.js       # Open multiple files
+```
+
+**[`fast-sync`](./bin/fast-sync)** - Efficient file sync by comparing file lists first.
+
+```shell-session
+$ fast-sync --init ~/photos    # Initialize sync state
+$ fast-sync ~/photos /backup   # Only syncs new/changed files
+# Much faster than full rsync for large directories
+```
+
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Testing</summary> <!-- {{{ -->
+
+**[`expects`](./bin/expects)** - Jest-like assertions for shell scripts. Write readable tests!
+
+Many tests in this project ([./test](./test)) are written with `expects`.
+
+```shell-session
+$ x=10 ; expects "$x" to_be 42
+FAIL: expected {actual} to_be '42', but {actual} is '10'
+
+$ x=42
+$ expects "$x" to_be 42                          # No output on success (exit 0)
+$ expects "$x" to_be 42 && echo "PASS"           # Equality check
+PASS
+$ expects "$x" not to_be 0 && echo "PASS"        # Negation
+PASS
+$ expects "hello world" to_contain "world"       # String containment
+```
+
+And more assertions are available.
+See [`expects`](./bin/expects).
+
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Notifications & Timers</summary> <!-- {{{ -->
+
+**[`notify`](./bin/notify)** - Simple desktop notification. Works on macOS, Linux, and WSL.
+
+```shell-session
+$ notify "Build Done" "Your project compiled successfully"
+$ make && notify "Success" "Build complete" || notify "Failed" "Build error"
+```
+
+**[`notify-ntfy`](./bin/notify-ntfy)** - Send notifications to your phone via [ntfy.sh](https://ntfy.sh).
+
+```shell-session
+$ notify-ntfy "Backup Done" "Server backup completed"  # Sends to mobile
+$ long-running-task && notify-ntfy "Done" "Task finished"
+# Requires: export BASH_TOYS_NTFY_TOPIC="your-topic-name"
+# See https://ntfy.sh for setup
+# See ./bin/notify-ntfy for usage
+```
+
+**[`notify-at`](./bin/notify-at)** - Schedule notifications with human-friendly time formats. (A wrapper for `notify`, and `at` command (Linux) or `launchd` (macOS).)
+
+```shell-session
+$ notify-at 15:00 "Meeting" "Team standup starting"         # Show notification to desktop at 3 PM
+$ notify-at 15:00 "Meeting" "Team standup starting" --local # --local (Show notification to desktop) by default (Same as above)
+$ notify-at "01-15 09:00" "Reminder" "Project deadline"     # Show notification to desktop on Jan 15 at 9 AM
+$ notify-at 12:00 "Lunch" "Take a break" --mobile           # Send notification to mobile via ntfy.sh (if want to send both mobile and desktop, See below)
+$ notify-at 18:00 "Dinner" "Cook" 1h --mobile --local       # Show/Send notification to both mobile and desktop
+```
+
+**[`notify-cascade`](./bin/notify-cascade)** - Get reminded at multiple intervals before an event. (A wrapper for `notify-at`.)
+
+```shell-session
+$ notify-cascade 15:00 "Meeting" "Standup" 30m 10m 5m    # Show notification at 14:30, 14:50, and 14:55
+$ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --mobile   # Send notification to mobile (requires notify-ntfy setup)
+$ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --local    # Desktop only (default)
+$ notify-cascade 18:00 "Dinner" "Cook" 1h --mobile --local  # Both mobile and desktop
+```
+
+**[`pomodoro-timer`](./bin/pomodoro-timer)** - Simple Pomodoro technique timer with notifications.
+
+```shell-session
+$ pomodoro-timer              # Default 30 minutes
+$ pomodoro-timer 25           # Classic 25-minute pomodoro
+$ pomodoro-timer --rest 5     # 5-minute break timer
+```
+
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Text Processing</summary> <!-- {{{ -->
+
+**[`skip`](./bin/skip)** & **[`slice`](./bin/slice)** - Simple but powerful text manipulation.
+
+```shell-session
+$ cat data.csv | skip 1                    # Skip header row
+$ echo "a,b,c,d" | slice , 2 3             # Extract fields 2-3: "b,c"
+$ ps aux | skip 1 | slice ' ' 1 2          # Get PID and user columns
+```
+
+**[`take-until-empty`](./bin/take-until-empty)** - Read until blank line. Perfect for parsing sections.
+
+```shell-session
+$ cat changelog.md | take-until-empty          # Get first section only
+$ git log --format="%B" -1 | take-until-empty  # Get commit title only
+```
+
+**[`pathshorten`](./bin/pathshorten)** - Shorten paths like Vim's `pathshorten()`. Great for prompts!
+
+```shell-session
+$ pathshorten ~/Documents/Projects/myapp/src  # => ~/Docu/Proj/myap/src
+$ PS1="\$(pathshorten \$PWD) $ "              # Use in bash prompt
+```
+
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Navigation & Development</summary> <!-- {{{ -->
+
+**[`cd-finddir`](./sources/cd-finddir.sh)** - Fuzzy directory navigation. Never type long paths again!
+
+```shell-session
+$ cd-finddir                  # Shows directory picker
+...
+luarrow.lua/src/
+luarrow.lua/spec/
+luarrow.lua/scripts/
+luarrow.lua/luarrow.bak.lua/
+luarrow.lua/doc/
+luarrow.lua/
+chotto.lua/src/
+chotto.lua/spec/
+chotto.lua/scripts/
+chotto.lua/readme/
+chotto.lua/doc/
+chotto.lua/
+...
+> (Type partial name to filter, select to cd)
+```
+
+**[`cd-to-git-root`](./sources/cd-to-git-root.sh)** & **[`git-root`](./bin/git-root)** - Quick access to repository root.
+
+```shell-session
+$ cd-to-git-root              # Jump to repo root from anywhere
+$ cat $(git-root)/README.md   # Reference files from repo root
+```
+
+**[`cd-to-node-root`](./sources/cd-to-node-root.sh)** - Jump to nearest `package.json` directory.
+
+```shell-session
+$ pwd
+/project/src/components/ui
+$ cd-to-node-root
+$ pwd
+/project                      # Jumped to package.json directory!
+$ npm test                    # Now you can run npm commands
+```
+
+**[`cat-which`](./bin/cat-which)** - Instantly view any script's source code.
+
+```shell-session
+$ cat-which rm-dust           # See how rm-dust works
+$ cat-which my-script         # Debug your own scripts
+```
+
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Background Processes</summary> <!-- {{{ -->
+
+**[`start`](./bin/start)** - Launch GUI apps without terminal noise.
+
+```shell-session
+$ start firefox               # Opens Firefox, returns prompt immediately
+$ start code .                # Open VS Code without blocking
+$ start vlc music.mp3         # Play music in background
+```
+
+**[`kill-list`](./bin/kill-list)** - Interactive process killer. No more memorizing PIDs!
+
+```shell-session
+$ kill-list
+  PID START                     COMMAND
+...
+12345 Thu Jan 30 10:15:00 2025  node server.js
+12346 Thu Jan 30 10:15:01 2025  npm run watch
+12347 Thu Jan 30 10:20:30 2025  python script.py
+...
+> Select process to kill (fuzzy search, multi-select with Tab)
+```
+
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Security</summary> <!-- {{{ -->
+
+**[`clamdscan-full`](./bin/clamdscan-full)** - Full system virus scan with ClamAV.
+
+```shell-session
+$ clamdscan-full /            # Scan entire system
+$ clamdscan-full ~/Downloads  # Scan specific directory
+# Requires ClamAV daemon (clamd) running
+```
+
+<!-- }}} -->
+</details>
 
 ## :bookmark_tabs: Show help for commands
 
@@ -242,7 +482,6 @@ We welcome contributions! Please follow these steps.
 
 1. Create an issue for the feature you want to add
 1. Wait for maintainers to approve the feature
-   - Unless it's a really bad idea, they probably won't say no :dog2:
 1. Open a pull request!
 
 ## :bookmark_tabs: License
