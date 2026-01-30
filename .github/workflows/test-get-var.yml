@@ -1,6 +1,7 @@
 name: Test get-var
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:

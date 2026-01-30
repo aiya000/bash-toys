@@ -1,6 +1,7 @@
 name: Test bookmark-open
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
