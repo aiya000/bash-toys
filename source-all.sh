@@ -14,5 +14,8 @@ source "$dir"/lib/fun.sh
 
 for script in "$dir"/sources/* ; do
   # shellcheck disable=SC1090
-  source "$script"
+  # NOTE: `|| true` is needed because some scripts (e.g., nvim-parent-edit.sh)
+  # may return 1 when required environment variables are not set.
+  # This allows source-all.sh to work correctly with `bash -e` (set -e).
+  source "$script" || true
 done
