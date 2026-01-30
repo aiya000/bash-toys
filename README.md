@@ -204,7 +204,7 @@ $ notify-at 15:00 "Meeting" "Team standup starting"         # Show notification 
 $ notify-at 15:00 "Meeting" "Team standup starting" --local # --local (Show notification to desktop) by default (Same as above)
 $ notify-at "01-15 09:00" "Reminder" "Project deadline"     # Show notification to desktop on Jan 15 at 9 AM
 $ notify-at 12:00 "Lunch" "Take a break" --mobile           # Send notification to mobile via ntfy.sh (if want to send both mobile and desktop, See below)
-$ notify-at 18:00 "Dinner" "Cook" 1h --mobile --local       # Show/Send notifiation to both mobile and desktop
+$ notify-at 18:00 "Dinner" "Cook" 1h --mobile --local       # Show/Send notification to both mobile and desktop
 ```
 
 **[`notify-cascade`](./bin/notify-cascade)** - Get reminded at multiple intervals before an event. (A wrapper for `notify-at`.)
