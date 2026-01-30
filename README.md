@@ -211,7 +211,7 @@ $ notify-at 18:00 "Dinner" "Cook" 1h --mobile --local       # Show/Send notifica
 
 ```shell-session
 $ notify-cascade 15:00 "Meeting" "Standup" 30m 10m 5m    # Show notification at 14:30, 14:50, and 14:55
-$ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --mobile   # Send notificaiton to mobile (requires notify-ntfy setup)
+$ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --mobile   # Send notification to mobile (requires notify-ntfy setup)
 $ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --local    # Desktop only (default)
 $ notify-cascade 18:00 "Dinner" "Cook" 1h --mobile --local  # Both mobile and desktop
 ```
