@@ -132,6 +132,14 @@ $ vim config.yaml              # Edit the original
 $ bak config.yaml              # Restore from backup if needed
 ```
 
+**[`nvim-parent-edit`](./sources/nvim-parent-edit.sh)** - Edit files in parent Neovim from nested terminal. (Show also an example: [nvim.lua](https://github.com/aiya000/dotfiles/blob/906c7ed230e74c3dbaf2be7797d7537616470647/.config/nvim/lua/nvim.lua#L305-L307), [keymaps.lua](https://github.com/aiya000/dotfiles/blob/906c7ed230e74c3dbaf2be7797d7537616470647/.config/nvim/lua/keymaps.lua#L212-L217))
+
+```shell-session
+# Inside Neovim's :terminal
+$ nvim-parent-edit file.txt   # Opens in parent Neovim, not a nested instance (not Neovim in Neovim)
+$ nvim-parent-edit *.js       # Open multiple files
+```
+
 **[`fast-sync`](./bin/fast-sync)** - Efficient file sync by comparing file lists first.
 
 ```shell-session
@@ -149,19 +157,33 @@ $ notify "Build Done" "Your project compiled successfully"
 $ make && notify "Success" "Build complete" || notify "Failed" "Build error"
 ```
 
-**[`notify-at`](./bin/notify-at)** - Schedule notifications with human-friendly time formats.
+**[`notify-ntfy`](./bin/notify-ntfy)** - Send notifications to your phone via [ntfy.sh](https://ntfy.sh).
 
 ```shell-session
-$ notify-at 15:00 "Meeting" "Team standup starting"
-$ notify-at "01-15 09:00" "Reminder" "Project deadline"
-$ notify-at 12:00 "Lunch" "Take a break" --mobile  # Send to phone via ntfy.sh
+$ notify-ntfy "Backup Done" "Server backup completed"  # Sends to mobile
+$ long-running-task && notify-ntfy "Done" "Task finished"
+# Requires: export BASH_TOYS_NTFY_TOPIC="your-topic-name"
+# See https://ntfy.sh for setup
+# See ./bin/notify-ntfy for usage
 ```
 
-**[`notify-cascade`](./bin/notify-cascade)** - Get reminded at multiple intervals before an event.
+**[`notify-at`](./bin/notify-at)** - Schedule notifications with human-friendly time formats. (A wrapper for `notify`, and `at` command (Linux) or `launchd` (macOS).)
 
 ```shell-session
-$ notify-cascade 15:00 "Meeting" "Standup" 30m 10m 5m  # Alerts at 14:30, 14:50, 14:55
-$ notify-cascade 18:00 "Dinner" "Time to cook" 1h 30m  # Alerts at 17:00, 17:30
+$ notify-at 15:00 "Meeting" "Team standup starting"         # Show notification to desktop at 3 PM
+$ notify-at 15:00 "Meeting" "Team standup starting" --local # --local (Show notification to desktop) by default (Same as above)
+$ notify-at "01-15 09:00" "Reminder" "Project deadline"     # Show notification to desktop on Jan 15 at 9 AM
+$ notify-at 12:00 "Lunch" "Take a break" --mobile           # Send notification to mobile via ntfy.sh (if want to send both mobile and desktop, See below)
+$ notify-at 18:00 "Dinner" "Cook" 1h --mobile --local       # Show/Send notifiation to both mobile and desktop
+```
+
+**[`notify-cascade`](./bin/notify-cascade)** - Get reminded at multiple intervals before an event. (A wrapper for `notify-at`.)
+
+```shell-session
+$ notify-cascade 15:00 "Meeting" "Standup" 30m 10m 5m    # Show notificaiton at 14:30, 14:50, and 14:55
+$ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --mobile   # Send notificaiton to mobile (requires notify-ntfy setup)
+$ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --local    # Desktop only (default)
+$ notify-cascade 18:00 "Dinner" "Cook" 1h --mobile --local  # Both mobile and desktop
 ```
 
 **[`pomodoro-timer`](./bin/pomodoro-timer)** - Simple Pomodoro technique timer with notifications.
@@ -185,7 +207,7 @@ $ ps aux | skip 1 | slice ' ' 1 2          # Get PID and user columns
 **[`take-until-empty`](./bin/take-until-empty)** - Read until blank line. Perfect for parsing sections.
 
 ```shell-session
-$ cat changelog.md | take-until-empty      # Get first section only
+$ cat changelog.md | take-until-empty          # Get first section only
 $ git log --format="%B" -1 | take-until-empty  # Get commit title only
 ```
 
@@ -202,6 +224,7 @@ $ PS1="\$(pathshorten \$PWD) $ "              # Use in bash prompt
 
 ```shell-session
 $ cd-finddir                  # Shows directory picker
+...
 luarrow.lua/src/
 luarrow.lua/spec/
 luarrow.lua/scripts/
@@ -214,6 +237,7 @@ chotto.lua/scripts/
 chotto.lua/readme/
 chotto.lua/doc/
 chotto.lua/
+...
 > (Type partial name to filter, select to cd)
 ```
 
@@ -227,8 +251,11 @@ $ cat $(git-root)/README.md   # Reference files from repo root
 **[`cd-to-node-root`](./sources/cd-to-node-root.sh)** - Jump to nearest `package.json` directory.
 
 ```shell-session
-$ pwd                         # /project/src/components/ui
-$ cd-to-node-root             # Jumps to /project (where package.json is)
+$ pwd
+/project/src/components/ui
+$ cd-to-node-root
+$ pwd
+/project                      # Jumped to package.json directory!
 $ npm test                    # Now you can run npm commands
 ```
 
@@ -237,14 +264,6 @@ $ npm test                    # Now you can run npm commands
 ```shell-session
 $ cat-which rm-dust           # See how rm-dust works
 $ cat-which my-script         # Debug your own scripts
-```
-
-**[`nvim-parent-edit`](./sources/nvim-parent-edit.sh)** - Edit files in parent Neovim from nested terminal.
-
-```shell-session
-# Inside Neovim's :terminal
-$ nvim-parent-edit file.txt   # Opens in parent Neovim, not a nested instance
-$ nvim-parent-edit *.js       # Open multiple files
 ```
 
 #### Background Processes
@@ -260,13 +279,14 @@ $ start vlc music.mp3         # Play music in background
 **[`kill-list`](./bin/kill-list)** - Interactive process killer. No more memorizing PIDs!
 
 ```shell-session
-$ kill-list                   # Shows process picker
-19261 木  1/29 18:20:21 2026      awk {print $1}
-19275 木  1/29 18:20:21 2026      awk NR>1
-19273 木  1/29 18:20:21 2026      ps -eo pid,lstart,command
-19256 木  1/29 18:20:21 2026      sh -c ~/.dotfiles/.tmux/plugins/tmux-mem-cpu-load/tmux-mem-cpu-load --mem-mode 2 | awk '{print $1}'
-19274 木  1/29 18:20:21 2026      sort -k2,6
-> (Type fuzzy name to filter, select to kill. Can multi-select)
+$ kill-list
+  PID START                     COMMAND
+...
+12345 Thu Jan 30 10:15:00 2025  node server.js
+12346 Thu Jan 30 10:15:01 2025  npm run watch
+12347 Thu Jan 30 10:20:30 2025  python script.py
+...
+> Select process to kill (fuzzy search, multi-select with Tab)
 ```
 
 #### Security
@@ -283,12 +303,23 @@ $ clamdscan-full ~/Downloads  # Scan specific directory
 
 **[`expects`](./bin/expects)** - Jest-like assertions for shell scripts. Write readable tests!
 
+Many tests in this project ([./test](./test)) are written with `expects`.
+
 ```shell-session
+$ x=10 ; expects "$x" to_be 42
+FAIL: expected {actual} to_be '42', but {actual} is '10'
+
 $ x=42
+$ expects "$x" to_be 42                          # No output on success (exit 0)
 $ expects "$x" to_be 42 && echo "PASS"           # Equality check
+PASS
 $ expects "$x" not to_be 0 && echo "PASS"        # Negation
+PASS
 $ expects "hello world" to_contain "world"       # String containment
 ```
+
+And more assertions are available.
+See [`expects`](./bin/expects).
 
 ## :bookmark_tabs: Show help for commands
 
@@ -427,7 +458,6 @@ We welcome contributions! Please follow these steps.
 
 1. Create an issue for the feature you want to add
 1. Wait for maintainers to approve the feature
-   - Unless it's a really bad idea, they probably won't say no :dog2:
 1. Open a pull request!
 
 ## :bookmark_tabs: License
