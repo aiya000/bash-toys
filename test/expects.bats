@@ -6,9 +6,8 @@
   run expects --help
   [ "$status" -eq 0 ]
   [[ "${lines[0]}" =~ ^expects\ -\  ]]
-  [ "${lines[1]}" = "" ]
-  [ "${lines[2]}" = "Usage:" ]
-  [ "${lines[3]}" = "  expects VALUE MATCHER [EXPECTED]" ]
+  [ "${lines[1]}" = "Usage:" ]
+  [ "${lines[2]}" = "  expects VALUE MATCHER [EXPECTED]" ]
 }
 
 @test '`expects 10 to_be 10` should succeed' {
