@@ -111,10 +111,10 @@ These dependencies are documented at the beginning of the script.
 
 ### :small_blue_diamond: Recommended Scripts
 
-<details>
-<summary>Here are some scripts that can boost your daily workflow:</summary> <!-- {{{ -->
+Here are some scripts that can boost your daily workflow:
 
-#### File Operations
+<details>
+<summary>File Operations</summary> <!-- {{{ -->
 
 **[`rm-dust`](./bin/rm-dust)** - Safe alternative to `rm`. Never lose files by accident again!
 
@@ -148,7 +148,37 @@ $ fast-sync ~/photos /backup   # Only syncs new/changed files
 # Much faster than full rsync for large directories
 ```
 
-#### Notifications & Timers
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Testing</summary> <!-- {{{ -->
+
+**[`expects`](./bin/expects)** - Jest-like assertions for shell scripts. Write readable tests!
+
+Many tests in this project ([./test](./test)) are written with `expects`.
+
+```shell-session
+$ x=10 ; expects "$x" to_be 42
+FAIL: expected {actual} to_be '42', but {actual} is '10'
+
+$ x=42
+$ expects "$x" to_be 42                          # No output on success (exit 0)
+$ expects "$x" to_be 42 && echo "PASS"           # Equality check
+PASS
+$ expects "$x" not to_be 0 && echo "PASS"        # Negation
+PASS
+$ expects "hello world" to_contain "world"       # String containment
+```
+
+And more assertions are available.
+See [`expects`](./bin/expects).
+
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Notifications & Timers</summary> <!-- {{{ -->
 
 **[`notify`](./bin/notify)** - Simple desktop notification. Works on macOS, Linux, and WSL.
 
@@ -194,7 +224,11 @@ $ pomodoro-timer 25           # Classic 25-minute pomodoro
 $ pomodoro-timer --rest 5     # 5-minute break timer
 ```
 
-#### Text Processing
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Text Processing</summary> <!-- {{{ -->
 
 **[`skip`](./bin/skip)** & **[`slice`](./bin/slice)** - Simple but powerful text manipulation.
 
@@ -218,7 +252,11 @@ $ pathshorten ~/Documents/Projects/myapp/src  # => ~/Docu/Proj/myap/src
 $ PS1="\$(pathshorten \$PWD) $ "              # Use in bash prompt
 ```
 
-#### Navigation & Development
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Navigation & Development</summary> <!-- {{{ -->
 
 **[`cd-finddir`](./sources/cd-finddir.sh)** - Fuzzy directory navigation. Never type long paths again!
 
@@ -266,7 +304,11 @@ $ cat-which rm-dust           # See how rm-dust works
 $ cat-which my-script         # Debug your own scripts
 ```
 
-#### Background Processes
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Background Processes</summary> <!-- {{{ -->
 
 **[`start`](./bin/start)** - Launch GUI apps without terminal noise.
 
@@ -289,7 +331,11 @@ $ kill-list
 > Select process to kill (fuzzy search, multi-select with Tab)
 ```
 
-#### Security
+<!-- }}} -->
+</details>
+
+<details>
+<summary>Security</summary> <!-- {{{ -->
 
 **[`clamdscan-full`](./bin/clamdscan-full)** - Full system virus scan with ClamAV.
 
@@ -299,27 +345,8 @@ $ clamdscan-full ~/Downloads  # Scan specific directory
 # Requires ClamAV daemon (clamd) running
 ```
 
-#### Testing
-
-**[`expects`](./bin/expects)** - Jest-like assertions for shell scripts. Write readable tests!
-
-Many tests in this project ([./test](./test)) are written with `expects`.
-
-```shell-session
-$ x=10 ; expects "$x" to_be 42
-FAIL: expected {actual} to_be '42', but {actual} is '10'
-
-$ x=42
-$ expects "$x" to_be 42                          # No output on success (exit 0)
-$ expects "$x" to_be 42 && echo "PASS"           # Equality check
-PASS
-$ expects "$x" not to_be 0 && echo "PASS"        # Negation
-PASS
-$ expects "hello world" to_contain "world"       # String containment
-```
-
-And more assertions are available.
-See [`expects`](./bin/expects).
+<!-- }}} -->
+</details>
 
 ## :bookmark_tabs: Show help for commands
 
@@ -448,9 +475,6 @@ For `./sources/*`, don't forget to `source`:
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/sources/cd-to-git-root.sh -o /path/to/sources/cd-to-git-root.sh
 $ echo 'source /path/to/sources/cd-to-git-root.sh' >> ~/.bashrc
 ```
-
-<!-- }}} -->
-</details>
 
 ## :bookmark_tabs: Contributing
 
