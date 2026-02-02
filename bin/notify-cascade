@@ -51,6 +51,7 @@ TIME formats (See also `$ notify-at --help`):
   YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
 
 Timing formats:
+  now       Send notification immediately
   4h        4 hours before
   30m       30 minutes before
   45s       45 seconds before
@@ -64,6 +65,7 @@ Examples:
   notify-cascade '2027-01-15 09:00' 'Event' 'Future event' 1d 1h 30m /path/to/sound.wav
   notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile
   notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile --local
+  notify-cascade 15:00 'Meeting' 'Team meeting' now 1h 30m --local   # Immediate + scheduled
 EOF
 }
 
@@ -115,12 +117,16 @@ message="${positional_args[2]}"
 # Parse timing arguments and potential sound file
 timings=()
 sound=""
+send_now=false
 
 for i in $(seq 3 $((${#positional_args[@]} - 1))) ; do
   arg="${positional_args[$i]}"
 
+  # Check if argument is 'now' for immediate notification
+  if [[ "$arg" == "now" ]] ; then
+    send_now=true
   # Check if argument looks like a timing (contains h, m, or s)
-  if [[ "$arg" =~ ^[0-9]+[hms]$ ]] ; then
+  elif [[ "$arg" =~ ^[0-9]+[hms]$ ]] ; then
     timings+=("$arg")
   else
     # Assume it's a sound file if it doesn't match timing pattern
@@ -290,6 +296,22 @@ echo "Title: $title"
 echo "Message: $message"
 echo ""
 
+# Get script directory for notify commands
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd)"
+
+# Send immediate notification if 'now' was specified
+if [[ "$send_now" == true ]] ; then
+  echo "Sending immediate notification..."
+  now_message="$message (now)"
+
+  if [[ "$local_mode" == true || ( "$local_mode" == false && "$mobile_mode" == false ) ]] ; then
+    "$script_dir/notify" "$title" "$now_message" "$sound" &
+  fi
+
+  if [[ "$mobile_mode" == true ]] ; then
+    "$script_dir/notify-ntfy" "$title" "$now_message" &
+  fi
+fi
 
 # If no timings specified, show single notification at target time
 if [[ ${#timings[@]} -eq 0 ]] ; then
