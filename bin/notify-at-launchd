@@ -33,6 +33,7 @@ set -e
 
 LAUNCHD_PREFIX="com.bash-toys.notify-at"
 LAUNCHD_DIR="$HOME/Library/LaunchAgents"
+NOTIFY_AT_DATA_DIR="$HOME/.local/share/notify-at"
 
 function show_help() {
   cat << 'EOF'
@@ -133,6 +134,9 @@ function schedule_launchd_job() {
   # Ensure LaunchAgents directory exists
   mkdir -p "$LAUNCHD_DIR"
 
+  # Ensure data directory exists for scripts and logs
+  mkdir -p "$NOTIFY_AT_DATA_DIR"
+
   # Extract date components for StartCalendarInterval
   local target_year target_month target_day target_hour target_minute
   target_year=$(date -r "$target_timestamp" +%Y)
@@ -143,7 +147,7 @@ function schedule_launchd_job() {
 
   # Create a wrapper script that checks the year and executes the notification
   # This is needed because StartCalendarInterval doesn't support Year field
-  local script_path="/tmp/notify-at-$job_id.sh"
+  local script_path="$NOTIFY_AT_DATA_DIR/notify-at-$job_id.sh"
 
   # Escape special characters for shell script
   local shell_escaped_title="${title//\\/\\\\}"
@@ -249,9 +253,9 @@ EOF
         <integer>$target_minute</integer>
     </dict>
     <key>StandardOutPath</key>
-    <string>/tmp/notify-at-$job_id.log</string>
+    <string>$NOTIFY_AT_DATA_DIR/notify-at-$job_id.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/notify-at-$job_id.log</string>
+    <string>$NOTIFY_AT_DATA_DIR/notify-at-$job_id.log</string>
 </dict>
 </plist>
 EOF
@@ -358,6 +362,9 @@ function cancel_job() {
   # Unload and remove plist, script, and log files
   launchctl unload "$plist_path" 2>/dev/null || true
   rm -f "$plist_path"
+  rm -f "$NOTIFY_AT_DATA_DIR/notify-at-$target_job_id.sh"
+  rm -f "$NOTIFY_AT_DATA_DIR/notify-at-$target_job_id.log"
+  # Also clean up legacy /tmp files if they exist
   rm -f "/tmp/notify-at-$target_job_id.sh"
   rm -f "/tmp/notify-at-$target_job_id.log"
 
