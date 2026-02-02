@@ -29,6 +29,10 @@ cleanup_launchd_jobs() {
       rm -f "$plist"
     done
   fi
+  # Clean up script and log files (new location)
+  rm -f "$HOME/.local/share/notify-at/notify-at-"*.sh 2>/dev/null || true
+  rm -f "$HOME/.local/share/notify-at/notify-at-"*.log 2>/dev/null || true
+  # Legacy /tmp cleanup
   rm -f /tmp/notify-at-*.sh 2>/dev/null || true
   rm -f /tmp/notify-at-*.log 2>/dev/null || true
 }

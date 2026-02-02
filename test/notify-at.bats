@@ -58,7 +58,10 @@ cleanup_launchd_jobs() {
       rm -f "$plist"
     done
   fi
-  # Also clean up script and log files
+  # Also clean up script and log files (new location)
+  rm -f "$HOME/.local/share/notify-at/notify-at-"*.sh 2>/dev/null || true
+  rm -f "$HOME/.local/share/notify-at/notify-at-"*.log 2>/dev/null || true
+  # Legacy /tmp cleanup
   rm -f /tmp/notify-at-*.sh 2>/dev/null || true
   rm -f /tmp/notify-at-*.log 2>/dev/null || true
 }
@@ -341,7 +344,7 @@ teardown() {
   expects "$job_id" not to_equal ''
 
   # Check wrapper script exists
-  local script_path="/tmp/notify-at-$job_id.sh"
+  local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
   [[ -f "$script_path" ]] || fail "wrapper script should exist: $script_path"
 
   # Check script contains year validation
@@ -392,7 +395,7 @@ teardown() {
 
   # Verify files exist before cancel
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
-  local script_path="/tmp/notify-at-$job_id.sh"
+  local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
   [[ -f "$plist_path" ]] || fail "plist file should exist: $plist_path"
   [[ -f "$script_path" ]] || fail "wrapper script should exist: $script_path"
 
