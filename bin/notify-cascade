@@ -324,10 +324,10 @@ for timing in "${timings[@]}" ; do
   echo "$timing notification: in $duration"
 
   # Calculate the absolute time for this notification
-  notification_hour=$(date -d "@$notification_time" +"%H:%M" 2>/dev/null || date -r "$notification_time" +"%H:%M")
+  notification_datetime=$(date -d "@$notification_time" +"%Y-%m-%d %H:%M" 2>/dev/null || date -r "$notification_time" +"%Y-%m-%d %H:%M")
 
   (
-    notify-at "$notification_hour" "$title" "$timing_message" "$sound" "${notify_at_options[@]}"
+    notify-at "$notification_datetime" "$title" "$timing_message" "$sound" "${notify_at_options[@]}"
   ) &
 
   pids+=($!)
