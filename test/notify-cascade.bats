@@ -91,6 +91,7 @@ teardown() {
   expects "$output" to_contain 'notify-cascade - Sends cascade of notifications'
   expects "$output" to_contain 'TIME formats (See also'
   expects "$output" to_contain 'Timing formats:'
+  expects "$output" to_contain 'now       Send notification immediately'
 }
 
 @test '`notify-cascade` with insufficient arguments should show help' {
@@ -194,4 +195,37 @@ teardown() {
   expects "$status" to_be 0
   # The 24h notification would be in the past (relative to 23:59), so it should be skipped
   expects "$output" to_contain 'Skipping 24h notification'
+}
+
+@test '`notify-cascade` should send immediate notification with now option' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-cascade 23:59 'Now Test' 'Message' now 5m --local
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Sending immediate notification...'
+  expects "$output" to_contain '5m notification:'
+}
+
+@test '`notify-cascade` should work with now option only (no other timings)' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-cascade 23:59 'Now Only Test' 'Message' now --local
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Sending immediate notification...'
+  # Should also schedule single notification at target time
+  expects "$output" to_contain 'Single notification:'
+}
+
+@test '`notify-cascade` should send immediate notification with now and multiple timings' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-cascade 23:59 'Multi Now Test' 'Message' now 1h 30m 5m --local
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Sending immediate notification...'
+  expects "$output" to_contain '1h notification:'
+  expects "$output" to_contain '30m notification:'
+  expects "$output" to_contain '5m notification:'
 }
