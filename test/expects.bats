@@ -10,6 +10,12 @@
   [ "${lines[2]}" = "  expects VALUE MATCHER [EXPECTED]" ]
 }
 
+@test '`expects -h` should show help message' {
+  run expects -h
+  [ "$status" -eq 0 ]
+  [[ "${lines[0]}" =~ ^expects\ -\  ]]
+}
+
 @test '`expects 10 to_be 10` should succeed' {
   run expects 10 to_be 10
   [[ $status -eq 0 ]]

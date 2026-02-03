@@ -5,6 +5,18 @@
 # shellcheck disable=SC1091
 source ./sources/get-var.sh
 
+@test '`get-var --help` should show help message' {
+  run get-var --help
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^get-var - '
+}
+
+@test '`get-var -h` should show help message' {
+  run get-var -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^get-var - '
+}
+
 @test '`get-var name` should read a variable value of the name' {
   local name=10
   run get-var name

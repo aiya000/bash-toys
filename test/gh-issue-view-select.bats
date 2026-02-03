@@ -12,6 +12,12 @@ setup () {
   expects "${lines[1]}" to_equal 'Usage:'
 }
 
+@test '`gh-issue-view-select -h` should show help message' {
+  run bin/gh-issue-view-select -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^gh-issue-view-select - '
+}
+
 @test '`gh-issue-view-select` should display selected issue content' {
   # Mock gh command
   function gh () {

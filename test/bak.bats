@@ -9,6 +9,12 @@
   expects "${lines[1]}" to_equal "Usage:"
 }
 
+@test '`bak -h` should show help message' {
+  run bak -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal "bak - Toggle backup (.bak) extension for files"
+}
+
 @test '`bak` with no arguments should show error' {
   run bak
   expects "$status" to_be 1

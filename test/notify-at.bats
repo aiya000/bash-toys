@@ -86,6 +86,19 @@ teardown() {
   fi
 }
 
+@test '`notify-at --help` should show help message' {
+  run notify-at --help
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_contain 'notify-at - Sends notification at specified time'
+  expects "$output" to_contain 'Usage:'
+}
+
+@test '`notify-at -h` should show help message' {
+  run notify-at -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_contain 'notify-at - Sends notification at specified time'
+}
+
 @test '`notify-at` with no arguments should show usage message' {
   run notify-at
   expects "$status" to_be 1

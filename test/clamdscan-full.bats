@@ -9,6 +9,12 @@
   expects "${lines[1]}" to_equal 'Usage:'
 }
 
+@test '`clamdscan-full -h` should show help message' {
+  run clamdscan-full -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^clamdscan-full - '
+}
+
 @test '`clamdscan-full` with no arguments should use root directory' {
   function fdfind() { echo "mocked-fdfind $*"; }
   function clamdscan() { echo "mocked-clamdscan $*"; }

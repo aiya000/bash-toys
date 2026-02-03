@@ -27,6 +27,18 @@ teardown () {
   rm -f "$file_does_not_contain_empty_line"
 }
 
+@test '`take-until-empty --help` should show help message' {
+  run take-until-empty --help
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^take-until-empty - '
+}
+
+@test '`take-until-empty -h` should show help message' {
+  run take-until-empty -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^take-until-empty - '
+}
+
 @test '`take-until-empty file_contains_empty_line` should take lines until an empty line appears' {
   run take-until-empty "$file_contains_empty_line"
   expects "$status" to_be 0

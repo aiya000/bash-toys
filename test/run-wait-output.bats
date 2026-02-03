@@ -6,6 +6,12 @@
   [[ ${lines[0]} =~ ^Usage:\ run-wait-output ]]
 }
 
+@test '`run-wait-output -h` should show help message' {
+  run run-wait-output -h
+  [[ $status -eq 0 ]]
+  [[ ${lines[0]} =~ ^Usage:\ run-wait-output ]]
+}
+
 @test '`run-wait-output` with no arguments should show help and fail' {
   run run-wait-output
   [[ $status -eq 1 ]]

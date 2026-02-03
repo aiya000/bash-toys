@@ -12,6 +12,12 @@ setup () {
   expects "${lines[1]}" to_equal 'Usage:'
 }
 
+@test '`bookmark-open -h` should show help message' {
+  run bin/bookmark-open -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^bookmark-open - '
+}
+
 @test '`bookmark-open` should open the first bookmark' {
   XDG_OPEN_OUTPUT="$(mktemp)"
   export XDG_OPEN_OUTPUT

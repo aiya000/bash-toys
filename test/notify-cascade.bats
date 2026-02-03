@@ -94,6 +94,12 @@ teardown() {
   expects "$output" to_contain 'now                  Send notification immediately'
 }
 
+@test '`notify-cascade -h` should show help message' {
+  run notify-cascade -h
+  expects "$status" to_be 0
+  expects "$output" to_contain 'notify-cascade - Sends cascade of notifications'
+}
+
 @test '`notify-cascade` with insufficient arguments should show help' {
   run notify-cascade 15:00
   expects "$status" to_be 1

@@ -9,6 +9,12 @@
   expects "${lines[1]}" to_equal 'Usage:'
 }
 
+@test '`cat-which -h` should show help message' {
+  run cat-which -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^cat-which - '
+}
+
 @test '`cat-which` with no arguments should show error' {
   run cat-which
   expects "$status" to_be 1

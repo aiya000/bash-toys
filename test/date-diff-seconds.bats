@@ -9,6 +9,12 @@
   expects "${lines[1]}" to_equal 'Usage:'
 }
 
+@test '`date-diff-seconds -h` should show help message' {
+  run date-diff-seconds -h
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^date-diff-seconds - '
+}
+
 @test '`date-diff-seconds` with no arguments should show error' {
   run date-diff-seconds
   expects "$status" to_be 1

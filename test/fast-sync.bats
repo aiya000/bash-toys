@@ -24,6 +24,18 @@ teardown() {
     export HOME="$ORIGINAL_HOME"
 }
 
+@test '`fast-sync --help` should show help message' {
+    run fast-sync --help
+    [ "$status" -eq 0 ]
+    [[ "${lines[0]}" =~ ^fast-sync\ -\  ]]
+}
+
+@test '`fast-sync -h` should show help message' {
+    run fast-sync -h
+    [ "$status" -eq 0 ]
+    [[ "${lines[0]}" =~ ^fast-sync\ -\  ]]
+}
+
 @test '`fast-sync` with no arguments should show usage' {
     run fast-sync
     [ "$status" -eq 1 ]
