@@ -22,6 +22,18 @@ cd-finddir
 
 Lists directories (up to 6 depth with fd, 3 with find) and lets you select one using `BASH_TOYS_INTERACTIVE_FILTER`.
 
+**Examples**:
+```shell-session
+$ cd-finddir
+# (Interactive filter shows directories)
+# ./src
+# ./src/components
+# ./tests
+# (Select a directory to cd into)
+$ pwd
+/path/to/project/src/components
+```
+
 ### cd-to-git-root
 
 Change directory to git repository root.
@@ -32,6 +44,15 @@ cd-to-git-root
 
 Supports WSL path conversion when running on Windows file systems.
 
+**Examples**:
+```shell-session
+$ pwd
+/path/to/repo/src/components/button
+$ cd-to-git-root
+$ pwd
+/path/to/repo
+```
+
 ### cd-to-node-root
 
 Change directory to Node.js project root.
@@ -41,6 +62,17 @@ cd-to-node-root
 ```
 
 Searches upward for package.json and changes to that directory.
+
+**Examples**:
+```shell-session
+$ pwd
+/path/to/project/src/utils/helpers
+$ cd-to-node-root
+$ pwd
+/path/to/project
+$ ls package.json
+package.json
+```
 
 ## Variable Management
 
@@ -71,6 +103,21 @@ define-alt-export <var_name> [value...]
 ```
 
 Similar to define-alt, but also exports the variable.
+
+**Examples**:
+```shell-session
+$ define-alt-export EDITOR vim
+$ echo $EDITOR
+vim
+$ env | grep EDITOR
+EDITOR=vim
+
+# Does not override existing value
+$ export PATH_BACKUP=/custom/path
+$ define-alt-export PATH_BACKUP /default/path
+$ echo $PATH_BACKUP
+/custom/path
+```
 
 ### get-var
 
@@ -224,6 +271,21 @@ nvim-parent-edit <open_method> <filename>
 - `nvim-parent-tabnew <file>` - Open in new tab
 - `nvim-parent-split <file>` - Open in horizontal split
 - `nvim-parent-vsplit <file>` - Open in vertical split
+
+**Examples**:
+```shell-session
+# Open file in parent Neovim's new tab
+$ nvim-parent-tabnew README.md
+
+# Open in horizontal split
+$ nvim-parent-split config.lua
+
+# Open in vertical split
+$ nvim-parent-vsplit utils.lua
+
+# Generic form
+$ nvim-parent-edit tabnew /path/to/file.txt
+```
 
 **Requirements**: `NVIM_PARENT_ADDRESS` environment variable (set by parent Neovim)
 

@@ -14,6 +14,17 @@ notify <title> <message> [sound]
 
 **Platforms**: Windows (WSL), macOS, Linux
 
+**Examples**:
+```shell-session
+# Basic notification
+$ notify 'Task Complete' 'Your build has finished'
+# (Desktop notification appears)
+
+# With sound
+$ notify 'Warning' 'Low disk space' /path/to/sound.mp3
+# (Desktop notification appears with sound)
+```
+
 ### notify-at
 
 Schedule notification at specified time with flexible date formats.
@@ -33,6 +44,28 @@ notify-at -c JOB_ID | --cancel JOB_ID
 - `--ntfy` - Send notification via ntfy.sh
 - `--local` - Send to local desktop (default)
 
+**Examples**:
+```shell-session
+# Schedule notification at 3 PM today
+$ notify-at 15:00 'Meeting' 'Team standup'
+Scheduled: title=Meeting, message=Team standup
+Job ID: 42
+
+# Schedule with specific date
+$ notify-at '01-15 09:00' 'Event' 'New year kickoff'
+Scheduled: title=Event, message=New year kickoff
+Job ID: 43
+
+# List scheduled notifications
+$ notify-at --list
+42    2026-02-03 15:00    Meeting - Team standup
+43    2026-01-15 09:00    Event - New year kickoff
+
+# Cancel a scheduled notification
+$ notify-at --cancel 42
+Cancelled job 42
+```
+
 ### notify-cascade
 
 Schedule cascade of notifications at specified intervals before target time.
@@ -43,15 +76,65 @@ notify-cascade [options] TIME title message [timing1] [timing2] ... [sound]
 
 **Timing formats**: `now`, `4h`, `30m`, `45s`, `HH:MM`, `MM-DD HH:MM`
 
+**Options**:
+- `--ntfy` - Send notification via ntfy.sh (disables local notification unless `--local` is also specified)
+- `--local` - Send to local desktop (default if no options specified)
+
+**Note**: To receive notifications on both ntfy.sh and desktop, either:
+- Specify both `--ntfy` and `--local` options
+- Or install ntfy.sh on your host OS and subscribe to the same topic
+
+**Examples**:
+```shell-session
+# Cascade notifications at 1h, 30m, 10m, 5m before
+$ notify-cascade 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m
+Cascade notifications scheduled for: 15:00
+Title: Meeting
+Message: Team meeting starts
+
+1h notification: in 45 minutes
+30m notification: in 1 hour 15 minutes
+10m notification: in 1 hour 35 minutes
+5m notification: in 1 hour 40 minutes
+
+Process IDs: 12345 12346 12347 12348
+
+# Include immediate notification with 'now'
+$ notify-cascade 15:00 'Meeting' 'Team meeting' now 1h 30m
+Sending immediate notification...
+...
+
+# Send to ntfy.sh only
+$ notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --ntfy
+
+# Send to both ntfy.sh and local desktop
+$ notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --ntfy --local
+```
+
 ### notify-ntfy
 
-Send notification via ntfy.sh.
+A CLI frontend for ntfy.sh.
+Sends notification to devices that installed ntfy.sh (e.g., Android, iOS, Windows, macOS, Linux).
 
 ```bash
 notify-ntfy <title> <message>
 ```
 
 **Requires**: `BASH_TOYS_NTFY_TOPIC` environment variable
+
+**Examples**:
+```shell-session
+# Send notification
+$ export BASH_TOYS_NTFY_TOPIC=my-topic
+$ notify-ntfy 'Build Complete' 'Your CI build finished successfully'
+# (Notification appears on your device)
+
+# Missing topic (error)
+$ unset BASH_TOYS_NTFY_TOPIC
+$ notify-ntfy 'Title' 'Message'
+Error: BASH_TOYS_NTFY_TOPIC environment variable is required
+# Exit status: 1
+```
 
 ## File Operations
 
@@ -155,6 +238,29 @@ Efficiently sync files using file list comparison.
 ```bash
 fast-sync <source_dir> <target_dir>
 fast-sync --init <directory_to_scan>
+```
+
+**Examples**:
+```shell-session
+# Initialize sync state for target
+$ fast-sync --init /backup/target
+Initialization mode: Creating '/home/user/.last_sync' for directory: /backup/target
+Using 'fd' for file listing...
+Done. Found 1234 files. '/home/user/.last_sync' created in the current directory.
+
+# Sync from source to target
+$ fast-sync /home/user/documents /backup/documents
+Syncing from: /home/user/documents
+         to: /backup/documents
+Starting fast sync process...
+Using 'fd' for file listing...
+Step 1: Generating list of already synced files from target...
+ -> Found 1000 files in target directory.
+Step 2: Finding new files in source...
+ -> Found 50 new files to sync.
+Step 3: Syncing new files with rsync...
+...
+Sync complete! ✨
 ```
 
 ### take-until-empty
@@ -331,6 +437,25 @@ kill-list [signal]
 
 Uses `BASH_TOYS_INTERACTIVE_FILTER` for selection.
 
+**Examples**:
+```shell-session
+# Select and kill process with SIGKILL (default)
+$ kill-list
+# (Interactive filter appears with process list)
+# (Select one or more processes)
+Killed PID: 12345
+Succeed
+
+# Kill with SIGTERM
+$ kill-list -15
+# (Interactive filter appears)
+Killed PID: 12345
+Succeed
+
+# Kill with signal name
+$ kill-list -TERM
+```
+
 ### kill-latest-started
 
 Kill the most recently started process by name.
@@ -432,12 +557,33 @@ Interactively select and attach to a running Docker container.
 docker-attach-menu
 ```
 
+**Examples**:
+```shell-session
+# Select and attach to a running container
+$ docker-attach-menu
+# (Interactive filter shows running containers)
+# CONTAINER ID   IMAGE          COMMAND       CREATED        STATUS
+# a1b2c3d4e5f6   ubuntu:latest  "/bin/bash"   2 hours ago    Up 2 hours
+# (Select a container to attach)
+```
+
 ### docker-kill-menu
 
 Interactively select and kill a running Docker container.
 
 ```bash
 docker-kill-menu
+```
+
+**Examples**:
+```shell-session
+# Select and kill a running container
+$ docker-kill-menu
+# (Interactive filter shows running containers)
+# CONTAINER ID   IMAGE          COMMAND       CREATED        STATUS
+# a1b2c3d4e5f6   ubuntu:latest  "/bin/bash"   2 hours ago    Up 2 hours
+# (Select a container to kill)
+a1b2c3d4e5f6
 ```
 
 ## GitHub
@@ -448,6 +594,25 @@ Show GitHub issues in interactive filter and open selected issue.
 
 ```bash
 gh-issue-view-select
+```
+
+**Examples**:
+```shell-session
+# Select and view an issue
+$ gh-issue-view-select
+# (Interactive filter shows issues)
+# 42  Add dark mode support       feature
+# 38  Fix login bug               bug
+# (Select an issue to view its details)
+title:  Add dark mode support
+state:  OPEN
+author: aiya000
+...
+
+# No issue selected
+$ gh-issue-view-select
+# (Press Escape in filter)
+No issue selected
 ```
 
 ### gh-run-view-latest
@@ -489,6 +654,38 @@ pomodoro-timer --get-count
 pomodoro-timer --clean
 ```
 
+**Examples**:
+```shell-session
+# Start 30-minute work session (default)
+$ pomodoro-timer
+> Starting 1-th work time
+> 1 minutes / 30
+> 2 minutes / 30
+...
+> The 1-th work hour is over
+
+# Start 45-minute work session
+$ pomodoro-timer 45
+> Starting 1-th work time
+> 1 minutes / 45
+...
+
+# Start 5-minute break
+$ pomodoro-timer --rest
+> Starting break time
+> 1 minutes / 5
+...
+> Now it's time to get to work
+
+# Check current pomodoro count
+$ pomodoro-timer --get-count
+3
+
+# Reset pomodoro count
+$ pomodoro-timer --clean
+Removed: /tmp/pomodoro-3
+```
+
 ### date-diff-seconds
 
 Calculate time difference in minutes.
@@ -499,12 +696,42 @@ date-diff-seconds TIME1 TIME2
 
 **TIME formats**: `MM-DD HH:MM` or `HH:MM`
 
+**Examples**:
+```shell-session
+# Calculate difference between two times (in minutes)
+$ date-diff-seconds 21:47 22:33
+46
+
+# With specific dates
+$ date-diff-seconds '08-05 21:47' '08-05 22:33'
+46
+
+# Negative result (TIME1 is later than TIME2)
+$ date-diff-seconds 23:00 22:00
+-60
+```
+
 ### date-diff-seconds-now
 
 Calculate time difference between given time and now.
 
 ```bash
 date-diff-seconds-now TIME
+```
+
+**Examples**:
+```shell-session
+# Minutes until a future time (current time: 14:00)
+$ date-diff-seconds-now 15:30
+90
+
+# Minutes since a past time (current time: 14:00)
+$ date-diff-seconds-now 13:00
+-60
+
+# With specific date
+$ date-diff-seconds-now '02-05 18:00'
+240
 ```
 
 ## Vim Build Configuration
@@ -517,6 +744,20 @@ Configure Vim source with modern flags (GUI, interpreters, etc).
 vim-configure
 ```
 
+**Examples**:
+```shell-session
+# Build Vim from source with full features
+$ git clone https://github.com/vim/vim
+$ cd vim
+$ vim-configure
+./configure \
+    --prefix=/usr/local/ \
+    --enable-fail-if-missing \
+    --enable-gui=yes \
+    ...
+$ make && sudo make install
+```
+
 ### vim-configure-debug
 
 Configure Vim source for debugging with minimal features.
@@ -525,12 +766,38 @@ Configure Vim source for debugging with minimal features.
 vim-configure-debug
 ```
 
+**Examples**:
+```shell-session
+# Build Vim with minimal features for fast debugging
+$ git clone https://github.com/vim/vim
+$ cd vim
+$ vim-configure-debug
+./configure \
+    --prefix=/usr/local/ \
+    --enable-gui=no \
+    ...
+$ make
+```
+
 ### vim-configure-macos
 
 Configure Vim source for macOS with Homebrew paths.
 
 ```bash
 vim-configure-macos
+```
+
+**Examples**:
+```shell-session
+# Build Vim on macOS with Homebrew dependencies
+$ git clone https://github.com/vim/vim
+$ cd vim
+$ vim-configure-macos
+./configure \
+    --prefix=/usr/local/ \
+    --with-lua-prefix=/usr/local/Cellar/luajit/2.0.5 \
+    ...
+$ make && sudo make install
 ```
 
 ## Other Utilities
@@ -544,6 +811,19 @@ bookmark-open
 ```
 
 Bookmarks defined in `BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS` (separated by `|`).
+
+**Examples**:
+```shell-session
+# Set up bookmarks
+$ export BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS='(GitHub=https://github.com)|(Google=https://google.com)'
+
+# Select and open bookmark
+$ bookmark-open
+# (Interactive filter shows)
+# GitHub: https://github.com
+# Google: https://google.com
+# (Select to open in browser)
+```
 
 ### calc-japanese-remaining-working-hours
 
@@ -578,12 +858,41 @@ Full system virus scan using ClamAV.
 clamdscan-full [DIRECTORY...]
 ```
 
+**Examples**:
+```shell-session
+# Full system scan (default)
+$ clamdscan-full
+0.00001
+0.00002
+...
+# (Progress percentage shown)
+
+# Scan specific directories
+$ clamdscan-full /home/user /var/www
+0.00001
+...
+```
+
 ### ctags-auto
 
 Automatically generate ctags for git project.
 
 ```bash
 ctags-auto [ctags options]
+```
+
+**Examples**:
+```shell-session
+# Generate tags in git repository
+$ cd /path/to/git/repo
+$ ctags-auto
+ctags-auto: generating to '/path/to/git/repo/.git/tags-tmp'
+Generated: /path/to/git/repo/.git/tags
+
+# Exclude directories
+$ ctags-auto --exclude=node_modules --exclude=vendor
+ctags-auto: generating to '/path/to/git/repo/.git/tags-tmp'
+Generated: /path/to/git/repo/.git/tags
 ```
 
 ### is-in-wsl
@@ -649,10 +958,37 @@ Reverse order interactive filter using peco.
 command | peco-reverse [peco options]
 ```
 
+**Examples**:
+```shell-session
+# Show history with newest first
+$ history | peco-reverse
+# (Interactive filter with reversed order)
+
+# Use as default interactive filter
+$ export BASH_TOYS_INTERACTIVE_FILTER=peco-reverse
+```
+
 ### photoframe
 
 Display photos in fullscreen slideshow mode using feh.
 
 ```bash
 photoframe <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [credentials]
+```
+
+**Examples**:
+```shell-session
+# Start photoframe with already mounted NAS
+$ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20
+Using NAS directory: /home/pi/NAS
+# (feh starts fullscreen slideshow)
+
+# Auto-mount NAS with credentials
+$ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20 myuser mypassword
+NAS directory is not mounted. Try mounting to /home/pi/NAS
+# (Mounts NAS, then starts slideshow)
+
+# With user directory
+$ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20 myuser mypassword myuser
+# (Refers to /home/pi/NAS/myuser/Pictures/Family)
 ```
