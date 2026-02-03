@@ -23,18 +23,18 @@
 
 ## :bookmark_tabs: Quick Start
 
-```shell-session
-$ git clone --depth 1 https://github.com/aiya000/bash-toys.git /path/to/bash-toys
+```bash
+git clone --depth 1 https://github.com/aiya000/bash-toys.git /path/to/bash-toys
 ```
 
 If using bash:
-```shell-session
-$ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.bashrc
+```bash
+echo 'source /path/to/bash-toys/source-all.sh' >> ~/.bashrc
 ```
 
 If using zsh:
-```shell-session
-$ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.zshrc
+```bash
+echo 'source /path/to/bash-toys/source-all.sh' >> ~/.zshrc
 ```
 
 ## :bookmark_tabs: Scripts
