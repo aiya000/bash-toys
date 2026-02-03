@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# See ./doc/sources.md for description
+# See ../doc/sources.md for description
 
 if [[ $NVIM_PARENT_ADDRESS == '' ]] ; then
   return 1

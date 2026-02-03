@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# See ./doc/sources.md for description
+# See ../doc/sources.md for description
 
 function bash-toys::help::alias-of () {
   cat << 'EOF'

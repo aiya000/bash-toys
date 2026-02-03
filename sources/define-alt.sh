@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# See ./doc/sources.md for description
+# See ../doc/sources.md for description
 
 function bash-toys::help::define-alt () {
   cat << 'EOF'

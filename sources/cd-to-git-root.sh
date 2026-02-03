@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# See ./doc/sources.md for description
+# See ../doc/sources.md for description
 
 function bash-toys::help::cd-to-git-root () {
   cat << 'EOF'
