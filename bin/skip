@@ -1,16 +1,6 @@
 #!/bin/bash
 
-# Skips n-lines from the beginning of the output.
-# ```shell-session
-# $ seq 10 | skip 3
-# 4
-# 5
-# 6
-# 7
-# 8
-# 9
-# 10
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

@@ -1,18 +1,6 @@
 #!/bin/bash
 
-# Kills the latest started background process.
-#
-# ```shell-session
-# $ nvim  # [A]
-# $ nvim  # [B] On other terminal or terminal multiplexer
-# $ kill-latest-started nvim
-# (Only the [B] process is killed. The [A] process is still running.)
-#
-# # With signal support:
-# $ kill-latest-started -9 nvim
-# $ kill-latest-started nvim -9
-# $ kill-latest-started -KILL nvim
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

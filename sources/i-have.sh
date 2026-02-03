@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# A shorthand to check a specified command does exist or not.
-#
-# ```bash
-# if i-have batcat ; then
-#   alias bat=batcat
-# fi
-# ```
+# See ./doc/sources.md for description
 
 function bash-toys::help::i-have () {
   cat << 'EOF'

@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# Shows GitHub issues in interactive filter and opens selected issue with gh issue view.
-#
-# ```shell-session
-# $ gh-issue-view-select
-# # Shows interactive filter with issues
-# # Opens selected issue with gh issue view
-# ```
+# See ./doc/bin.md for description
 
 if [[ $1 == '--help' || $1 == '-h' ]] ; then
   cat << EOF

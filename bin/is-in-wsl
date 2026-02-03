@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# Returns 0 if a current shell is in under WSL.
-# Otherwise, returns 1.
-# ```shell-session
-# $ is-in-wsl && echo 'WSL' || echo 'Not WSL'
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

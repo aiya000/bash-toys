@@ -1,44 +1,6 @@
 #!/bin/bash
 
-# Defines a variable of the first argument meaning the name, if the specified variable name is doesn't exist.
-#
-# Simple usage:
-# ```shell-session
-# $ define-alt a 10
-# $ echo $a
-# 10
-# ```
-#
-# If already defined, the value is not changed.
-# ```shell-session
-# $ b=20
-# $ define-alt b 30
-# $ echo $b
-# 20
-# ```
-#
-# Define an empty variable if no value is specified.
-# ```shell-session
-# $ define-alt foo
-# $ declare foo
-# foo=''
-# ```
-#
-# Define an array variable if two or more arguments of value specified.
-# ```shell-session
-# $ define-alt xs 1 2
-# $ is-array xs && echo yes || echo no
-# yes
-# ```
-#
-# Define an empty with --empty-array.
-# ```shell-session
-# $ define-alt --empty-array xs
-# $ is-array xs && echo yes || echo no
-# yes
-# $ echo ${#xs}
-# 0
-# ```
+# See ./doc/sources.md for description
 
 function bash-toys::help::define-alt () {
   cat << 'EOF'

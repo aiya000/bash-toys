@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# TODO: Add the help and the description.
-#
-# ```shell-session
-# TODO: Write an example
-# ```
+# See ./doc/sources.md for description
 
 function bash-toys::help::load-my-env () {
   cat << 'EOF'

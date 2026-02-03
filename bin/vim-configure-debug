@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# Executes ./configure of Vim source for testing Vim.
-#
-# ```shell-session
-# $ git clone https://github.com/vim/vim
-# $ cd vim
-# $ vim-configure-debug
-# ...
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

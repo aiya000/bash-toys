@@ -1,17 +1,6 @@
 #!/bin/bash
 
-# Shows the latest GitHub Actions run preview and log.
-#
-# Simple usage:
-# ```shell-session
-# $ gh-run-view-latest
-# (Show the latest GitHub Actions run preview)
-# ```
-#
-# Passing `gh run view` options is allowed:
-# ```shell-session
-# $ gh-run-view-latest --log
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

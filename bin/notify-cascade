@@ -1,23 +1,6 @@
 #!/bin/bash
 
-# Sends cascade of notifications at specified intervals before target time
-#
-# Requirements:
-# - ./notify-at
-# - ./notify
-#
-# Supports all notify-at time formats:
-# - HH:MM, MM-DD HH:MM, YYYY-MM-DD HH:MM
-#
-# ```shell-session
-# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m 10m 5m
-# $ notify-cascade "01-15 09:00" "Meeting" "New year meeting" 1h 30m 10m
-# $ notify-cascade "2027-01-15 09:00" "Event" "Future event" 1d 1h 30m /path/to/sound.wav
-# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --ntfy
-# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --ntfy --local
-# ```
-#
-# See also `$ notify-cascade --help`
+# See ./doc/bin.md for description
 
 set -e
 

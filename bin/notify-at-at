@@ -1,33 +1,6 @@
 #!/bin/bash
 
-# Sends notification at specified time with flexible date formats using at command
-#
-# NOTE:
-# This script is intended to be called indirectly from `./notify-at`.
-# If called directly, discrepancies may occur with the command name in the help output.
-# Please consider implementing an alias or similar workaround.
-#
-# NOTE:
-# Use `./notify-at-launchd` instead if using macOS.
-#
-# Requirements:
-# - ./notify (for local notifications)
-# - ./notify-ntfy (for ntfy.sh notifications)
-#
-# Supported time formats:
-# - HH:MM                - Time today (if past, then tomorrow)
-# - MM-DD HH:MM          - Month-day-time (must be future)
-# - YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
-#
-# ```shell-session
-# $ notify-at 12:00 "Meeting" "Team meeting"                    # Today at 12:00
-# $ notify-at "01-15 09:00" "Reminder" "New year meeting"       # January 15 at 09:00
-# $ notify-at "2027-01-15 09:00" "Reminder" "Future meeting"    # Future date
-# $ notify-at 12:00 "Meeting" "Team meeting" --ntfy             # ntfy.sh only
-# $ notify-at 12:00 "Meeting" "Team meeting" --ntfy --local     # Both
-# ```
-#
-# See also `$ notify-at-at --help`
+# See ./doc/bin.md for description
 
 set -e
 

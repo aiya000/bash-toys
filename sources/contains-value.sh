@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# ```bash
-# target=banana
-# my_array=(apple banana cherry)
-# if contains-value \"${my_array[@]}\" \"$target\" ';' then
-#   echo 'It is in the array'
-# else
-#   echo 'It is not in the array'
-# fi
-# ```
+# See ./doc/sources.md for description
 
 function bash-toys::help::contains-value () {
   cat << 'EOF'

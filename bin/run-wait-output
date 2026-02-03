@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# Runs two commands sequentially, with the second triggered after the first becomes silent
-#
-# Example:
-# ```shell-session
-# $ run-wait-output 1000 "npm run watch" "echo Build complete"
-# ```
-# This executes the first command is immediately.
-# The second command is also executed after the first command's output has been silent for the 100ms.
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << EOF

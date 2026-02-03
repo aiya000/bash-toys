@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# `cd` to a directory that have a `package.json`.
-#
-# ```shell-session
-# TODO: Write an example
-# ```
+# See ./doc/sources.md for description
 
 function cd-to-node-root::find-node-root-dir () {
   local current_dir=$1

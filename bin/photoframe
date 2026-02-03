@@ -1,26 +1,6 @@
 #!/bin/bash
 
-# Displays photos in fullscreen slideshow mode using feh.
-# Supports NAS mounting and photo directory access.
-#
-# Example:
-# ```shell-session
-# # Basic usage with pre-mounted NAS
-# $ photoframe /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20
-# Using NAS directory: /home/pi/LS210D6E9
-# # -> Starts slideshow with photos in /home/pi/LS210D6E9/Pictures/Family
-#
-# # Auto-mount NAS with credentials
-# $ photoframe /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword
-# Using NAS directory: /home/pi/LS210D6E9
-# NAS directory is not mounted. Try mounting to /home/pi/LS210D6E9
-# # -> Mounts NAS first, then starts slideshow
-#
-# # With user directory on NAS
-# $ photoframe /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword aiya000
-# Using NAS directory: /home/pi/LS210D6E9
-# # -> Accesses /home/pi/LS210D6E9/aiya000/Pictures/Family
-# ```
+# See ./doc/bin.md for description
 
 function usage() {
   echo "Usage:"

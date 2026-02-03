@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# Sends notification with title and message to mobile via ntfy.sh
-#
-# ```shell-session
-# $ notify-ntfy title message
-# ```
-#
-# Requirements:
-# - curl
-# - BASH_TOYS_NTFY_TOPIC environment variable
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << EOF

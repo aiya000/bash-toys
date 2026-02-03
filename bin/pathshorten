@@ -1,17 +1,6 @@
 #!/bin/bash
 
-# A path abbreviation command, like `pathshorten()` in Vim script
-# - Print paths relative to home directory.
-# - Shorten parent directories to 4 characters or less.
-# - But do not abbreviate the last directory name (or file name)
-#
-# ```shell-session
-# $ pathshorten ~/Repository/luarrow.lua/src/luarrow
-# ~/Repo/luar/src/luarrow
-#
-# $ pathshorten ~/Repository/luarrow.lua/src/luarrow/arrow.lua
-# ~/Repo/luar/src/luar/arrow.lua
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

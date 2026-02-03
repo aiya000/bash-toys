@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# Reverse order interactive filter using peco.
-# This is a simple alias for `tac | peco`.
-#
-# Example:
-# ```shell-session
-# $ export BASH_TOYS_INTERACTIVE_FILTER=peco-reverse
-# $ kill-list  # See ./kill-list
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

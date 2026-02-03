@@ -1,16 +1,6 @@
 #!/bin/bash
 
-# Checks a taken var name is an array.
-#
-# ```shell-session
-# $ foo=()
-# $ is-array foo && echo yes || echo no
-# yes
-#
-# $ foo=1
-# $ is-array foo && echo yes || echo no
-# no
-# ```
+# See ./doc/sources.md for description
 
 function bash-toys::help::is-array () {
   cat << 'EOF'

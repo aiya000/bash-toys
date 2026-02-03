@@ -1,15 +1,6 @@
 #!/bin/bash
 
-# Performs a full virus scan using ClamAV.
-# Or scans only specified directories.
-#
-# ```shell-session
-# # Scan all common directories
-# $ clamdscan-full
-#
-# # Scan specified directories
-# $ clamdscan-full /home /etc
-# ```
+# See ./doc/bin.md for description
 
 function show_help () {
   cat << 'EOF'

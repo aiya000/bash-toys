@@ -1,19 +1,6 @@
 #!/bin/bash
 
-# Reads a variable value of the name.
-#
-# ```shell-session
-# $ name=42
-# $ get-var name
-# 42
-# ```
-#
-# ```shell-session
-# $ [[ $name == '' ]] && echo 'name is empty'
-# name is empty
-# $ get-var name || echo 'not found'
-# not found
-# ```
+# See ./doc/sources.md for description
 
 function bash-toys::help::get-var () {
   cat << 'EOF'

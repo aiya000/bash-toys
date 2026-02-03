@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# If `$1` exists, create an alias for `$1` with the contents of `$2` and overwrite it.
-#
-# ```shell-session
-# $ alias-of rg 'rg --color always --hidden'
-# $ alias rg
-# rg='rg --color always --hidden'
-# ```
+# See ./doc/sources.md for description
 
 function bash-toys::help::alias-of () {
   cat << 'EOF'

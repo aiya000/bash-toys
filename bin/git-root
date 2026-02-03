@@ -1,15 +1,6 @@
 #!/bin/bash
 
-# Shows the git root directory if you are in a git directory.
-# ```shell-session
-# $ cd /path/to/git/root/sub && git-root
-# /path/to/git/root
-#
-# $ cd /path/to/no-git-dir && git-root
-# (No output)
-# $ echo $?
-# 1
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

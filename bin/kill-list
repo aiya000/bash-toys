@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# Displays a list of processes with `BASH_TOYS_INTERACTIVE_FILTER`.
-# And kills the processs you selected.
-#
-# ```shell-session
-# $ killing-list
-# (Showing a list of processes with `BASH_TOYS_INTERACTIVE_FILTER` like 'peco' and 'fzf')
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

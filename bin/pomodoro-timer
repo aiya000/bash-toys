@@ -1,36 +1,6 @@
 #!/bin/bash
 
-# A basic CLI pomodoro timer implementation in shell script.
-#
-# Example:
-# ```bash
-# # Notify end of pomodoro with sound after 30 mins.
-# # The sound is $BASH_TOYS_POMODORO_NOTIFICATION_MUSIC.
-# $ pomodoro-timer
-#
-# # You can specify pomodoro time count. e.g., below specifies 60 mins.
-# $ pomodoro-timer 60
-#
-# # Start timer from a specific time (e.g., start from 20:45 for 60 mins)
-# $ pomodoro-timer --from 20:45 60
-#
-# # Notify end of pomodoro rest time silently after 5 mins.
-# $ pomodoro-timer --rest
-#
-# # Same as above, you can specify podoro rest time count.
-# $ pomodoro-timer --rest 10
-#
-# # Clean pomodoro count
-# $ pomodoro-timer --clean
-#
-# # Set current pomodoro count
-# $ pomodoro-timer --set-count 3
-# $ ls /tmp/pomodoro-3
-# /tmp/pomodoro-3
-#
-# # Get current pomodoro count
-# $ pomodoro-timer --get-count
-# ```
+# See ./doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'
