@@ -64,9 +64,28 @@ bak FILE...
 ```
 
 **Examples**:
-```bash
-bak README.md        # Creates README.bak.md
-bak README.md        # Restores to README.md
+```shell-session
+# Create backup
+$ bak README.md
+mv README.md README.bak.md
+
+# Restore from backup (run again)
+$ bak README.md
+mv README.bak.md README.md
+
+# Multiple files
+$ bak file1.txt file2.txt
+mv file1.txt file1.bak.txt
+mv file2.txt file2.bak.txt
+
+# File not found
+$ bak nonexistent.txt
+File not found. Skip: nonexistent.txt
+
+# No arguments (error)
+$ bak
+Error: 1 or more arguments required
+# Exit status: 1
 ```
 
 ### rm-dust
@@ -79,6 +98,21 @@ rm-dust FILE...
 
 Files are moved to `$BASH_TOYS_DUSTBOX_DIR` with timestamp.
 
+**Examples**:
+```shell-session
+$ rm-dust test.txt
+mv test.txt /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt
+
+# Multiple files
+$ rm-dust file1.txt file2.txt
+mv file1.txt /home/user/.backup/dustbox/file1.txt_2026-02-03_13:32:52.txt
+mv file2.txt /home/user/.backup/dustbox/file2.txt_2026-02-03_13:32:53.txt
+
+# Preserves extension
+$ rm-dust document.pdf
+mv document.pdf /home/user/.backup/dustbox/document.pdf_2026-02-03_13:32:52.pdf
+```
+
 ### cat-which
 
 Display contents of executable files in PATH.
@@ -89,6 +123,30 @@ cat-which --no-bat COMMAND
 ```
 
 Uses bat/batcat if available, falls back to cat.
+
+**Examples**:
+```shell-session
+# Display shell script contents
+$ cat-which my-script
+#!/bin/bash
+echo "Hello World"
+...
+
+# Binary file (error)
+$ cat-which zsh
+Not a plain text: /bin/zsh
+# Exit status: 1
+
+# Command not found (error)
+$ cat-which nonexistent-command
+Command not found: nonexistent-command
+# Exit status: 1
+
+# No arguments (error)
+$ cat-which
+Usage: cat-which COMMAND
+# Exit status: 1
+```
 
 ### fast-sync
 
@@ -108,6 +166,26 @@ command | take-until-empty
 take-until-empty <file>
 ```
 
+**Examples**:
+```shell-session
+# From pipe
+$ printf "line1\nline2\n\nline3\nline4\n" | take-until-empty
+line1
+line2
+
+# From file
+$ cat myfile.txt
+header1
+header2
+
+body content here
+more content
+
+$ take-until-empty myfile.txt
+header1
+header2
+```
+
 ## Text Processing
 
 ### skip
@@ -119,7 +197,22 @@ command | skip <n>
 skip <n> <file>
 ```
 
-**Example**: `seq 10 | skip 3` outputs 4-10
+**Examples**:
+```shell-session
+# Skip first 3 lines
+$ seq 10 | skip 3
+4
+5
+6
+7
+8
+9
+10
+
+# From file
+$ skip 2 myfile.txt
+(outputs file contents starting from line 3)
+```
 
 ### slice
 
@@ -129,7 +222,25 @@ Extract fields from delimited input.
 command | slice <delimiter> <from> [to]
 ```
 
-**Example**: `echo "a,b,c,d" | slice , 2 3` outputs `b,c`
+**Examples**:
+```shell-session
+# Extract fields 2-3
+$ echo "a,b,c,d" | slice , 2 3
+b,c
+
+# Extract from field 2 to end
+$ echo "a,b,c,d" | slice , 2
+b,c,d
+
+# With colon delimiter
+$ echo "user:x:1000:1000::/home/user:/bin/bash" | slice : 1 3
+user:x:1000
+
+# Multiple lines
+$ printf "a,b,c\nx,y,z\n" | slice , 1 2
+a,b
+x,y
+```
 
 ### expects
 
@@ -142,11 +253,45 @@ expects VALUE not MATCHER [EXPECTED]
 
 **Matchers**: `to_be`, `to_equal`, `to_be_less_than`, `to_be_greater_than`, `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`
 
-**Example**:
-```bash
-expects 10 to_be 10
-expects "hello" to_contain "ell"
-expects "$var" not to_be_defined
+**Examples**:
+```shell-session
+# Successful assertion (exit status: 0)
+$ expects 10 to_be 10 && echo "Test passed"
+Test passed
+
+# Failed assertion (exit status: 1)
+$ expects 42 to_be 10
+FAIL: expected {actual} to_be '10', but {actual} is '42'
+
+# Negated assertion
+$ expects 10 not to_be 42 && echo "Test passed"
+Test passed
+
+# String containment
+$ expects "hello world" to_contain "world" && echo "Test passed"
+Test passed
+
+$ expects "hello" to_contain "xyz"
+FAIL: expected {actual} to_contain 'xyz', but {actual} is 'hello'
+
+# Pattern matching
+$ expects "hello123" to_match "^[a-z]+[0-9]+$" && echo "Test passed"
+Test passed
+
+# Boolean assertions
+$ expects true to_be_true && echo "Test passed"
+Test passed
+
+$ expects false to_be_true
+FAIL: expected {actual} to_be_true, but {actual} is 'false'
+
+# Defined check
+$ var="some value"
+$ expects "$var" to_be_defined && echo "Test passed"
+Test passed
+
+$ expects "" to_be_defined
+FAIL: expected {actual} to_be_defined, but {actual} is (empty)
 ```
 
 ## Process Management
@@ -159,7 +304,22 @@ Run a command in background with no output.
 start <command> [args...]
 ```
 
-**Example**: `start vlc` launches VLC without blocking terminal
+**Examples**:
+```shell-session
+# Launch VLC without blocking terminal
+$ start vlc
+# (VLC opens, terminal returns immediately)
+
+# Launch with arguments
+$ start firefox --new-window https://example.com
+# (Firefox opens with specified URL)
+
+# Compare without 'start':
+$ vlc
+VLC media player 3.0.16 Vetinari (revision 3.0.13-8-g41878ff4f2)
+...
+# (Ctrl+C required to return to shell)
+```
 
 ### kill-list
 
@@ -180,9 +340,17 @@ kill-latest-started [-signal] <process_name>
 ```
 
 **Examples**:
-```bash
-kill-latest-started nvim
-kill-latest-started -9 nvim
+```shell-session
+# Kill the most recently started nvim
+$ nvim  # [A] First instance
+$ nvim  # [B] Second instance (on another terminal)
+$ kill-latest-started nvim
+# Only [B] is killed, [A] remains running
+
+# With signal
+$ kill-latest-started -9 nvim
+$ kill-latest-started -KILL nvim
+$ kill-latest-started nvim -9
 ```
 
 ### run-wait-output
@@ -193,7 +361,19 @@ Execute command2 after command1's output has been silent.
 run-wait-output <milliseconds> <command1> <command2>
 ```
 
-**Example**: `run-wait-output 1000 "npm run watch" "echo Build stable"`
+**Examples**:
+```shell-session
+# Run notification after build stabilizes
+$ run-wait-output 1000 "npm run watch" "echo Build stable"
+# command1 runs immediately
+# command2 runs after 1000ms of silence from command1
+
+# Notify when TypeScript compilation stabilizes
+$ run-wait-output 500 "tsc --watch" "npm test"
+
+# Send desktop notification when build completes
+$ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
+```
 
 ## Navigation & Git
 
@@ -205,7 +385,19 @@ Show the git repository root directory.
 git-root
 ```
 
-Returns exit code 1 if not inside a git repository.
+**Examples**:
+```shell-session
+# Inside a git repository
+$ cd /path/to/git/repo/subdir
+$ git-root
+/path/to/git/repo
+
+# Outside a git repository (error)
+$ cd /tmp
+$ git-root
+# (no output)
+# Exit status: 1
+```
 
 ### pathshorten
 
@@ -215,7 +407,20 @@ Abbreviate path like Vim's pathshorten().
 pathshorten <path>
 ```
 
-**Example**: `pathshorten ~/Repository/luarrow.lua/src/luarrow` outputs `~/Repo/luar/src/luarrow`
+**Examples**:
+```shell-session
+# Shorten directory path (last component kept intact)
+$ pathshorten ~/Repository/luarrow.lua/src/luarrow
+~/Repo/luar/src/luarrow
+
+# Shorten file path (filename kept intact)
+$ pathshorten ~/Repository/luarrow.lua/src/luarrow/arrow.lua
+~/Repo/luar/src/luar/arrow.lua
+
+# Short paths remain unchanged
+$ pathshorten ~/Documents
+~/Documents
+```
 
 ## Docker
 
@@ -254,10 +459,19 @@ gh-run-view-latest [gh run view options]
 ```
 
 **Examples**:
-```bash
-gh-run-view-latest
-gh-run-view-latest --log
-gh-run-view-latest --web
+```shell-session
+# View latest run summary
+$ gh-run-view-latest
+✓ main CI · 1234567890
+Triggered via push about 5 minutes ago
+...
+
+# View full log
+$ gh-run-view-latest --log
+
+# Open in browser
+$ gh-run-view-latest --web
+Opening github.com/user/repo/actions/runs/1234567890 in your browser.
 ```
 
 ## Time & Productivity
@@ -339,7 +553,22 @@ Calculate required daily working hours for remaining business days.
 calc-japanese-remaining-working-hours HOURS:MINUTES
 ```
 
-**Example**: `calc-japanese-remaining-working-hours 108:37`
+**Examples**:
+```shell-session
+# Calculate daily hours needed for 108h 37m remaining
+$ calc-japanese-remaining-working-hours 108:37
+Remaining working hours: 108:37
+Remaining business days: 15
+Required daily hours: 7:14
+
+# Another example
+$ calc-japanese-remaining-working-hours 80:00
+Remaining working hours: 80:00
+Remaining business days: 15
+Required daily hours: 5:20
+```
+
+Automatically fetches Japanese holidays from public API.
 
 ### clamdscan-full
 
@@ -362,7 +591,25 @@ ctags-auto [ctags options]
 Check if running in Windows Subsystem for Linux.
 
 ```bash
-is-in-wsl && echo 'WSL' || echo 'Not WSL'
+is-in-wsl
+```
+
+**Examples**:
+```shell-session
+# In WSL environment
+$ is-in-wsl && echo 'WSL' || echo 'Not WSL'
+WSL
+# Exit status: 0
+
+# Outside WSL (Linux, macOS, etc.)
+$ is-in-wsl && echo 'WSL' || echo 'Not WSL'
+Not WSL
+# Exit status: 1
+
+# Use in scripts
+$ if is-in-wsl; then
+>   echo "Running in WSL"
+> fi
 ```
 
 ### list-dpkg-executables
@@ -371,6 +618,27 @@ List executable files from a dpkg package.
 
 ```bash
 list-dpkg-executables <package_name>
+```
+
+**Examples**:
+```shell-session
+$ list-dpkg-executables wslu
+/usr/bin/wslact
+/usr/bin/wslclip
+/usr/bin/wslfetch
+/usr/bin/wslgsu
+/usr/bin/wslsys
+/usr/bin/wslupath
+/usr/bin/wslusc
+/usr/bin/wslvar
+/usr/bin/wslview
+
+$ list-dpkg-executables git
+/usr/bin/git
+/usr/bin/git-receive-pack
+/usr/bin/git-shell
+/usr/bin/git-upload-archive
+/usr/bin/git-upload-pack
 ```
 
 ### peco-reverse
