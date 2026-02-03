@@ -6,6 +6,29 @@
 # $ is-in-wsl && echo 'WSL' || echo 'Not WSL'
 # ```
 
+function show_help() {
+  cat << 'EOF'
+is-in-wsl - Check if running in Windows Subsystem for Linux
+
+Usage:
+  is-in-wsl
+  is-in-wsl -h | --help
+
+Options:
+  -h, --help    Show this help message
+
+Description:
+  Returns exit code 0 if running under WSL, 1 otherwise.
+  Useful for conditional logic in shell scripts.
+
+Examples:
+  is-in-wsl && echo 'WSL' || echo 'Not WSL'
+  if is-in-wsl; then echo "Running in WSL"; fi
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 [[ -n $WSL_INTEROP ]]
 
 # https://github.com/aiya000/bash-toys

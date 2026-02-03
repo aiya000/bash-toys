@@ -26,7 +26,7 @@ Examples:
 EOF
 }
 
-[[ $1 == --help ]] && show_help && exit 0
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 if [[ $# -lt 2 ]] ; then
   show_help

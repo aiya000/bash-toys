@@ -26,7 +26,7 @@ Arguments:
   FILE...          Files to move to dustbox
 
 Options:
-  --help          Show this help message
+  -h, --help      Show this help message
 
 Notes:
   - Files are moved to $BASH_TOYS_DUSTBOX_DIR
@@ -35,7 +35,7 @@ Notes:
 EOF
 }
 
-[[ $1 == --help ]] && show_help && exit 0
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 dir=$(dirname "$0")
 

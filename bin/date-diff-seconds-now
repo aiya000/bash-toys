@@ -20,7 +20,7 @@ Arguments:
                    When only HH:MM is given, current date is assumed
 
 Options:
-  --help           Show this help message
+  -h, --help       Show this help message
 
 Examples:
   date-diff-seconds-now '08-05 21:47'   # Specific date
@@ -28,7 +28,7 @@ Examples:
 EOF
 }
 
-[[ $1 == --help ]] && show_help && exit 0
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 if [[ $# -lt 1 ]] ; then
   echo "Error: TIME argument is required" >&2

@@ -8,6 +8,36 @@
 # (Showing a list of processes with `BASH_TOYS_INTERACTIVE_FILTER` like 'peco' and 'fzf')
 # ```
 
+function show_help() {
+  cat << 'EOF'
+kill-list - Interactively select and kill processes
+
+Usage:
+  kill-list [signal]
+  kill-list -h | --help
+
+Arguments:
+  signal          Signal to send (default: -9)
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Lists running processes using the configured interactive filter
+  (BASH_TOYS_INTERACTIVE_FILTER) and kills the selected process(es).
+
+Environment:
+  BASH_TOYS_INTERACTIVE_FILTER    Filter command (e.g., fzf, peco)
+
+Examples:
+  kill-list
+  kill-list -15
+  kill-list -TERM
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091

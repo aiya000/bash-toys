@@ -9,6 +9,30 @@
 # $ kill-list  # See ./kill-list
 # ```
 
+function show_help() {
+  cat << 'EOF'
+peco-reverse - Reverse order interactive filter using peco
+
+Usage:
+  command | peco-reverse [peco options]
+  peco-reverse -h | --help
+
+Options:
+  -h, --help      Show this help message
+  [peco opts]     Options passed to peco
+
+Description:
+  Reverses input lines before passing to peco.
+  Useful for showing recent items at the top (e.g., process lists).
+
+Examples:
+  history | peco-reverse
+  export BASH_TOYS_INTERACTIVE_FILTER=peco-reverse
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 tac | peco "$@"
 
 # https://github.com/aiya000/bash-toys

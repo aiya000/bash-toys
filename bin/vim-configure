@@ -9,6 +9,31 @@
 # ...
 # ```
 
+function show_help() {
+  cat << 'EOF'
+vim-configure - Configure Vim source with modern flags
+
+Usage:
+  vim-configure
+  vim-configure -h | --help
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Runs ./configure for Vim with a comprehensive set of features enabled:
+  GUI, multibyte, Perl, Python3, Ruby, Lua, cscope, terminal, etc.
+
+Examples:
+  git clone https://github.com/vim/vim
+  cd vim
+  vim-configure
+  make && sudo make install
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 configure=$(cat << EOS
 ./configure \
     --prefix=/usr/local/ \

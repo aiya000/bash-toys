@@ -13,6 +13,33 @@
 # ~/Repo/luar/src/luar/arrow.lua
 # ```
 
+function show_help() {
+  cat << 'EOF'
+pathshorten - Abbreviate path like Vim's pathshorten()
+
+Usage:
+  pathshorten <path>
+  pathshorten -h | --help
+
+Arguments:
+  path            Path to abbreviate
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Shortens parent directory names to 4 characters while keeping
+  the last component (file or directory name) intact.
+  Paths are displayed relative to home directory (~).
+
+Examples:
+  pathshorten ~/Repository/luarrow.lua/src/luarrow
+  # Output: ~/Repo/luar/src/luarrow
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 path="$1"
 path="${path/$HOME/~}"
 IFS='/' read -ra parts <<< "$path"

@@ -5,9 +5,34 @@
 # ```shell-session
 # $ git clone https://github.com/vim/vim
 # $ cd vim
-# $ vim-configure-debug
+# $ vim-configure-macos
 # ...
 # ```
+
+function show_help() {
+  cat << 'EOF'
+vim-configure-macos - Configure Vim source for macOS
+
+Usage:
+  vim-configure-macos
+  vim-configure-macos -h | --help
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Runs ./configure for Vim with macOS-specific paths and settings.
+  Includes Homebrew paths for LuaJIT and Python.
+
+Examples:
+  git clone https://github.com/vim/vim
+  cd vim
+  vim-configure-macos
+  make && sudo make install
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 configure=$(cat << EOS
 ./configure \

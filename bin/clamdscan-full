@@ -23,7 +23,7 @@ Arguments:
   DIRECTORY...      Directories to scan (defaults to / if not specified)
 
 Options:
-  --help           Show this help message
+  -h, --help       Show this help message
 
 Notes:
   - Excludes system directories (/proc, /sys, /run, /dev, /snap, /mnt)
@@ -32,7 +32,7 @@ Notes:
 EOF
 }
 
-if [[ $1 == --help ]] ; then
+if [[ $1 == --help || $1 == -h ]] ; then
   show_help
   exit 0
 fi

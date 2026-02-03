@@ -59,6 +59,32 @@ print_usage() {
     echo -e "   or: $0 --init <directory_to_scan>" | log_stdout
 }
 
+function show_help() {
+  cat << 'EOF'
+fast-sync - Efficiently sync files using file list comparison
+
+Usage:
+  fast-sync <source_dir> <target_dir>
+  fast-sync --init <directory_to_scan>
+  fast-sync -h | --help
+
+Options:
+  --init        Initialize sync state file for a directory
+  -h, --help    Show this help message
+
+Description:
+  Syncs files from source to target by first comparing file lists to avoid
+  a full rsync scan. Only new files that don't exist in target are synced.
+
+Examples:
+  fast-sync --init /path/to/source
+  fast-sync /path/to/source /backup/target
+  fast-sync /home/user/documents /backup/documents
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 # --- Command Definition ---
 # Check if fd is available, otherwise fall back to find
 if command -v fd >/dev/null 2>&1; then

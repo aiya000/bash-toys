@@ -37,9 +37,9 @@ Arguments:
   sound     Optional sound file (default: configured sound)
 
 Options:
-  --mobile    Send notifications to mobile via ntfy.sh
-  --local     Send notifications to local desktop (default if no options specified)
-  --help      Show this help message
+  --mobile      Send notifications to mobile via ntfy.sh
+  --local       Send notifications to local desktop (default if no options specified)
+  -h, --help    Show this help message
 
 Note: Options can be placed anywhere in the argument list.
       If --mobile is specified without --local, only mobile notifications are sent.
@@ -74,7 +74,7 @@ Examples:
 EOF
 }
 
-[[ $1 == --help ]] && show_help && exit 0
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 # Parse arguments - extract --mobile and --local options first
 mobile_mode=false

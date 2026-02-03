@@ -13,6 +13,27 @@
 # $ gh-run-view-latest --log
 # ```
 
+function show_help() {
+  cat << 'EOF'
+gh-run-view-latest - Show the latest GitHub Actions run
+
+Usage:
+  gh-run-view-latest [gh run view options]
+  gh-run-view-latest -h | --help
+
+Options:
+  -h, --help    Show this help message
+  [options]     Options passed to `gh run view` (e.g., --log)
+
+Examples:
+  gh-run-view-latest
+  gh-run-view-latest --log
+  gh-run-view-latest --web
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 latest_test_id=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
 gh run view "$latest_test_id" "$@"
 

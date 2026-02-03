@@ -53,7 +53,7 @@ Options:
   --local               Send notification to local desktop (default if no options specified)
   -l, --list            List all scheduled jobs
   -c, --cancel JOB_ID   Cancel scheduled job by Job ID
-  --help                Show this help message
+  -h, --help            Show this help message
 
 Note: If --mobile is specified without --local, only mobile notification is sent.
       If neither is specified, --local is assumed.
@@ -278,7 +278,7 @@ function cancel_job() {
 }
 
 # Option parsing
-[[ $1 == --help ]] && show_help && exit 0
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 # Check if 'at' command is available (required for all operations except --help)
 check_at_available

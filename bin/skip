@@ -12,6 +12,30 @@
 # 10
 # ```
 
+function show_help() {
+  cat << 'EOF'
+skip - Skip first n lines from input
+
+Usage:
+  command | skip <n>
+  skip <n> <file>
+  skip -h | --help
+
+Arguments:
+  n               Number of lines to skip
+  file            Optional input file
+
+Options:
+  -h, --help      Show this help message
+
+Examples:
+  seq 10 | skip 3    # Output: 4 5 6 7 8 9 10
+  skip 5 file.txt    # Skip first 5 lines of file
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 num_lines_to_skip=$1
 input_file=$2
 

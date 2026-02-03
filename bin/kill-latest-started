@@ -14,6 +14,30 @@
 # $ kill-latest-started -KILL nvim
 # ```
 
+function show_help() {
+  cat << 'EOF'
+kill-latest-started - Kill the most recently started process by name
+
+Usage:
+  kill-latest-started [-signal] <process_name>
+  kill-latest-started -h | --help
+
+Arguments:
+  process_name    Name of the process to kill
+
+Options:
+  -signal         Signal to send (e.g., -9, -KILL, -TERM)
+  -h, --help      Show this help message
+
+Examples:
+  kill-latest-started nvim
+  kill-latest-started -9 nvim
+  kill-latest-started nvim -KILL
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 signal=""
 process_name=""
 

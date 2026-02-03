@@ -11,6 +11,29 @@
 # 1
 # ```
 
+function show_help() {
+  cat << 'EOF'
+git-root - Show the git repository root directory
+
+Usage:
+  git-root
+  git-root -h | --help
+
+Options:
+  -h, --help    Show this help message
+
+Description:
+  Prints the root directory of the current git repository.
+  Returns exit code 1 if not inside a git repository.
+
+Examples:
+  cd /path/to/git/repo/subdir && git-root
+  # Output: /path/to/git/repo
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 git rev-parse --show-toplevel 2> /dev/null || exit 1
 
 # https://github.com/aiya000/bash-toys
