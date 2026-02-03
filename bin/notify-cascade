@@ -51,10 +51,13 @@ TIME formats (See also `$ notify-at --help`):
   YYYY-MM-DD HH:MM     - Year-month-day-time (must be future)
 
 Timing formats:
-  now       Send notification immediately
-  4h        4 hours before
-  30m       30 minutes before
-  45s       45 seconds before
+  now                  Send notification immediately
+  4h                   4 hours before
+  30m                  30 minutes before
+  45s                  45 seconds before
+  HH:MM                Absolute time (same day as target or day before if target crosses midnight)
+  MM-DD HH:MM          Absolute date and time
+  YYYY-MM-DD HH:MM     Absolute date and time with year
 
 Environment Variables:
   BASH_TOYS_NTFY_TOPIC    Required when using --mobile. Your ntfy.sh topic name.
@@ -66,6 +69,8 @@ Examples:
   notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile
   notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile --local
   notify-cascade 15:00 'Meeting' 'Team meeting' now 1h 30m --local   # Immediate + scheduled
+  notify-cascade '02-04 12:00' 'MTG' 'Meeting' 10:00 1h 30m          # 10:00 on same day + relative
+  notify-cascade '02-06 12:00' 'MTG' 'Meeting' '02-05 17:00' 1h      # Absolute date + relative
 EOF
 }
 
@@ -116,6 +121,7 @@ message="${positional_args[2]}"
 
 # Parse timing arguments and potential sound file
 timings=()
+absolute_timings=()
 sound=""
 send_now=false
 
@@ -125,9 +131,14 @@ for i in $(seq 3 $((${#positional_args[@]} - 1))) ; do
   # Check if argument is 'now' for immediate notification
   if [[ "$arg" == "now" ]] ; then
     send_now=true
-  # Check if argument looks like a timing (contains h, m, or s)
+  # Check if argument looks like a relative timing (e.g., 1h, 30m, 5s)
   elif [[ "$arg" =~ ^[0-9]+[hms]$ ]] ; then
     timings+=("$arg")
+  # Check if argument looks like an absolute time (HH:MM, MM-DD HH:MM, YYYY-MM-DD HH:MM)
+  elif [[ "$arg" =~ ^[0-9]{2}:[0-9]{2}$ ]] || \
+       [[ "$arg" =~ ^[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}$ ]] || \
+       [[ "$arg" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}$ ]] ; then
+    absolute_timings+=("$arg")
   else
     # Assume it's a sound file if it doesn't match timing pattern
     sound="$arg"
@@ -314,7 +325,7 @@ if [[ "$send_now" == true ]] ; then
 fi
 
 # If no timings specified, show single notification at target time
-if [[ ${#timings[@]} -eq 0 ]] ; then
+if [[ ${#timings[@]} -eq 0 && ${#absolute_timings[@]} -eq 0 ]] ; then
   seconds=$((target - now))
   duration=$(format_duration "$seconds")
   echo "Single notification: $duration later"
@@ -350,6 +361,65 @@ for timing in "${timings[@]}" ; do
 
   (
     notify-at "$notification_datetime" "$title" "$timing_message" "$sound" "${notify_at_options[@]}"
+  ) &
+
+  pids+=($!)
+done
+
+# Schedule notifications for absolute timings
+for abs_timing in "${absolute_timings[@]}" ; do
+  # Detect the format of the absolute timing
+  abs_format=$(detect_time_format "$abs_timing")
+  if [[ $abs_format == "INVALID" ]] ; then
+    echo "Skipping invalid absolute timing: $abs_timing"
+    continue
+  fi
+
+  # Normalize the absolute timing to full datetime
+  abs_normalized=$(normalize_datetime "$abs_timing" "$abs_format")
+
+  # For HH:MM format, we need to determine the date based on the target date
+  # If target is tomorrow, the HH:MM should also be on that date (or the day before if it makes sense)
+  if [[ $abs_format == "HH:MM" ]] ; then
+    # Extract the date part from the target datetime
+    target_date=$(date -d "@$target" +"%Y-%m-%d" 2>/dev/null || date -r "$target" +"%Y-%m-%d")
+    abs_normalized="$target_date $abs_timing"
+  fi
+
+  # Calculate the timestamp for this absolute timing
+  if date --version >/dev/null 2>&1 ; then
+    abs_timestamp=$(date -d "$abs_normalized" +%s 2>/dev/null)
+  else
+    abs_timestamp=$(date -j -f "%Y-%m-%d %H:%M" "$abs_normalized" +%s 2>/dev/null)
+  fi
+
+  if [[ -z "$abs_timestamp" ]] ; then
+    echo "Skipping invalid absolute timing: $abs_timing"
+    continue
+  fi
+
+  # Skip if notification time is in the past
+  if [[ $abs_timestamp -le $now ]] ; then
+    echo "Skipping $abs_timing notification (time already passed)"
+    continue
+  fi
+
+  # Skip if notification time is after the target time
+  if [[ $abs_timestamp -ge $target ]] ; then
+    echo "Skipping $abs_timing notification (time is after target)"
+    continue
+  fi
+
+  sleep_seconds=$((abs_timestamp - now))
+  duration=$(format_duration "$sleep_seconds")
+
+  # Create timing-specific message with the absolute time
+  timing_message="$message (at $abs_timing)"
+
+  echo "$abs_timing notification: in $duration"
+
+  (
+    notify-at "$abs_normalized" "$title" "$timing_message" "$sound" "${notify_at_options[@]}"
   ) &
 
   pids+=($!)
