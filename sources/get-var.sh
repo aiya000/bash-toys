@@ -15,7 +15,30 @@
 # not found
 # ```
 
+function bash-toys::help::get-var () {
+  cat << 'EOF'
+get-var - Get value of variable by name
+
+Usage:
+  get-var <var_name>
+  get-var -h | --help
+
+Arguments:
+  var_name    Name of the variable to read
+
+Examples:
+  name=42
+  get-var name    # Output: 42
+  get-var undefined || echo 'not found'
+EOF
+}
+
 function get-var () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::get-var
+    return 0
+  fi
+
   local var_name=$1 result
   result=$(eval "echo \$$var_name")
   if [[ $result == '' ]] ; then

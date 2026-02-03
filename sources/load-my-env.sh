@@ -6,7 +6,34 @@
 # TODO: Write an example
 # ```
 
+function bash-toys::help::load-my-env () {
+  cat << 'EOF'
+load-my-env - Load environment configurations for various tools
+
+Usage:
+  load-my-env <env_name>
+  load-my-env help
+  load-my-env -h | --help
+
+Arguments:
+  env_name    Name of the environment to load
+
+Available environments:
+  cabal, cargo, ccache, conda, docker, drawio, gcloud, gradlew,
+  idris, linuxbrew, mise, nvm, pkgsrc, rbenv, stack, travis, virtualenv
+
+Examples:
+  load-my-env docker
+  load-my-env nvm
+EOF
+}
+
 function load-my-env () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::load-my-env
+    return 0
+  fi
+
   local target_name="$1"
 
   case $target_name in

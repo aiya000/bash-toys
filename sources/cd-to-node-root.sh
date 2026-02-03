@@ -21,7 +21,25 @@ function cd-to-node-root::find-node-root-dir () {
   cd-to-node-root::find-node-root-dir "$current_dir/.."
 }
 
+function bash-toys::help::cd-to-node-root () {
+  cat << 'EOF'
+cd-to-node-root - Change directory to Node.js project root
+
+Usage:
+  cd-to-node-root
+  cd-to-node-root -h | --help
+
+Description:
+  Searches upward for package.json and changes to that directory.
+EOF
+}
+
 function cd-to-node-root () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::cd-to-node-root
+    return 0
+  fi
+
   local root
   root=$(cd-to-node-root::find-node-root-dir .)
   if [[ $root == '' ]] ; then

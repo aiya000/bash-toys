@@ -6,7 +6,33 @@
 # TODO: Write an example
 # ```
 
+function bash-toys::help::source-if-exists () {
+  cat << 'EOF'
+source-if-exists - Source a file if it exists
+
+Usage:
+  source-if-exists <file>
+  source-if-exists -h | --help
+
+Arguments:
+  file    Path to the file to source
+
+Description:
+  Sources the file only if it exists, silently skipping otherwise.
+  Useful for optional configuration files.
+
+Examples:
+  source-if-exists ~/.bashrc.local
+  source-if-exists /etc/profile.d/custom.sh
+EOF
+}
+
 function source-if-exists () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::source-if-exists
+    return 0
+  fi
+
   if [[ -f $1 ]] ; then
     # shellcheck disable=SC1090
     source "$1"

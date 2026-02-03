@@ -9,7 +9,30 @@
 #
 # See: https://unix.stackexchange.com/questions/252747/how-can-i-un-export-a-variable-without-losing-its-value
 
+function bash-toys::help::force-unexport () {
+  cat << 'EOF'
+force-unexport - Unexport a variable while keeping its value
+
+Usage:
+  force-unexport <var_name>...
+  force-unexport -h | --help
+
+Arguments:
+  var_name    Variable name(s) to unexport
+
+Examples:
+  export FOO=1
+  force-unexport FOO
+  # FOO is now a local variable, not exported
+EOF
+}
+
 function force-unexport() {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::force-unexport
+    return 0
+  fi
+
   while [ "$#" -ne 0 ] ; do
     eval "set -- \"\${$1}\" \"\${$1+set}\" \"\$@\""
     if [[ -n $2 ]]; then

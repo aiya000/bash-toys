@@ -12,7 +12,32 @@
 # no
 # ```
 
+function bash-toys::help::is-array () {
+  cat << 'EOF'
+is-array - Check if variable is an array
+
+Usage:
+  is-array <var_name>
+  is-array -h | --help
+
+Arguments:
+  var_name    Name of the variable to check
+
+Examples:
+  foo=()
+  is-array foo && echo yes  # Output: yes
+
+  bar=1
+  is-array bar && echo yes  # (no output)
+EOF
+}
+
 function is-array () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::is-array
+    return 0
+  fi
+
   local target_var_name=$1 target_var_type
   target_var_type=$(declare -p "$target_var_name" 2>/dev/null)
 
