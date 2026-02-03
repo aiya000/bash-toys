@@ -91,7 +91,7 @@ teardown() {
   expects "$output" to_contain 'notify-cascade - Sends cascade of notifications'
   expects "$output" to_contain 'TIME formats (See also'
   expects "$output" to_contain 'Timing formats:'
-  expects "$output" to_contain 'now       Send notification immediately'
+  expects "$output" to_contain 'now                  Send notification immediately'
 }
 
 @test '`notify-cascade` with insufficient arguments should show help' {
@@ -228,4 +228,93 @@ teardown() {
   expects "$output" to_contain '1h notification:'
   expects "$output" to_contain '30m notification:'
   expects "$output" to_contain '5m notification:'
+}
+
+# Absolute timing tests
+@test '`notify-cascade` should accept HH:MM absolute timing' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  # Schedule for tomorrow at 12:00 with 10:00 absolute timing
+  local tomorrow_date
+  tomorrow_date=$(date -d "+1 day" +"%m-%d" 2>/dev/null || date -v+1d +"%m-%d")
+
+  run notify-cascade "$tomorrow_date 12:00" 'Abs Test' 'Message' 10:00 --local
+  expects "$status" to_be 0
+  expects "$output" to_contain '10:00 notification:'
+}
+
+@test '`notify-cascade` should accept MM-DD HH:MM absolute timing' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  # Schedule for 3 days from now at 12:00 with absolute timing 2 days from now at 17:00
+  local target_date abs_date
+  target_date=$(date -d "+3 days" +"%m-%d" 2>/dev/null || date -v+3d +"%m-%d")
+  abs_date=$(date -d "+2 days" +"%m-%d" 2>/dev/null || date -v+2d +"%m-%d")
+
+  run notify-cascade "$target_date 12:00" 'Abs MM-DD Test' 'Message' "$abs_date 17:00" --local
+  expects "$status" to_be 0
+  expects "$output" to_contain "$abs_date 17:00 notification:"
+}
+
+@test '`notify-cascade` should accept YYYY-MM-DD HH:MM absolute timing' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  # Schedule for 3 days from now at 12:00 with absolute timing 2 days from now at 17:00
+  local target_date abs_date
+  target_date=$(date -d "+3 days" +"%Y-%m-%d" 2>/dev/null || date -v+3d +"%Y-%m-%d")
+  abs_date=$(date -d "+2 days" +"%Y-%m-%d" 2>/dev/null || date -v+2d +"%Y-%m-%d")
+
+  run notify-cascade "$target_date 12:00" 'Abs Full Date Test' 'Message' "$abs_date 17:00" --local
+  expects "$status" to_be 0
+  expects "$output" to_contain "$abs_date 17:00 notification:"
+}
+
+@test '`notify-cascade` should mix relative and absolute timings' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  # Schedule for tomorrow at 12:00 with both relative and absolute timings
+  local tomorrow_date
+  tomorrow_date=$(date -d "+1 day" +"%m-%d" 2>/dev/null || date -v+1d +"%m-%d")
+
+  run notify-cascade "$tomorrow_date 12:00" 'Mix Test' 'Message' 10:00 1h 30m --local
+  expects "$status" to_be 0
+  expects "$output" to_contain '10:00 notification:'
+  expects "$output" to_contain '1h notification:'
+  expects "$output" to_contain '30m notification:'
+}
+
+@test '`notify-cascade` should skip absolute timing if after target' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  # Schedule for tomorrow at 10:00 with 12:00 absolute timing (should be skipped)
+  local tomorrow_date
+  tomorrow_date=$(date -d "+1 day" +"%m-%d" 2>/dev/null || date -v+1d +"%m-%d")
+
+  run notify-cascade "$tomorrow_date 10:00" 'Skip After Test' 'Message' 12:00 --local
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Skipping 12:00 notification (time is after target)'
+}
+
+@test '`notify-cascade` should schedule absolute timing at correct datetime' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  # Schedule for 2 days from now at 12:00 with absolute timing tomorrow at 17:00
+  local target_date abs_date expected_year
+  target_date=$(date -d "+2 days" +"%m-%d" 2>/dev/null || date -v+2d +"%m-%d")
+  abs_date=$(date -d "+1 day" +"%m-%d" 2>/dev/null || date -v+1d +"%m-%d")
+  expected_year=$(date -d "+1 day" +"%Y" 2>/dev/null || date -v+1d +"%Y")
+
+  run notify-cascade "$target_date 12:00" 'Schedule Test' 'Message' "$abs_date 17:00" --local
+  expects "$status" to_be 0
+
+  # Check that the scheduled notification has the correct date
+  run notify-at -l
+  expects "$status" to_be 0
+  expects "$output" to_contain "$expected_year-$abs_date 17:00"
 }
