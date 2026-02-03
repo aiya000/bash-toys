@@ -16,6 +16,7 @@
 
 - [Quick Start](#bookmark_tabs-quick-start)
 - [Scripts](#bookmark_tabs-scripts)
+- [Documentation](#bookmark_tabs-documentation)
 - [Installation](#bookmark_tabs-installation)
 - [Help](#bookmark_tabs-show-help-for-commands)
 - [Contributing](#bookmark_tabs-contributing)
@@ -36,6 +37,16 @@ If using zsh:
 ```bash
 echo 'source /path/to/bash-toys/source-all.sh' >> ~/.zshrc
 ```
+
+## :bookmark_tabs: Documentation
+
+For detailed documentation with examples and options, see:
+
+- [doc/main.md](./doc/main.md) - Overview and main entry point
+    - [doc/bin.md](./doc/bin.md) - Executable commands in `./bin/`
+    - [doc/sources.md](./doc/sources.md) - Source functions in `./sources/`
+
+See also 'Scripts' section for what is `bin` and `sources`.
 
 ## :bookmark_tabs: Scripts
 
