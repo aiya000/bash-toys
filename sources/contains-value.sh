@@ -10,7 +10,32 @@
 # fi
 # ```
 
+function bash-toys::help::contains-value () {
+  cat << 'EOF'
+contains-value - Check if array contains a value
+
+Usage:
+  contains-value "${array[@]}" "value"
+  contains-value -h | --help
+
+Arguments:
+  array...    Array elements
+  value       Value to search for (last argument)
+
+Examples:
+  my_array=(apple banana cherry)
+  if contains-value "${my_array[@]}" "banana"; then
+    echo 'Found!'
+  fi
+EOF
+}
+
 function contains-value() {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::contains-value
+    return 0
+  fi
+
   local array=("$@")
   local value_to_check="${array[-1]}"
   unset 'array[-1]'

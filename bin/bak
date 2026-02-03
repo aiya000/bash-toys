@@ -54,7 +54,7 @@ Arguments:
   FILE...            One or more files to backup/restore
 
 Options:
-  --help            Show this help message
+  -h, --help        Show this help message
 
 Examples:
   bak README.md               # Create README.bak.md
@@ -63,7 +63,7 @@ Examples:
 EOF
 }
 
-[[ $1 == --help ]] && show_help && exit 0
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 if [[ $# -eq 0 ]] ; then
   echo 'Error: 1 or more arguments required' 1>&2

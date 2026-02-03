@@ -40,7 +40,35 @@
 # 0
 # ```
 
+function bash-toys::help::define-alt () {
+  cat << 'EOF'
+define-alt - Define variable if not already defined
+
+Usage:
+  define-alt <var_name> [value...]
+  define-alt --empty-array <var_name>
+  define-alt -h | --help
+
+Arguments:
+  var_name      Variable name to define
+  value         Value(s) to assign (multiple = array)
+
+Options:
+  --empty-array Define an empty array variable
+
+Examples:
+  define-alt a 10           # Define scalar
+  define-alt xs 1 2 3       # Define array
+  define-alt --empty-array ys  # Define empty array
+EOF
+}
+
 function define-alt () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::define-alt
+    return 0
+  fi
+
   local var_name=$1
 
   # Do nothing if the variable is already defined

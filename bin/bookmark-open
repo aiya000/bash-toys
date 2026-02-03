@@ -9,7 +9,7 @@
 # # Opens selected bookmark in the default browser
 # ```
 
-if [[ $1 == '--help' ]] ; then
+if [[ $1 == '--help' || $1 == '-h' ]] ; then
   cat << EOF
 bookmark-open - Opens a selected bookmark in the default browser
 
@@ -18,7 +18,7 @@ Usage:
   bookmark-open --help
 
 Options:
-  --help  Show this help message
+  -h, --help  Show this help message
 EOF
   exit 0
 fi

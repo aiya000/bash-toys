@@ -8,7 +8,30 @@
 # rg='rg --color always --hidden'
 # ```
 
+function bash-toys::help::alias-of () {
+  cat << 'EOF'
+alias-of - Create alias if command exists
+
+Usage:
+  alias-of <name> <detail>
+  alias-of -h | --help
+
+Arguments:
+  name      Command name to check and alias
+  detail    Alias definition (the full command)
+
+Examples:
+  alias-of rg 'rg --color always --hidden'
+  alias-of bat 'bat --theme=TwoDark'
+EOF
+}
+
 function alias-of () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::alias-of
+    return 0
+  fi
+
   local name=$1 detail=$2
   if command -v "$name" > /dev/null 2>&1 ; then
     eval "alias $name='$detail'"

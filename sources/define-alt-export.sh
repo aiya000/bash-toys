@@ -10,7 +10,29 @@ dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 # shellcheck disable=SC1091
 source "$dir/define-alt.sh"
 
+function bash-toys::help::define-alt-export () {
+  cat << 'EOF'
+define-alt-export - Define and export variable if not already defined
+
+Usage:
+  define-alt-export <var_name> [value...]
+  define-alt-export -h | --help
+
+Description:
+  Similar to define-alt, but also exports the variable.
+  See define-alt --help for detailed usage.
+
+Examples:
+  define-alt-export BASH_TOYS_INTERACTIVE_FILTER peco
+EOF
+}
+
 function define-alt-export () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::define-alt-export
+    return 0
+  fi
+
   define-alt "$@"
 
   local var_name=$1

@@ -9,6 +9,31 @@
 # ...
 # ```
 
+function show_help() {
+  cat << 'EOF'
+vim-configure-debug - Configure Vim source for debugging/testing
+
+Usage:
+  vim-configure-debug
+  vim-configure-debug -h | --help
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Runs ./configure for Vim with minimal features for faster builds
+  and debugging. Disables GUI, Python, Ruby, Perl, Lua interpreters.
+
+Examples:
+  git clone https://github.com/vim/vim
+  cd vim
+  vim-configure-debug
+  make
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 configure=$(cat << EOS
 ./configure \
     --prefix=/usr/local/ \

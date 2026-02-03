@@ -14,6 +14,31 @@
 # f,g
 # ```
 
+function show_help() {
+  cat << 'EOF'
+slice - Extract fields from delimited input
+
+Usage:
+  command | slice <delimiter> <from> [to]
+  slice -h | --help
+
+Arguments:
+  delimiter       Field delimiter character
+  from            Starting field number (1-indexed)
+  to              Ending field number (optional, defaults to end)
+
+Options:
+  -h, --help      Show this help message
+
+Examples:
+  echo "a,b,c,d" | slice , 2 3   # Output: b,c
+  echo "a,b,c,d" | slice , 2     # Output: b,c,d
+  echo "a:b:c" | slice : 1 2     # Output: a:b
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 delimiter=$1
 field_from=$2
 field_to=$3

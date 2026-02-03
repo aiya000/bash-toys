@@ -8,7 +8,30 @@
 # fi
 # ```
 
+function bash-toys::help::i-have () {
+  cat << 'EOF'
+i-have - Check if command exists
+
+Usage:
+  i-have <command>
+  i-have -h | --help
+
+Arguments:
+  command     Command name to check
+
+Examples:
+  if i-have batcat; then
+    alias bat=batcat
+  fi
+EOF
+}
+
 function i-have () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::i-have
+    return 0
+  fi
+
   command -v "$1" > /dev/null 2>&1
 }
 

@@ -17,6 +17,34 @@
 # ('Ctrl + c' required to return the shell)
 # ```
 
+function show_help() {
+  cat << 'EOF'
+start - Run a command in background with no output
+
+Usage:
+  start <command> [args...]
+  start -h | --help
+
+Arguments:
+  command         Command to run in background
+  args            Arguments for the command
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Runs a command in the background, suppressing all output.
+  Useful for launching GUI applications from the terminal.
+
+Examples:
+  start vlc
+  start firefox https://example.com
+  start code .
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 ("$@" &) &> /dev/null
 
 # https://github.com/aiya000/bash-toys

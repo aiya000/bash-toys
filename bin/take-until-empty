@@ -17,6 +17,33 @@
 # b
 # ```
 
+function show_help() {
+  cat << 'EOF'
+take-until-empty - Output lines until first blank line
+
+Usage:
+  command | take-until-empty
+  take-until-empty <file>
+  take-until-empty -h | --help
+
+Arguments:
+  file            Optional input file
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Reads input and outputs lines until the first blank line.
+  Useful for extracting headers or first paragraphs.
+
+Examples:
+  cat file | take-until-empty
+  take-until-empty file.txt
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 # Check if an argument is provided and if it is a file
 if [[ -n $1 ]] && [[ ! -f $1 ]] ; then
   echo "Error: File not found: $1"

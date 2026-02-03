@@ -32,6 +32,41 @@
 # $ pomodoro-timer --get-count
 # ```
 
+function show_help() {
+  cat << 'EOF'
+pomodoro-timer - CLI pomodoro timer
+
+Usage:
+  pomodoro-timer [minutes]
+  pomodoro-timer --rest [minutes]
+  pomodoro-timer --from HH:MM minutes
+  pomodoro-timer --set-count N
+  pomodoro-timer --get-count
+  pomodoro-timer --clean
+  pomodoro-timer -h | --help
+
+Options:
+  --rest          Start break time (default: 5 minutes)
+  --from HH:MM    Start timer from specified time
+  --set-count N   Set pomodoro count to N
+  --get-count     Display current pomodoro count
+  --clean         Reset pomodoro count
+  -h, --help      Show this help message
+
+Environment:
+  BASH_TOYS_POMODORO_DEFAULT_INTERVAL    Default work interval (default: 30)
+  BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED Command to run when timer finishes
+  BASH_TOYS_DURATION_WHEN_POMODORO_TIMER_FINISHED  Duration for notification
+
+Examples:
+  pomodoro-timer          # 30 minute work session
+  pomodoro-timer 45       # 45 minute work session
+  pomodoro-timer --rest   # 5 minute break
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 if [[ $1 == --set-count ]] ; then
   if [[ $2 == '' ]] ; then
     echo '--set-count requires minutes as a second argument' > /dev/stderr

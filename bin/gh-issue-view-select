@@ -8,7 +8,7 @@
 # # Opens selected issue with gh issue view
 # ```
 
-if [[ $1 == '--help' ]] ; then
+if [[ $1 == '--help' || $1 == '-h' ]] ; then
   cat << EOF
 gh-issue-view-select - Show GitHub issues in interactive filter and open selected issue
 
@@ -17,7 +17,7 @@ Usage:
   gh-issue-view-select --help
 
 Options:
-  --help  Show this help message
+  -h, --help  Show this help message
 EOF
   exit 0
 fi

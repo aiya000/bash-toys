@@ -27,7 +27,7 @@ Arguments:
   COMMAND            Name of the command to display
 
 Options:
-  --help            Show this help message
+  -h, --help        Show this help message
   --no-bat          Use cat instead of bat/batcat
 
 Environment Variables:
@@ -39,7 +39,7 @@ Notes:
 EOF
 }
 
-[[ $1 == --help ]] && show_help && exit 0
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 no_bat=false
 args=()

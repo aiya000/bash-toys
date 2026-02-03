@@ -13,6 +13,32 @@
 # /usr/bin/wslview
 # ```
 
+function show_help() {
+  cat << 'EOF'
+list-dpkg-executables - List executable files from a dpkg package
+
+Usage:
+  list-dpkg-executables <package_name>
+  list-dpkg-executables -h | --help
+
+Arguments:
+  package_name    Name of the dpkg package
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Lists all files in a package that are in bin directories.
+  Useful for discovering what commands a package provides.
+
+Examples:
+  list-dpkg-executables wslu
+  list-dpkg-executables git
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 dpkg -L "$1" | grep 'bin/'
 
 # https://github.com/aiya000/bash-toys

@@ -28,10 +28,38 @@ function isWeekend(date: Date): boolean {
   return day === 0 || day === 6; // Sunday or Saturday
 }
 
+function showHelp() {
+  console.log(`calc-japanese-remaining-working-hours - Calculate required daily working hours
+
+Usage:
+  calc-japanese-remaining-working-hours HOURS:MINUTES
+  calc-japanese-remaining-working-hours -h | --help
+
+Arguments:
+  HOURS:MINUTES   Remaining working hours for the month (e.g., 108:37)
+
+Options:
+  -h, --help      Show this help message
+
+Description:
+  Calculates required daily working hours for remaining business days
+  in the current month. Automatically fetches Japanese holidays.
+
+Examples:
+  calc-japanese-remaining-working-hours 108:37
+  calc-japanese-remaining-working-hours 80:00`);
+}
+
 async function main() {
+  if (Deno.args.length === 1 && (Deno.args[0] === "--help" || Deno.args[0] === "-h")) {
+    showHelp();
+    Deno.exit(0);
+  }
+
   if (Deno.args.length !== 1) {
     console.error("Usage: calc-japanese-remaining-working-hours HOURS:MINUTES");
     console.error("Example: calc-japanese-remaining-working-hours 108:37");
+    console.error("Use -h or --help for more information.");
     Deno.exit(1);
   }
 

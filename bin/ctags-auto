@@ -4,6 +4,31 @@
 # Automatically determines if it is under a git project and spits out the ctags of the project
 #
 
+function show_help() {
+  cat << 'EOF'
+ctags-auto - Automatically generate ctags for git project
+
+Usage:
+  ctags-auto [ctags options]
+  ctags-auto -h | --help
+
+Options:
+  -h, --help    Show this help message
+  [ctags opts]  Additional options passed to ctags
+
+Description:
+  Generates ctags file in the .git directory if inside a git repository,
+  otherwise in the current directory. Uses a temporary file to avoid
+  interrupting existing tag lookups.
+
+Examples:
+  ctags-auto
+  ctags-auto --exclude=node_modules
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 # To avoid stopping using already existent tags, use a temporary destination.
 function get_temporary_dest () {
   local git_root

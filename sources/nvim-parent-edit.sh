@@ -25,7 +25,38 @@ if [[ $NVIM_PARENT_ADDRESS == '' ]] ; then
   return 1
 fi
 
+function bash-toys::help::nvim-parent-edit () {
+  cat << 'EOF'
+nvim-parent-edit - Open file in parent Neovim via RPC
+
+Usage:
+  nvim-parent-edit <open_method> <filename>
+  nvim-parent-edit -h | --help
+
+Arguments:
+  open_method   One of: tabnew, split, vsplit
+  filename      File to open
+
+Environment:
+  NVIM_PARENT_ADDRESS    Neovim server address (set automatically)
+
+Related functions:
+  nvim-parent-tabnew <file>   - Open in new tab
+  nvim-parent-split <file>    - Open in horizontal split
+  nvim-parent-vsplit <file>   - Open in vertical split
+
+Examples:
+  nvim-parent-edit tabnew myfile.txt
+  nvim-parent-tabnew myfile.txt
+EOF
+}
+
 function nvim-parent-edit() {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::nvim-parent-edit
+    return 0
+  fi
+
   if [[ $# -eq 0 ]] ; then
     echo 'Usage: nvim-parent-edit <open_method> <filename>'
     return 1

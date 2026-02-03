@@ -11,7 +11,29 @@ dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 # shellcheck disable=SC1091
 source "$dir/../define-options.sh"
 
+function bash-toys::help::cd-finddir () {
+  cat << 'EOF'
+cd-finddir - Interactively select and cd to a directory
+
+Usage:
+  cd-finddir
+  cd-finddir -h | --help
+
+Description:
+  Lists directories (up to 6 depth with fd, 3 with find) and lets you
+  select one using the configured interactive filter.
+
+Environment:
+  BASH_TOYS_INTERACTIVE_FILTER    Filter command (default: fzf)
+EOF
+}
+
 function cd-finddir () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::cd-finddir
+    return 0
+  fi
+
   local finddir
   if command -v fd > /dev/null 2>&1 ; then
     finddir='fd --max-depth 6 --type d'

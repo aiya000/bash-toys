@@ -1,5 +1,27 @@
 #!/bin/bash
 
+function show_help() {
+  cat << 'EOF'
+docker-attach-menu - Interactively select and attach to a running Docker container
+
+Usage:
+  docker-attach-menu
+  docker-attach-menu -h | --help
+
+Options:
+  -h, --help    Show this help message
+
+Description:
+  Lists running Docker containers using the configured interactive filter
+  (BASH_TOYS_INTERACTIVE_FILTER) and attaches to the selected container.
+
+Environment:
+  BASH_TOYS_INTERACTIVE_FILTER    Filter command (e.g., fzf, peco)
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091

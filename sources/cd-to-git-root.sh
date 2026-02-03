@@ -7,7 +7,26 @@
 # TODO: Write an example
 # ```
 
+function bash-toys::help::cd-to-git-root () {
+  cat << 'EOF'
+cd-to-git-root - Change directory to git repository root
+
+Usage:
+  cd-to-git-root
+  cd-to-git-root -h | --help
+
+Description:
+  Changes to the root directory of the current git repository.
+  Supports WSL path conversion when running on Windows file systems.
+EOF
+}
+
 function cd-to-git-root () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::cd-to-git-root
+    return 0
+  fi
+
   local root
   root=$(git rev-parse --show-toplevel 2> /dev/null || return 1)
   # shellcheck disable=SC2164
