@@ -49,7 +49,6 @@ These dependencies are documented at the beginning of the script.
 | Script | Description | Quick Example | Test |
 |--------|-------------|---------------|:----:|
 | [`bak`](./bin/bak) | Toggle backup (.bak) extension for files | `$ bak file.txt # mv to file.bak.txt` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-bak.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-bak.yml) |
-| [`bash-toys-help`](./bin/bash-toys-help) | Show help for bash-toys commands | `$ bash-toys-help rm-dust # show help` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`bookmark-open`](./bin/bookmark-open) | Opens a selected bookmark in the default browser | `$ bookmark-open # select & open` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-bookmark-open.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-bookmark-open.yml) |
 | [`calc-japanese-remaining-working-hours`](./bin/calc-japanese-remaining-working-hours) | Calculate required daily working hours for remaining business days | `$ calc-japanese-remaining-working-hours # calc hours` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`cat-which`](./bin/cat-which) | A shorthand for `cat $(which cmd)`. Uses [bat](https://github.com/sharkdp/bat) if available | `$ cat-which rm-dust # show source` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-cat-which.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-cat-which.yml) |
