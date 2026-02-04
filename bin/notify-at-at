@@ -12,7 +12,7 @@
 #
 # Requirements:
 # - ./notify (for local notifications)
-# - ./notify-ntfy (for mobile notifications)
+# - ./notify-ntfy (for ntfy.sh notifications)
 #
 # Supported time formats:
 # - HH:MM                - Time today (if past, then tomorrow)
@@ -23,8 +23,8 @@
 # $ notify-at 12:00 "Meeting" "Team meeting"                    # Today at 12:00
 # $ notify-at "01-15 09:00" "Reminder" "New year meeting"       # January 15 at 09:00
 # $ notify-at "2027-01-15 09:00" "Reminder" "Future meeting"    # Future date
-# $ notify-at 12:00 "Meeting" "Team meeting" --mobile           # Mobile only
-# $ notify-at 12:00 "Meeting" "Team meeting" --mobile --local   # Both
+# $ notify-at 12:00 "Meeting" "Team meeting" --ntfy             # ntfy.sh only
+# $ notify-at 12:00 "Meeting" "Team meeting" --ntfy --local     # Both
 # ```
 #
 # See also `$ notify-at-at --help`
@@ -49,17 +49,17 @@ Arguments:
   JOB_ID    Job ID of scheduled job to cancel (from 'notify-at -l')
 
 Options:
-  --mobile              Send notification to mobile via ntfy.sh
+  --ntfy                Send notification via ntfy.sh
   --local               Send notification to local desktop (default if no options specified)
   -l, --list            List all scheduled jobs
   -c, --cancel JOB_ID   Cancel scheduled job by Job ID
   -h, --help            Show this help message
 
-Note: If --mobile is specified without --local, only mobile notification is sent.
+Note: If --ntfy is specified without --local, only ntfy.sh notification is sent.
       If neither is specified, --local is assumed.
 
 Environment Variables:
-  BASH_TOYS_NTFY_TOPIC    Required when using --mobile. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_TOPIC    Required when using --ntfy. Your ntfy.sh topic name.
 
 TIME formats:
   HH:MM                - Time today (if past, then tomorrow)
@@ -70,8 +70,8 @@ Examples:
   notify-at 13:30 'Reminder' 'Meeting time'
   notify-at '01-15 09:00' 'Reminder' 'New year meeting'
   notify-at '2027-01-15 09:00' 'Reminder' 'Future meeting'
-  notify-at 13:30 'Reminder' 'Meeting time' --mobile
-  notify-at 13:30 'Reminder' 'Meeting time' --mobile --local
+  notify-at 13:30 'Reminder' 'Meeting time' --ntfy
+  notify-at 13:30 'Reminder' 'Meeting time' --ntfy --local
 
 Job management:
   notify-at -l                    # List scheduled jobs
@@ -322,14 +322,17 @@ if [[ $1 == "-c" || $1 == "--cancel" ]] ; then
   exit $exit_code
 fi
 
-# Parse arguments - extract --mobile and --local options
+# Parse arguments - extract --ntfy and --local options
 mobile_mode=false
 local_mode=false
 positional_args=()
 
 for arg in "$@" ; do
   case "$arg" in
-    --mobile)
+    --ntfy)
+      mobile_mode=true
+      ;;
+    --mobile)  # For backward compatibility
       mobile_mode=true
       ;;
     --local)
@@ -348,7 +351,7 @@ fi
 
 # Validate ntfy topic when mobile mode is requested
 if [[ "$mobile_mode" == true && -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
-  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --mobile option" >&2
+  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --ntfy option" >&2
   exit 1
 fi
 

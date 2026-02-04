@@ -13,8 +13,8 @@
 # $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m 10m 5m
 # $ notify-cascade "01-15 09:00" "Meeting" "New year meeting" 1h 30m 10m
 # $ notify-cascade "2027-01-15 09:00" "Event" "Future event" 1d 1h 30m /path/to/sound.wav
-# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --mobile
-# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --mobile --local
+# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --ntfy
+# $ notify-cascade 15:00 "Meeting" "Team meeting starts" 1h 30m --ntfy --local
 # ```
 #
 # See also `$ notify-cascade --help`
@@ -37,12 +37,12 @@ Arguments:
   sound     Optional sound file (default: configured sound)
 
 Options:
-  --mobile      Send notifications to mobile via ntfy.sh
+  --ntfy        Send notifications via ntfy.sh
   --local       Send notifications to local desktop (default if no options specified)
   -h, --help    Show this help message
 
 Note: Options can be placed anywhere in the argument list.
-      If --mobile is specified without --local, only mobile notifications are sent.
+      If --ntfy is specified without --local, only ntfy.sh notifications are sent.
       If neither is specified, --local is assumed.
 
 TIME formats (See also `$ notify-at --help`):
@@ -60,14 +60,14 @@ Timing formats:
   YYYY-MM-DD HH:MM     Absolute date and time with year
 
 Environment Variables:
-  BASH_TOYS_NTFY_TOPIC    Required when using --mobile. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_TOPIC    Required when using --ntfy. Your ntfy.sh topic name.
 
 Examples:
   notify-cascade 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m
   notify-cascade '01-15 09:00' 'Meeting' 'New year meeting' 1h 30m 10m
   notify-cascade '2027-01-15 09:00' 'Event' 'Future event' 1d 1h 30m /path/to/sound.wav
-  notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile
-  notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --mobile --local
+  notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --ntfy
+  notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --ntfy --local
   notify-cascade 15:00 'Meeting' 'Team meeting' now 1h 30m --local   # Immediate + scheduled
   notify-cascade '02-04 12:00' 'MTG' 'Meeting' 10:00 1h 30m          # 10:00 on same day + relative
   notify-cascade '02-06 12:00' 'MTG' 'Meeting' '02-05 17:00' 1h      # Absolute date + relative
@@ -76,14 +76,17 @@ EOF
 
 [[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
-# Parse arguments - extract --mobile and --local options first
+# Parse arguments - extract --ntfy and --local options first
 mobile_mode=false
 local_mode=false
 positional_args=()
 
 for arg in "$@" ; do
   case "$arg" in
-    --mobile)
+    --ntfy)
+      mobile_mode=true
+      ;;
+    --mobile)  # For backward compatibility
       mobile_mode=true
       ;;
     --local)
@@ -98,7 +101,7 @@ done
 # Build notify-at options to pass through
 notify_at_options=()
 if [[ "$mobile_mode" == true ]] ; then
-  notify_at_options+=("--mobile")
+  notify_at_options+=("--ntfy")
 fi
 if [[ "$local_mode" == true ]] ; then
   notify_at_options+=("--local")
@@ -106,7 +109,7 @@ fi
 
 # Validate ntfy topic when mobile mode is requested
 if [[ "$mobile_mode" == true && -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
-  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --mobile option" >&2
+  echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required for --ntfy option" >&2
   exit 1
 fi
 
