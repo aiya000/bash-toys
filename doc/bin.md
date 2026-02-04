@@ -15,7 +15,7 @@ notify <title> <message> [sound]
 **Platforms**: Windows (WSL), macOS, Linux
 
 **Examples**:
-```shell-session
+```bash
 # Basic notification
 $ notify 'Task Complete' 'Your build has finished'
 # (Desktop notification appears)
@@ -45,7 +45,7 @@ notify-at (-c | --cancel) JOB_ID
 - `--local` - Send to local desktop (default)
 
 **Examples**:
-```shell-session
+```bash
 # Schedule notification at 3 PM today
 $ notify-at 15:00 'Meeting' 'Team standup'
 Scheduled: title=Meeting, message=Team standup
@@ -85,7 +85,7 @@ notify-cascade [options] TIME title message [timing1] [timing2] ... [sound]
 - Or install ntfy.sh on your host OS and subscribe to the same topic
 
 **Examples**:
-```shell-session
+```bash
 # Cascade notifications at 1h, 30m, 10m, 5m before
 $ notify-cascade 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m
 Cascade notifications scheduled for: 15:00
@@ -123,7 +123,7 @@ notify-ntfy <title> <message>
 **Requires**: `BASH_TOYS_NTFY_TOPIC` environment variable
 
 **Examples**:
-```shell-session
+```bash
 # Send notification
 $ export BASH_TOYS_NTFY_TOPIC=my-topic
 $ notify-ntfy 'Build Complete' 'Your CI build finished successfully'
@@ -147,7 +147,7 @@ bak FILE...
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Create backup
 $ bak README.md
 mv README.md README.bak.md
@@ -182,7 +182,7 @@ rm-dust FILE...
 Files are moved to `$BASH_TOYS_DUSTBOX_DIR` with timestamp.
 
 **Examples**:
-```shell-session
+```bash
 $ rm-dust test.txt
 mv test.txt /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt
 
@@ -208,7 +208,7 @@ cat-which --no-bat COMMAND
 Uses bat/batcat if available, falls back to cat.
 
 **Examples**:
-```shell-session
+```bash
 # Display shell script contents
 $ cat-which my-script
 #!/bin/bash
@@ -241,7 +241,7 @@ fast-sync --init <directory_to_scan>
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Initialize sync state for target
 $ fast-sync --init /backup/target
 Initialization mode: Creating '/home/user/.last_sync' for directory: /backup/target
@@ -273,7 +273,7 @@ take-until-empty <file>
 ```
 
 **Examples**:
-```shell-session
+```bash
 # From pipe
 $ printf "line1\nline2\n\nline3\nline4\n" | take-until-empty
 line1
@@ -304,7 +304,7 @@ skip <n> <file>
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Skip first 3 lines
 $ seq 10 | skip 3
 4
@@ -329,7 +329,7 @@ command | slice <delimiter> <from> [to]
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Extract fields 2-3
 $ echo "a,b,c,d" | slice , 2 3
 b,c
@@ -360,7 +360,7 @@ expects VALUE not MATCHER [EXPECTED]
 **Matchers**: `to_be`, `to_equal`, `to_be_less_than`, `to_be_greater_than`, `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`
 
 **Examples**:
-```shell-session
+```bash
 # Successful assertion (exit status: 0)
 $ expects 10 to_be 10 && echo "Test passed"
 Test passed
@@ -411,7 +411,7 @@ start <command> [args...]
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Launch VLC without blocking terminal
 $ start vlc
 # (VLC opens, terminal returns immediately)
@@ -438,7 +438,7 @@ kill-list [signal]
 Uses `BASH_TOYS_INTERACTIVE_FILTER` for selection.
 
 **Examples**:
-```shell-session
+```bash
 # Select and kill process with SIGKILL (default)
 $ kill-list
 # (Interactive filter appears with process list)
@@ -465,7 +465,7 @@ kill-latest-started [-signal] <process_name>
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Kill the most recently started nvim
 $ nvim  # [A] First instance
 $ nvim  # [B] Second instance (on another terminal)
@@ -487,7 +487,7 @@ run-wait-output <milliseconds> <command1> <command2>
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Run notification after build stabilizes
 $ run-wait-output 1000 "npm run watch" "echo Build stable"
 # command1 runs immediately
@@ -511,7 +511,7 @@ git-root
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Inside a git repository
 $ cd /path/to/git/repo/subdir
 $ git-root
@@ -533,7 +533,7 @@ pathshorten <path>
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Shorten directory path (last component kept intact)
 $ pathshorten ~/Repository/luarrow.lua/src/luarrow
 ~/Repo/luar/src/luarrow
@@ -558,7 +558,7 @@ docker-attach-menu
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Select and attach to a running container
 $ docker-attach-menu
 # (Interactive filter shows running containers)
@@ -576,7 +576,7 @@ docker-kill-menu
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Select and kill a running container
 $ docker-kill-menu
 # (Interactive filter shows running containers)
@@ -597,7 +597,7 @@ gh-issue-view-select
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Select and view an issue
 $ gh-issue-view-select
 # (Interactive filter shows issues)
@@ -624,7 +624,7 @@ gh-run-view-latest [gh run view options]
 ```
 
 **Examples**:
-```shell-session
+```bash
 # View latest run summary
 $ gh-run-view-latest
 ✓ main CI · 1234567890
@@ -655,7 +655,7 @@ pomodoro-timer --clean
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Start 30-minute work session (default)
 $ pomodoro-timer
 > Starting 1-th work time
@@ -697,7 +697,7 @@ date-diff-seconds TIME1 TIME2
 **TIME formats**: `MM-DD HH:MM` or `HH:MM`
 
 **Examples**:
-```shell-session
+```bash
 # Calculate difference between two times (in minutes)
 $ date-diff-seconds 21:47 22:33
 46
@@ -720,7 +720,7 @@ date-diff-seconds-now TIME
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Minutes until a future time (current time: 14:00)
 $ date-diff-seconds-now 15:30
 90
@@ -745,7 +745,7 @@ vim-configure
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Build Vim from source with full features
 $ git clone https://github.com/vim/vim
 $ cd vim
@@ -767,7 +767,7 @@ vim-configure-debug
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Build Vim with minimal features for fast debugging
 $ git clone https://github.com/vim/vim
 $ cd vim
@@ -788,7 +788,7 @@ vim-configure-macos
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Build Vim on macOS with Homebrew dependencies
 $ git clone https://github.com/vim/vim
 $ cd vim
@@ -813,7 +813,7 @@ bookmark-open
 Bookmarks defined in `BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS` (separated by `|`).
 
 **Examples**:
-```shell-session
+```bash
 # Set up bookmarks
 $ export BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS='(GitHub=https://github.com)|(Google=https://google.com)'
 
@@ -834,7 +834,7 @@ calc-japanese-remaining-working-hours HOURS:MINUTES
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Calculate daily hours needed for 108h 37m remaining
 $ calc-japanese-remaining-working-hours 108:37
 Remaining working hours: 108:37
@@ -859,7 +859,7 @@ clamdscan-full [DIRECTORY...]
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Full system scan (default)
 $ clamdscan-full
 0.00001
@@ -882,7 +882,7 @@ ctags-auto [ctags options]
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Generate tags in git repository
 $ cd /path/to/git/repo
 $ ctags-auto
@@ -904,7 +904,7 @@ is-in-wsl
 ```
 
 **Examples**:
-```shell-session
+```bash
 # In WSL environment
 $ is-in-wsl && echo 'WSL' || echo 'Not WSL'
 WSL
@@ -930,7 +930,7 @@ list-dpkg-executables <package_name>
 ```
 
 **Examples**:
-```shell-session
+```bash
 $ list-dpkg-executables wslu
 /usr/bin/wslact
 /usr/bin/wslclip
@@ -959,7 +959,7 @@ command | peco-reverse [peco options]
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Show history with newest first
 $ history | peco-reverse
 # (Interactive filter with reversed order)
@@ -977,7 +977,7 @@ photoframe <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [
 ```
 
 **Examples**:
-```shell-session
+```bash
 # Start photoframe with already mounted NAS
 $ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20
 Using NAS directory: /home/pi/NAS

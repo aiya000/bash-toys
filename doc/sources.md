@@ -23,7 +23,7 @@ cd-finddir
 Lists directories (up to 6 depth with fd, 3 with find) and lets you select one using `BASH_TOYS_INTERACTIVE_FILTER`.
 
 **Examples**:
-```shell-session
+```bash
 $ cd-finddir
 # (Interactive filter shows directories)
 # ./src
@@ -45,7 +45,7 @@ cd-to-git-root
 Supports WSL path conversion when running on Windows file systems.
 
 **Examples**:
-```shell-session
+```bash
 $ pwd
 /path/to/repo/src/components/button
 $ cd-to-git-root
@@ -64,7 +64,7 @@ cd-to-node-root
 Searches upward for package.json and changes to that directory.
 
 **Examples**:
-```shell-session
+```bash
 $ pwd
 /path/to/project/src/utils/helpers
 $ cd-to-node-root
@@ -105,7 +105,7 @@ define-alt-export <var_name> [value...]
 Similar to define-alt, but also exports the variable.
 
 **Examples**:
-```shell-session
+```bash
 $ define-alt-export EDITOR vim
 $ echo $EDITOR
 vim
@@ -273,7 +273,7 @@ nvim-parent-edit <open_method> <filename>
 - `nvim-parent-vsplit <file>` - Open in vertical split
 
 **Examples**:
-```shell-session
+```bash
 # Open file in parent Neovim's new tab
 $ nvim-parent-tabnew README.md
 
