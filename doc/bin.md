@@ -31,8 +31,8 @@ Schedules notification at specified time with flexible date formats.
 
 ```bash
 notify-at [options] TIME title message [sound]
-notify-at -l | --list
-notify-at -c JOB_ID | --cancel JOB_ID
+notify-at (-l | --list)
+notify-at (-c | --cancel) JOB_ID
 ```
 
 **TIME formats**:
