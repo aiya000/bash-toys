@@ -1,0 +1,28 @@
+name: Test force-unexport
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'test/force-unexport.bats'
+      - 'lib/**'
+      - 'sources/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'test/force-unexport.bats'
+      - 'lib/**'
+      - 'sources/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+      - name: Run test
+        run: |
+          source ./source-all.sh
+          ./lib/bats/bin/bats ./test/force-unexport.bats
