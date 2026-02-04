@@ -338,6 +338,11 @@ for arg in "$@" ; do
     --local)
       local_mode=true
       ;;
+    --*)
+      echo "Error: Unknown option: $arg" >&2
+      echo "Valid options: --ntfy, --local" >&2
+      exit 1
+      ;;
     *)
       positional_args+=("$arg")
       ;;
@@ -474,7 +479,9 @@ function validate_future_datetime() {
 # Unified date parsing with new format support
 format=$(detect_time_format "$time")
 if [[ $format == "INVALID" ]] ; then
-  echo "Error: Invalid time format. Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM"
+  echo "Error: Invalid time format: $time"
+  echo "Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM"
+  echo "Hint: Use leading zeros (e.g., 09:30 not 9:30, 01-15 not 1-15)"
   exit 1
 fi
 
