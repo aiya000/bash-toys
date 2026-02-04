@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# See ./doc/sources.md for description
+# See ../doc/sources.md for description
 
 dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 

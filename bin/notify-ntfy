@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# See ./doc/bin.md for description
+# See ../doc/bin.md for description
 
 function show_help() {
   cat << EOF

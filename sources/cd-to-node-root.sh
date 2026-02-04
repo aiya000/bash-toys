@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# See ./doc/sources.md for description
+# See ../doc/sources.md for description
 
 function cd-to-node-root::find-node-root-dir () {
   local current_dir=$1
