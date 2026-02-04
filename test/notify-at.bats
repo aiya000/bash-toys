@@ -123,6 +123,28 @@ teardown() {
   expects "$output" to_contain 'Usage:'
 }
 
+@test '`notify-at` should reject unknown options' {
+  run notify-at --not-existent-option 20:00 'Test Title' 'Test Message'
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: Unknown option: --not-existent-option'
+  expects "$output" to_contain 'Valid options: --ntfy, --local'
+}
+
+@test '`notify-at` should reject unknown options even with valid time format' {
+  run notify-at 20:00 --invalid-flag 'Test Title' 'Test Message'
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: Unknown option: --invalid-flag'
+  expects "$output" to_contain 'Valid options: --ntfy, --local'
+}
+
+@test '`notify-at` should accept valid options in any position' {
+  skip_unless_real_jobs_enabled
+  # Test with options at the beginning
+  run notify-at --ntfy --local 23:59 'Test Title' 'Test Message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+}
+
 @test '`notify-at` should accept HH:MM format' {
   skip_unless_real_jobs_enabled
   # Test with a future time that should work
@@ -165,19 +187,22 @@ teardown() {
 @test '`notify-at` should reject invalid hyphen-separated format MM-DD-HH:MM' {
   run notify-at '01-15-09:00' 'Test Title' 'Test Message'
   expects "$status" to_be 1
-  expects "$output" to_equal 'Error: Invalid time format. Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
+  expects "$output" to_contain 'Error: Invalid time format: 01-15-09:00'
+  expects "$output" to_contain 'Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
 }
 
 @test '`notify-at` should reject invalid hyphen-separated format YYYY-MM-DD-HH:MM' {
   run notify-at '2027-01-15-09:00' 'Test Title' 'Test Message'
   expects "$status" to_be 1
-  expects "$output" to_equal 'Error: Invalid time format. Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
+  expects "$output" to_contain 'Error: Invalid time format: 2027-01-15-09:00'
+  expects "$output" to_contain 'Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
 }
 
 @test '`notify-at` should reject completely invalid format' {
   run notify-at 'invalid-time' 'Test Title' 'Test Message'
   expects "$status" to_be 1
-  expects "$output" to_equal 'Error: Invalid time format. Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
+  expects "$output" to_contain 'Error: Invalid time format: invalid-time'
+  expects "$output" to_contain 'Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
 }
 
 @test '`notify-at` should reject malformed time format' {
