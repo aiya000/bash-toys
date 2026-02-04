@@ -27,6 +27,11 @@ teardown () {
   rm -f "$file_does_not_contain_empty_line"
 }
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`take-until-empty --help` should show help message' {
   run take-until-empty --help
   expects "$status" to_be 0

@@ -5,6 +5,11 @@
 # shellcheck disable=SC1091
 source ./source-all.sh
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`define-alt --help` should show help message' {
   run define-alt --help
   expects "$status" to_be 0

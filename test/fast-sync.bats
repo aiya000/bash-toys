@@ -3,6 +3,9 @@
 # shellcheck disable=SC2016
 
 setup() {
+
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
     # Create temporary directories for testing
     export TEST_SOURCE_DIR=$(mktemp -d)
     export TEST_TARGET_DIR=$(mktemp -d)

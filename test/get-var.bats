@@ -5,6 +5,11 @@
 # shellcheck disable=SC1091
 source ./sources/get-var.sh
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`get-var --help` should show help message' {
   run get-var --help
   expects "$status" to_be 0

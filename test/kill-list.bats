@@ -2,6 +2,11 @@
 
 # shellcheck disable=SC2016
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`kill-list --help` should show help message' {
   run kill-list --help
   expects "$status" to_be 0

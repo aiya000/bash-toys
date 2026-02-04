@@ -2,6 +2,11 @@
 
 # shellcheck disable=SC2016
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`date-diff-seconds --help` should show help message' {
   run date-diff-seconds --help
   expects "$status" to_be 0

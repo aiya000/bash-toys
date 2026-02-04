@@ -2,6 +2,11 @@
 
 # shellcheck disable=SC2016
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`peco-reverse --help` should show help message' {
   run peco-reverse --help
   expects "$status" to_be 0

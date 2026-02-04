@@ -2,6 +2,11 @@
 
 # shellcheck disable=SC2016
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`dust --help` should show help message' {
   run dust --help
   expects "$status" to_be 0

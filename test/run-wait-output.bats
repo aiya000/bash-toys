@@ -1,5 +1,10 @@
 #!/usr/bin/env bats
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`run-wait-output --help` should show help message' {
   run run-wait-output --help
   [[ $status -eq 0 ]]

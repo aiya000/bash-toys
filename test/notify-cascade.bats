@@ -78,6 +78,11 @@ teardown() {
   fi
 }
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`notify-cascade` with no arguments should show help' {
   run notify-cascade
   expects "$status" to_be 1

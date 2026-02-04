@@ -23,6 +23,9 @@ skip_unless_real_jobs_enabled() {
 
 # Test setup and cleanup
 setup() {
+
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
   # Set a unique test tag for this test run
   export NOTIFY_TEST_TAG="bats-test-$$-$RANDOM"
 }

@@ -5,6 +5,11 @@ setup () {
   GH_OUTPUT="$(mktemp)"
 }
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`gh-issue-view-select --help` should show help message with usage' {
   run bin/gh-issue-view-select --help
   expects "$status" to_be 0

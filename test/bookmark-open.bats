@@ -5,6 +5,11 @@ setup () {
   export BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS='(Example=https://example.com)|(GitHub=https://github.com)'
 }
 
+setup() {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+}
+
 @test '`bookmark-open --help` should show help message' {
   run bin/bookmark-open --help
   expects "$status" to_be 0
