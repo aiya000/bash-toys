@@ -6,7 +6,7 @@ Executable scripts in the `bin/` directory. Add to PATH to use directly.
 
 ### notify
 
-Send a notification with title and message to the GUI.
+Sends a notification with title and message to the GUI.
 
 ```bash
 notify <title> <message> [sound]
@@ -27,7 +27,7 @@ $ notify 'Warning' 'Low disk space' /path/to/sound.mp3
 
 ### notify-at
 
-Schedule notification at specified time with flexible date formats.
+Schedules notification at specified time with flexible date formats.
 
 ```bash
 notify-at [options] TIME title message [sound]
@@ -68,7 +68,7 @@ Cancelled job 42
 
 ### notify-cascade
 
-Schedule cascade of notifications at specified intervals before target time.
+Schedules cascade of notifications at specified intervals before target time.
 
 ```bash
 notify-cascade [options] TIME title message [timing1] [timing2] ... [sound]
@@ -140,7 +140,7 @@ Error: BASH_TOYS_NTFY_TOPIC environment variable is required
 
 ### bak
 
-Toggle backup (.bak) extension for files.
+Toggles backup (.bak) extension for files.
 
 ```bash
 bak FILE...
@@ -198,7 +198,7 @@ mv document.pdf /home/user/.backup/dustbox/document.pdf_2026-02-03_13:32:52.pdf
 
 ### cat-which
 
-Display contents of executable files in PATH.
+Displays contents of executable files in PATH.
 
 ```bash
 cat-which COMMAND
@@ -233,7 +233,7 @@ Usage: cat-which COMMAND
 
 ### fast-sync
 
-Efficiently sync files using file list comparison.
+Efficiently syncs files using file list comparison.
 
 ```bash
 fast-sync <source_dir> <target_dir>
@@ -265,7 +265,7 @@ Sync complete! ✨
 
 ### take-until-empty
 
-Output lines until first blank line.
+Outputs lines until first blank line.
 
 ```bash
 command | take-until-empty
@@ -296,7 +296,7 @@ header2
 
 ### skip
 
-Skip first n lines from input.
+Skips first n lines from input.
 
 ```bash
 command | skip <n>
@@ -322,7 +322,7 @@ $ skip 2 myfile.txt
 
 ### slice
 
-Extract fields from delimited input.
+Extracts fields from delimited input.
 
 ```bash
 command | slice <delimiter> <from> [to]
@@ -404,7 +404,7 @@ FAIL: expected {actual} to_be_defined, but {actual} is (empty)
 
 ### start
 
-Run a command in background with no output.
+Runs a command in background with no output.
 
 ```bash
 start <command> [args...]
@@ -429,7 +429,7 @@ VLC media player 3.0.16 Vetinari (revision 3.0.13-8-g41878ff4f2)
 
 ### kill-list
 
-Interactively select and kill processes.
+Interactively selects and kills processes.
 
 ```bash
 kill-list [signal]
@@ -458,7 +458,7 @@ $ kill-list -TERM
 
 ### kill-latest-started
 
-Kill the most recently started process by name.
+Kills the most recently started process by name.
 
 ```bash
 kill-latest-started [-signal] <process_name>
@@ -480,7 +480,7 @@ $ kill-latest-started nvim -9
 
 ### run-wait-output
 
-Execute command2 after command1's output has been silent.
+Executes command2 after command1's output has been silent.
 
 ```bash
 run-wait-output <milliseconds> <command1> <command2>
@@ -504,7 +504,7 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 
 ### git-root
 
-Show the git repository root directory.
+Shows the git repository root directory.
 
 ```bash
 git-root
@@ -526,7 +526,7 @@ $ git-root
 
 ### pathshorten
 
-Abbreviate path like Vim's pathshorten().
+Abbreviates path like Vim's pathshorten().
 
 ```bash
 pathshorten <path>
@@ -551,7 +551,7 @@ $ pathshorten ~/Documents
 
 ### docker-attach-menu
 
-Interactively select and attach to a running Docker container.
+Interactively selects and attaches to a running Docker container.
 
 ```bash
 docker-attach-menu
@@ -569,7 +569,7 @@ $ docker-attach-menu
 
 ### docker-kill-menu
 
-Interactively select and kill a running Docker container.
+Interactively selects and kills a running Docker container.
 
 ```bash
 docker-kill-menu
@@ -590,7 +590,7 @@ a1b2c3d4e5f6
 
 ### gh-issue-view-select
 
-Show GitHub issues in interactive filter and open selected issue.
+Shows GitHub issues in interactive filter and opens selected issue.
 
 ```bash
 gh-issue-view-select
@@ -617,7 +617,7 @@ No issue selected
 
 ### gh-run-view-latest
 
-Show the latest GitHub Actions run.
+Shows the latest GitHub Actions run.
 
 ```bash
 gh-run-view-latest [gh run view options]
@@ -688,7 +688,7 @@ Removed: /tmp/pomodoro-3
 
 ### date-diff-seconds
 
-Calculate time difference in minutes.
+Calculates time difference in minutes.
 
 ```bash
 date-diff-seconds TIME1 TIME2
@@ -713,7 +713,7 @@ $ date-diff-seconds 23:00 22:00
 
 ### date-diff-seconds-now
 
-Calculate time difference between given time and now.
+Calculates time difference between given time and now.
 
 ```bash
 date-diff-seconds-now TIME
@@ -738,7 +738,7 @@ $ date-diff-seconds-now '02-05 18:00'
 
 ### vim-configure
 
-Configure Vim source with modern flags (GUI, interpreters, etc).
+Configures Vim source with modern flags (GUI, interpreters, etc).
 
 ```bash
 vim-configure
@@ -760,7 +760,7 @@ $ make && sudo make install
 
 ### vim-configure-debug
 
-Configure Vim source for debugging with minimal features.
+Configures Vim source for debugging with minimal features.
 
 ```bash
 vim-configure-debug
@@ -781,7 +781,7 @@ $ make
 
 ### vim-configure-macos
 
-Configure Vim source for macOS with Homebrew paths.
+Configures Vim source for macOS with Homebrew paths.
 
 ```bash
 vim-configure-macos
@@ -875,7 +875,7 @@ $ clamdscan-full /home/user /var/www
 
 ### ctags-auto
 
-Automatically generate ctags for git project.
+Automatically generates ctags for git project.
 
 ```bash
 ctags-auto [ctags options]
@@ -923,7 +923,7 @@ $ if is-in-wsl ; then
 
 ### list-dpkg-executables
 
-List executable files from a dpkg package.
+Lists executable files from a dpkg package.
 
 ```bash
 list-dpkg-executables <package_name>
@@ -970,7 +970,7 @@ $ export BASH_TOYS_INTERACTIVE_FILTER=peco-reverse
 
 ### photoframe
 
-Display photos in fullscreen slideshow mode using feh.
+Displays photos in fullscreen slideshow mode using feh.
 
 ```bash
 photoframe <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [credentials]

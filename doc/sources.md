@@ -14,7 +14,7 @@ source /path/to/bash-toys/sources/alias-of.sh
 
 ### cd-finddir
 
-Interactively select and cd to a directory.
+Interactively selects and cds to a directory.
 
 ```bash
 cd-finddir
@@ -36,7 +36,7 @@ $ pwd
 
 ### cd-to-git-root
 
-Change directory to git repository root.
+Changes directory to git repository root.
 
 ```bash
 cd-to-git-root
@@ -55,7 +55,7 @@ $ pwd
 
 ### cd-to-node-root
 
-Change directory to Node.js project root.
+Changes directory to Node.js project root.
 
 ```bash
 cd-to-node-root
@@ -78,7 +78,7 @@ package.json
 
 ### define-alt
 
-Define variable if not already defined.
+Defines variable if not already defined.
 
 ```bash
 define-alt <var_name> [value...]
@@ -96,7 +96,7 @@ If variable already exists, value is not changed.
 
 ### define-alt-export
 
-Define and export variable if not already defined.
+Defines and exports variable if not already defined.
 
 ```bash
 define-alt-export <var_name> [value...]
@@ -121,7 +121,7 @@ $ echo $PATH_BACKUP
 
 ### get-var
 
-Get value of variable by name.
+Gets value of variable by name.
 
 ```bash
 get-var <var_name>
@@ -136,7 +136,7 @@ get-var undefined || echo 'not found'
 
 ### force-unexport
 
-Unexport a variable while keeping its value.
+Unexports a variable while keeping its value.
 
 ```bash
 force-unexport <var_name>...
@@ -153,7 +153,7 @@ force-unexport FOO
 
 ### is-array
 
-Check if variable is an array.
+Checks if variable is an array.
 
 ```bash
 is-array <var_name>
@@ -170,7 +170,7 @@ is-array bar || echo no   # Output: no
 
 ### contains-value
 
-Check if array contains a value.
+Checks if array contains a value.
 
 ```bash
 contains-value "${array[@]}" "value"
@@ -188,7 +188,7 @@ fi
 
 ### alias-of
 
-Create alias if command exists.
+Creates alias if command exists.
 
 ```bash
 alias-of <name> <detail>
@@ -202,7 +202,7 @@ alias-of rg 'rg --color always --hidden'
 
 ### i-have
 
-Check if command exists.
+Checks if command exists.
 
 ```bash
 i-have <command>
@@ -219,7 +219,7 @@ fi
 
 ### source-if-exists
 
-Source a file if it exists.
+Sources a file if it exists.
 
 ```bash
 source-if-exists <file>
@@ -237,7 +237,7 @@ source-if-exists /etc/profile.d/custom.sh
 
 ### load-my-env
 
-Load environment configurations for various tools.
+Loads environment configurations for various tools.
 
 ```bash
 load-my-env <env_name>
@@ -259,7 +259,7 @@ load-my-env nvm       # Loads nvm
 
 ### nvim-parent-edit
 
-Open file in parent Neovim via RPC.
+Opens file in parent Neovim via RPC.
 
 ```bash
 nvim-parent-edit <open_method> <filename>
