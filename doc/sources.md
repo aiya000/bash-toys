@@ -179,7 +179,7 @@ contains-value "${array[@]}" "value"
 **Example**:
 ```bash
 my_array=(apple banana cherry)
-if contains-value "${my_array[@]}" "banana"; then
+if contains-value "${my_array[@]}" "banana" ; then
   echo 'Found!'
 fi
 ```
@@ -210,7 +210,7 @@ i-have <command>
 
 **Example**:
 ```bash
-if i-have batcat; then
+if i-have batcat ; then
   alias bat=batcat
 fi
 ```

@@ -916,7 +916,7 @@ Not WSL
 # Exit status: 1
 
 # Use in scripts
-$ if is-in-wsl; then
+$ if is-in-wsl ; then
 >   echo "Running in WSL"
 > fi
 ```
