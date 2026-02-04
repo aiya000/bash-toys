@@ -174,9 +174,15 @@ teardown() {
   expects "$output" to_contain "$future_date 09:55"  # 5m before
 }
 
-@test '`notify-cascade` should handle --mobile option without ntfy topic' {
+@test '`notify-cascade` should handle --ntfy option without ntfy topic' {
   # Unset BASH_TOYS_NTFY_TOPIC to test error handling
   unset BASH_TOYS_NTFY_TOPIC
+  run notify-cascade 23:59 'Test' 'Message' 5m --ntfy
+  # Should fail with missing ntfy topic error
+  expects "$status" to_be 1
+  expects "$output" to_contain 'BASH_TOYS_NTFY_TOPIC'
+
+  # For backward compatibility (--mobile)
   run notify-cascade 23:59 'Test' 'Message' 5m --mobile
   # Should fail with missing ntfy topic error
   expects "$status" to_be 1
