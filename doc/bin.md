@@ -177,12 +177,17 @@ Alternative to rm that moves files to dustbox instead of deletion.
 
 ```bash
 rm-dust FILE...
+rm-dust --restore [FILE...]
 ```
 
 Files are moved to `$BASH_TOYS_DUSTBOX_DIR` with timestamp.
 
+**Options**:
+- `--restore` - Restore files from dustbox (interactive or specific files)
+
 **Examples**:
 ```bash
+# Move files to dustbox
 $ rm-dust test.txt
 mv test.txt /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt
 
@@ -194,7 +199,27 @@ mv file2.txt /home/user/.backup/dustbox/file2.txt_2026-02-03_13:32:53.txt
 # Preserves extension
 $ rm-dust document.pdf
 mv document.pdf /home/user/.backup/dustbox/document.pdf_2026-02-03_13:32:52.pdf
+
+# Restore files interactively
+$ rm-dust --restore
+# (Interactive filter appears with dustbox files)
+mv /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt test.txt
+
+# Restore specific file
+$ rm-dust --restore +tmp+test.txt_2026-02-03_13:32:52.txt
+mv /home/user/.backup/dustbox/+tmp+test.txt_2026-02-03_13:32:52.txt /tmp/test.txt
 ```
+
+**Bash Completion**:
+To enable bash completion, source the completion script:
+```bash
+source /path/to/bash-toys/completions/rm-dust.bash
+```
+
+Completion features:
+- Option completion: `--help`, `-h`, `--restore`
+- File completion: normal file paths when adding to dustbox
+- Dustbox file completion: files in dustbox when using `--restore`
 
 ### cat-which
 
