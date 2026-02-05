@@ -144,14 +144,29 @@ script_path="SCRIPT_PATH_PLACEHOLDER"
 # Check if current year matches target year
 current_year=$(date +%Y)
 if [[ "$current_year" != "$target_year" ]] ; then
+  # Wrong year, cleanup and exit
+  launchctl unload "$plist_path" 2>/dev/null || true
+  rm -f "$plist_path"
+  rm -f "$script_path"
   exit 0
 fi
 
 # Check if we're within 2 minutes of target time (handles slight delays)
 current_timestamp=$(date +%s)
 time_diff=$((current_timestamp - target_timestamp))
-if [[ $time_diff -lt -120 || $time_diff -gt 120 ]] ; then
-  # Not the right time, exit silently
+
+# If we're way past the target time (more than 2 minutes late), cleanup
+if [[ $time_diff -gt 120 ]] ; then
+  # Target time has passed, cleanup without sending notification
+  launchctl unload "$plist_path" 2>/dev/null || true
+  rm -f "$plist_path"
+  rm -f "$script_path"
+  exit 0
+fi
+
+# If we're way before the target time (more than 2 minutes early), exit and wait
+if [[ $time_diff -lt -120 ]] ; then
+  # Not the right time yet, exit and wait for next execution
   exit 0
 fi
 
