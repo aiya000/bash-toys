@@ -88,7 +88,7 @@ These dependencies are documented at the beginning of the script.
 | [`peco-reverse`](./bin/peco-reverse) | Reverse order interactive filter using peco | `$ ls \| peco-reverse # reversed filter` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`photoframe`](./bin/photoframe) | Display photos in fullscreen slideshow mode using feh | `$ photoframe ~/Pictures # slideshow` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`pomodoro-timer`](./bin/pomodoro-timer) | A simplest Pomodoro Timer implementation in shell script | `$ pomodoro-timer 25 # start 25min` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
-| [`rm-dust`](./bin/rm-dust) | An alternative to `rm`, moving files to a dustbox instead. `alias rm=rm-dust` is recommended! | `$ rm-dust file.txt # mv to dustbox` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml) |
+| [`rm-dust`](./bin/rm-dust) | An alternative to `rm`, moving files to a dustbox instead. Use `--restore` to recover files. `alias rm=rm-dust` is recommended! | `$ rm-dust file.txt # mv to dustbox` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml) |
 | [`run-wait-output`](./bin/run-wait-output) | Run two commands sequentially, with second triggered after first becomes silent | `$ run-wait-output 1000 "npm watch" "echo Done" # after silent` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml) |
 | [`skip`](./bin/skip) | Skip n-lines from the beginning of output | `$ seq 10 \| skip 3 # => 4,5,...,10` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`slice`](./bin/slice) | Slice fields from input lines | `$ echo "a,b,c" \| slice , 2 3 # => b,c` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
@@ -132,6 +132,7 @@ Here are some scripts that can boost your daily workflow:
 $ rm-dust important.txt        # Moves to dustbox instead of deleting
 $ rm-dust *.log                # Clean up logs safely
 $ alias rm=rm-dust             # Recommended: replace rm globally
+$ rm-dust --restore            # Interactively restore files from dustbox
 ```
 
 **[`bak`](./bin/bak)** - Quick backup toggle. One command to backup, one to restore.
