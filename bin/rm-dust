@@ -29,7 +29,7 @@ EOF
 restore_mode=false
 args=()
 for arg in "$@"; do
-  if [[ $arg == --restore ]]; then
+  if [[ $arg == '--restore' ]] ; then
     restore_mode=true
   else
     args+=("$arg")
@@ -37,7 +37,7 @@ for arg in "$@"; do
 done
 set -- "${args[@]}"
 
-[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+[[ $1 == '--help' || $1 == '-h' ]] && show_help && exit 0
 
 dir=$(dirname "$0")
 
@@ -48,25 +48,25 @@ if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
   mkdir -p "$BASH_TOYS_DUSTBOX_DIR"
 fi
 
-if [[ $restore_mode == true ]] ; then
+if [[ $restore_mode == 'true' ]] ; then
   # Restore mode
   if [[ $# -eq 0 ]] ; then
     # Interactive mode - use filter to select files
-    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ -z $(ls -A "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null) ]] ; then
+    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ $(ls -A "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null) == '' ]] ; then
       echo "Dustbox is empty"
       exit 0
     fi
     
     selected_files=$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" | eval "$BASH_TOYS_INTERACTIVE_FILTER")
     
-    if [[ -z $selected_files ]] ; then
+    if [[ $selected_files == '' ]] ; then
       echo "No files selected"
       exit 0
     fi
     
     # Process each selected file
     while IFS= read -r dustbox_file ; do
-      if [[ -z $dustbox_file ]] ; then
+      if [[ $dustbox_file == '' ]] ; then
         continue
       fi
       

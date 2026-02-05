@@ -9,21 +9,21 @@ _rm_dust_completion() {
   # If --restore option is present, complete with dustbox files
   local restore_mode=false
   for word in "${words[@]}"; do
-    if [[ $word == --restore ]]; then
+    if [[ $word == '--restore' ]] ; then
       restore_mode=true
       break
     fi
   done
 
-  if [[ $cur == -* ]]; then
+  if [[ $cur == -* ]] ; then
     # Complete options
     COMPREPLY=($(compgen -W '--help -h --restore' -- "$cur"))
-  elif [[ $restore_mode == true ]]; then
+  elif [[ $restore_mode == 'true' ]] ; then
     # Complete with files from dustbox
-    if [[ -d $BASH_TOYS_DUSTBOX_DIR ]]; then
+    if [[ -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
       local dustbox_files
       dustbox_files=$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null)
-      if [[ -n $dustbox_files ]]; then
+      if [[ $dustbox_files != '' ]] ; then
         COMPREPLY=($(compgen -W "$dustbox_files" -- "$cur"))
       fi
     fi
