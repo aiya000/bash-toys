@@ -4,19 +4,19 @@
 
 function usage() {
   echo "Usage:"
-  echo "  $0 <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [<nas_remote_username> <nas_remote_password> [nas_remote_user_dir]]"
+  echo "  $0 <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [<nas_remote_username> [nas_remote_user_dir]]"
   echo
   echo 'Example:'
   echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20"
   echo '  # Start photoframe with pictures in /home/pi/LS210D6E9/Pictures/Family'
   echo '  # When NAS directory is not mounted yet, this fails.'
   echo
-  echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword"
-  echo '  # Simular to above example, but if NAS directory is not mounted yet,'
+  echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000"
+  echo '  # Similar to above example, but if NAS directory is not mounted yet,'
   echo '  # (photoframe refers to /home/pi/LS210D6E9/Pictures/Family),'
-  echo '  # this mounts it first with given username and password.'
+  echo '  # this prompts for password and mounts it first with given username.'
   echo
-  echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 mypassword aiya000"
+  echo "  $0 /home/pi/LS210D6E9 /Pictures/Family 192.168.1.20 aiya000 aiya000"
   echo '  # Almost same as above example.'
   echo '  # Only difference is that photoframe refers to /home/pi/LS210D6E9/aiya000/Pictures/Family.'
   echo '  # Some NASes (e.g. Buffalo NAS) has user directories. This is useful in that case.'
@@ -39,8 +39,7 @@ nas_local_mount_point=$1  # e.g. /home/pi/LS210D6E9
 nas_remote_photoframe_dir=$2  # e.g. /10-Picture/ペロララぷちまとめ
 nas_remote_ip=$3  # e.g. 192.168.1.20
 nas_remote_username=$4
-nas_remote_password=$5
-nas_remote_user_dir=$6  # aiya000
+nas_remote_user_dir=$5  # aiya000
 
 remote_mount_dir="//$nas_remote_ip/$nas_remote_user_dir"
 local_photoframe_photos_dir="$nas_local_mount_point/$nas_remote_photoframe_dir"  # e.g. /home/pi/LS210D6E9/10-Picture/ペロララぷちまとめ
@@ -55,14 +54,20 @@ fi
 
 if [[ ! -d $nas_local_mount_point/$nas_remote_photoframe_dir ]] ; then  # If NAS is not mounted yet
   echo "NAS directory is not mounted. Try mounting to $nas_local_mount_point"
-  if [[ $nas_remote_username == '' || $nas_remote_password == '' ]] ; then
+  if [[ $nas_remote_username == '' ]] ; then
     (
-      echo 'Please specify NAS username and password when NAS directory is not mounted yet.'
+      echo 'Please specify NAS username when NAS directory is not mounted yet.'
       echo 'Or mount it manually first before run this script.'
     ) >&2
     exit 1
   fi
-  sudo mount -t cifs -o username=$1,password=$2,vers=1.0 "$remote_mount_dir" "$nas_local_mount_point" || exit 1
+  read -r -s -p "Enter password for $nas_remote_username: " nas_remote_password
+  echo
+  if [[ $nas_remote_password == '' ]] ; then
+    echo 'Password cannot be empty.' >&2
+    exit 1
+  fi
+  sudo mount -t cifs -o username="$nas_remote_username",password="$nas_remote_password",vers=1.0 "$remote_mount_dir" "$nas_local_mount_point" || exit 1
 fi
 
 feh "$local_photoframe_photos_dir" \

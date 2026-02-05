@@ -973,7 +973,7 @@ $ export BASH_TOYS_INTERACTIVE_FILTER=peco-reverse
 Displays photos in fullscreen slideshow mode using feh.
 
 ```bash
-photoframe <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [credentials]
+photoframe <nas_local_mount_point> <nas_remote_photoframe_dir> <nas_remote_ip> [<nas_remote_username> [nas_remote_user_dir]]
 ```
 
 **Examples**:
@@ -983,12 +983,14 @@ $ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20
 Using NAS directory: /home/pi/NAS
 # (feh starts fullscreen slideshow)
 
-# Auto-mount NAS with credentials
-$ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20 myuser mypassword
+# Auto-mount NAS with username (prompts for password)
+$ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20 myuser
 NAS directory is not mounted. Try mounting to /home/pi/NAS
-# (Mounts NAS, then starts slideshow)
+Enter password for myuser: 
+# (Password entered securely, mounts NAS, then starts slideshow)
 
 # With user directory
-$ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20 myuser mypassword myuser
+$ photoframe /home/pi/NAS /Pictures/Family 192.168.1.20 myuser myuser
+Enter password for myuser:
 # (Refers to /home/pi/NAS/myuser/Pictures/Family)
 ```
