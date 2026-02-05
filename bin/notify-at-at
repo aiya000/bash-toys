@@ -127,7 +127,7 @@ function schedule_at_job() {
   # Build target mode string
   local target_modes=()
   [[ "$local_mode" == true ]] && target_modes+=("local")
-  [[ "$mobile_mode" == true ]] && target_modes+=("mobile")
+  [[ "$mobile_mode" == true ]] && target_modes+=("ntfy.sh")
   local target_mode_str
   IFS=',' ; target_mode_str="${target_modes[*]}" ; IFS=' '
 
@@ -519,7 +519,7 @@ if [[ "$local_mode" == true ]] ; then
   echo "Target: local"
 fi
 if [[ "$mobile_mode" == true ]] ; then
-  echo "Target: mobile (ntfy.sh)"
+  echo "Target: ntfy.sh"
 fi
 
 # Get the full path to notify commands

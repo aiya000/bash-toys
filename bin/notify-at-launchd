@@ -265,10 +265,10 @@ EOF
   xattr -w "$LAUNCHD_PREFIX.message" "$message" "$plist_path" 2>/dev/null || true
   xattr -w "$LAUNCHD_PREFIX.target" "$target_timestamp" "$plist_path" 2>/dev/null || true
 
-  # Store target mode (local,mobile)
+  # Store target mode (local,ntfy.sh)
   local target_modes=()
   [[ "$local_mode" == true ]] && target_modes+=("local")
-  [[ "$mobile_mode" == true ]] && target_modes+=("mobile")
+  [[ "$mobile_mode" == true ]] && target_modes+=("ntfy.sh")
   local target_mode_str
   IFS=',' ; target_mode_str="${target_modes[*]}" ; IFS=' '
   xattr -w "$LAUNCHD_PREFIX.mode" "$target_mode_str" "$plist_path" 2>/dev/null || true
@@ -599,7 +599,7 @@ if [[ "$local_mode" == true ]] ; then
   echo "Target: local"
 fi
 if [[ "$mobile_mode" == true ]] ; then
-  echo "Target: mobile (ntfy.sh)"
+  echo "Target: ntfy.sh"
 fi
 
 # Get the full path to notify-ntfy command
