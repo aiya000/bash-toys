@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# Shows all directories of 6 depth (if `fd` is available, or 3 depth for `find`), and cd to a directory you selected.
-#
-# ```shell-session
-# TODO: Write an example
-# ```
+# See ../doc/sources.md for description
 
 dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 

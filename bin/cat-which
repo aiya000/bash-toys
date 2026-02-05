@@ -1,19 +1,6 @@
 #!/bin/bash
 
-# A shorthand to `cat $(which cmd)`.
-# (Also, not plain text executables are skipped.)
-#
-# This uses bat (batcat) instead of cat if available automatically.
-# - bat: https://github.com/sharkdp/bat
-#
-# Example:
-# ```shell-session
-# $ cat-which dust  # If a plain text script specified
-# (The contents of dust will be displayed)
-#
-# $ cat-which zsh  # If a binary specified
-# Not a plain text: /bin/zsh
-# ```
+# See ../doc/bin.md for description
 
 function show_help () {
   cat << 'EOF'

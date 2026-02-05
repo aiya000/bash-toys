@@ -1,18 +1,6 @@
 #!/bin/bash
 
-# Slice fields from input lines
-#
-# ```shell-session
-# $ echo -e "a,b,c,d" | slice , 2 3  # Basic usage
-# b,c
-#
-# $ echo -e "a,b,c,d" | slice , 2  # Slice from 2nd field to the end
-# b,c,d
-#
-# $ echo -e "a,b,c,d\ne,f,g,h" | slice , 2 3  # Multiple lines
-# b,c
-# f,g
-# ```
+# See ../doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

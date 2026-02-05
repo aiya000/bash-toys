@@ -1,18 +1,6 @@
 #!/bin/bash
 
-# An alternative of `rm`, but 'mv' to dustbox instead.
-#
-# Simple usage (`mv README.md ...` is the result output):
-# ```shell-session
-# $ ls README.md  # Check existence of readme
-# $ rm-dust README.md
-# mv README.md /home/aiya000/.backup/dustbox/README.md_2025-02-25_13:45:37.md
-# ```
-#
-# ```shell-session
-# # TODO: List backed up files
-# $ rm-dust --list
-# ```
+# See ../doc/bin.md for description
 
 function show_help () {
   cat << 'EOF'

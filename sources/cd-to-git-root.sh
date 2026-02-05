@@ -1,11 +1,6 @@
 #!/bin/bash
 
-# `cd` to the git root directory.
-# The behavior when Atata is on a Windows file system with WSL is also supported.
-#
-# ```shell-session
-# TODO: Write an example
-# ```
+# See ../doc/sources.md for description
 
 function bash-toys::help::cd-to-git-root () {
   cat << 'EOF'

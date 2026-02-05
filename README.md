@@ -16,6 +16,7 @@
 
 - [Quick Start](#bookmark_tabs-quick-start)
 - [Scripts](#bookmark_tabs-scripts)
+- [Documentation](#bookmark_tabs-documentation)
 - [Installation](#bookmark_tabs-installation)
 - [Help](#bookmark_tabs-show-help-for-commands)
 - [Contributing](#bookmark_tabs-contributing)
@@ -36,6 +37,16 @@ If using zsh:
 ```bash
 echo 'source /path/to/bash-toys/source-all.sh' >> ~/.zshrc
 ```
+
+## :bookmark_tabs: Documentation
+
+For detailed documentation with examples and options, see:
+
+- [doc/main.md](./doc/main.md) - Overview and main entry point
+    - [doc/bin.md](./doc/bin.md) - Executable commands in `./bin/`
+    - [doc/sources.md](./doc/sources.md) - Source functions in `./sources/`
+
+See also 'Scripts' section for what is `bin` and `sources`.
 
 ## :bookmark_tabs: Scripts
 
@@ -117,7 +128,7 @@ Here are some scripts that can boost your daily workflow:
 
 **[`rm-dust`](./bin/rm-dust)** - Safe alternative to `rm`. Never lose files by accident again!
 
-```shell-session
+```bash
 $ rm-dust important.txt        # Moves to dustbox instead of deleting
 $ rm-dust *.log                # Clean up logs safely
 $ alias rm=rm-dust             # Recommended: replace rm globally
@@ -125,7 +136,7 @@ $ alias rm=rm-dust             # Recommended: replace rm globally
 
 **[`bak`](./bin/bak)** - Quick backup toggle. One command to backup, one to restore.
 
-```shell-session
+```bash
 $ bak config.yaml              # Creates config.bak.yaml
 $ vim config.yaml              # Edit the original
 $ bak config.yaml              # Restore from backup if needed
@@ -133,7 +144,7 @@ $ bak config.yaml              # Restore from backup if needed
 
 **[`nvim-parent-edit`](./sources/nvim-parent-edit.sh)** - Edit files in parent Neovim from nested terminal. (Show also an example: [nvim.lua](https://github.com/aiya000/dotfiles/blob/906c7ed230e74c3dbaf2be7797d7537616470647/.config/nvim/lua/nvim.lua#L305-L307), [keymaps.lua](https://github.com/aiya000/dotfiles/blob/906c7ed230e74c3dbaf2be7797d7537616470647/.config/nvim/lua/keymaps.lua#L212-L217))
 
-```shell-session
+```bash
 # Inside Neovim's :terminal
 $ nvim-parent-edit file.txt   # Opens in parent Neovim, not a nested instance (not Neovim in Neovim)
 $ nvim-parent-edit *.js       # Open multiple files
@@ -141,7 +152,7 @@ $ nvim-parent-edit *.js       # Open multiple files
 
 **[`fast-sync`](./bin/fast-sync)** - Efficient file sync by comparing file lists first.
 
-```shell-session
+```bash
 $ fast-sync --init ~/photos    # Initialize sync state
 $ fast-sync ~/photos /backup   # Only syncs new/changed files
 # Much faster than full rsync for large directories
@@ -157,7 +168,7 @@ $ fast-sync ~/photos /backup   # Only syncs new/changed files
 
 Many tests in this project ([./test](./test)) are written with `expects`.
 
-```shell-session
+```bash
 $ x=10 ; expects "$x" to_be 42
 FAIL: expected {actual} to_be '42', but {actual} is '10'
 
@@ -181,14 +192,14 @@ See [`expects`](./bin/expects).
 
 **[`notify`](./bin/notify)** - Simple desktop notification. Works on macOS, Linux, and WSL.
 
-```shell-session
+```bash
 $ notify "Build Done" "Your project compiled successfully"
 $ make && notify "Success" "Build complete" || notify "Failed" "Build error"
 ```
 
 **[`notify-ntfy`](./bin/notify-ntfy)** - Send notifications to your phone via [ntfy.sh](https://ntfy.sh).
 
-```shell-session
+```bash
 $ notify-ntfy "Backup Done" "Server backup completed"  # Sends to mobile
 $ long-running-task && notify-ntfy "Done" "Task finished"
 # Requires: export BASH_TOYS_NTFY_TOPIC="your-topic-name"
@@ -198,7 +209,7 @@ $ long-running-task && notify-ntfy "Done" "Task finished"
 
 **[`notify-at`](./bin/notify-at)** - Schedule notifications with human-friendly time formats. (A wrapper for `notify`, and `at` command (Linux) or `launchd` (macOS).)
 
-```shell-session
+```bash
 $ notify-at 15:00 "Meeting" "Team standup starting"         # Show notification to desktop at 3 PM
 $ notify-at 15:00 "Meeting" "Team standup starting" --local # --local (Show notification to desktop) by default (Same as above)
 $ notify-at "01-15 09:00" "Reminder" "Project deadline"     # Show notification to desktop on Jan 15 at 9 AM
@@ -208,7 +219,7 @@ $ notify-at 18:00 "Dinner" "Cook" 1h --mobile --local       # Show/Send notifica
 
 **[`notify-cascade`](./bin/notify-cascade)** - Get reminded at multiple intervals before an event. (A wrapper for `notify-at`.)
 
-```shell-session
+```bash
 $ notify-cascade 15:00 "Meeting" "Standup" 30m 10m 5m    # Show notification at 14:30, 14:50, and 14:55
 $ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --mobile   # Send notification to mobile (requires notify-ntfy setup)
 $ notify-cascade 18:00 "Dinner" "Cook" 1h 30m --local    # Desktop only (default)
@@ -217,7 +228,7 @@ $ notify-cascade 18:00 "Dinner" "Cook" 1h --mobile --local  # Both mobile and de
 
 **[`pomodoro-timer`](./bin/pomodoro-timer)** - Simple Pomodoro technique timer with notifications.
 
-```shell-session
+```bash
 $ pomodoro-timer              # Default 30 minutes
 $ pomodoro-timer 25           # Classic 25-minute pomodoro
 $ pomodoro-timer --rest 5     # 5-minute break timer
@@ -231,7 +242,7 @@ $ pomodoro-timer --rest 5     # 5-minute break timer
 
 **[`skip`](./bin/skip)** & **[`slice`](./bin/slice)** - Simple but powerful text manipulation.
 
-```shell-session
+```bash
 $ cat data.csv | skip 1                    # Skip header row
 $ echo "a,b,c,d" | slice , 2 3             # Extract fields 2-3: "b,c"
 $ ps aux | skip 1 | slice ' ' 1 2          # Get PID and user columns
@@ -239,14 +250,14 @@ $ ps aux | skip 1 | slice ' ' 1 2          # Get PID and user columns
 
 **[`take-until-empty`](./bin/take-until-empty)** - Read until blank line. Perfect for parsing sections.
 
-```shell-session
+```bash
 $ cat changelog.md | take-until-empty          # Get first section only
 $ git log --format="%B" -1 | take-until-empty  # Get commit title only
 ```
 
 **[`pathshorten`](./bin/pathshorten)** - Shorten paths like Vim's `pathshorten()`. Great for prompts!
 
-```shell-session
+```bash
 $ pathshorten ~/Documents/Projects/myapp/src  # => ~/Docu/Proj/myap/src
 $ PS1="\$(pathshorten \$PWD) $ "              # Use in bash prompt
 ```
@@ -259,7 +270,7 @@ $ PS1="\$(pathshorten \$PWD) $ "              # Use in bash prompt
 
 **[`cd-finddir`](./sources/cd-finddir.sh)** - Fuzzy directory navigation. Never type long paths again!
 
-```shell-session
+```bash
 $ cd-finddir                  # Shows directory picker
 ...
 luarrow.lua/src/
@@ -280,14 +291,14 @@ chotto.lua/
 
 **[`cd-to-git-root`](./sources/cd-to-git-root.sh)** & **[`git-root`](./bin/git-root)** - Quick access to repository root.
 
-```shell-session
+```bash
 $ cd-to-git-root              # Jump to repo root from anywhere
 $ cat $(git-root)/README.md   # Reference files from repo root
 ```
 
 **[`cd-to-node-root`](./sources/cd-to-node-root.sh)** - Jump to nearest `package.json` directory.
 
-```shell-session
+```bash
 $ pwd
 /project/src/components/ui
 $ cd-to-node-root
@@ -298,7 +309,7 @@ $ npm test                    # Now you can run npm commands
 
 **[`cat-which`](./bin/cat-which)** - Instantly view any script's source code.
 
-```shell-session
+```bash
 $ cat-which rm-dust           # See how rm-dust works
 $ cat-which my-script         # Debug your own scripts
 ```
@@ -311,7 +322,7 @@ $ cat-which my-script         # Debug your own scripts
 
 **[`start`](./bin/start)** - Launch GUI apps without terminal noise.
 
-```shell-session
+```bash
 $ start firefox               # Opens Firefox, returns prompt immediately
 $ start code .                # Open VS Code without blocking
 $ start vlc music.mp3         # Play music in background
@@ -319,7 +330,7 @@ $ start vlc music.mp3         # Play music in background
 
 **[`kill-list`](./bin/kill-list)** - Interactive process killer. No more memorizing PIDs!
 
-```shell-session
+```bash
 $ kill-list
   PID START                     COMMAND
 ...
@@ -338,7 +349,7 @@ $ kill-list
 
 **[`clamdscan-full`](./bin/clamdscan-full)** - Full system virus scan with ClamAV.
 
-```shell-session
+```bash
 $ clamdscan-full /            # Scan entire system
 $ clamdscan-full ~/Downloads  # Scan specific directory
 # Requires ClamAV daemon (clamd) running
@@ -351,7 +362,7 @@ $ clamdscan-full ~/Downloads  # Scan specific directory
 
 Most commands support `--help` option:
 
-```shell-session
+```bash
 $ rm-dust --help
 rm-dust - Alternative to rm that moves files to dustbox instead of deletion
 
@@ -363,7 +374,7 @@ Usage:
 
 If a command doesn't have `--help`, use `bash-toys-help` to extract help from script comments:
 
-```shell-session
+```bash
 $ bash-toys-help rm-dust
 
 # For 'source' commands (don't forget .sh extension)
@@ -382,19 +393,19 @@ If you are using zsh, replace `~/.bashrc` with `~/.zshrc`.
 
 1. Clone the repository
 
-```shell-session
+```bash
 $ git clone --depth 1 https://github.com/aiya000/bash-toys.git /path/to/bash-toys
 ```
 
 2. Source the `source-all.sh` script in your `.bashrc` or `.zshrc`
 
-```shell-session
+```bash
 $ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.bashrc
 ```
 
 3. (**Optional**) Configure options if necessary
 
-```shell-session
+```bash
 $ vim /path/to/bash-toys/define-options.sh
 ```
 
@@ -431,14 +442,14 @@ Here is how to install individual tools.
 
 1. Create base directory
 
-```shell-session
+```bash
 $ mkdir -p ~/lib/bash-toys || true
 $ echo 'export PATH=$PATH:~/lib/bash-toys' >> ~/.bashrc
 ```
 
 2. (**Optional**) Install dependencies if needed
 
-```shell-session
+```bash
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/lib/fun.sh -o ~/lib/bash-toys/fun.sh
 $ echo 'source ~/lib/bash-toys/fun.sh' >> ~/.bashrc
 ```
@@ -449,7 +460,7 @@ Some scripts require environment variables to be configured. You can either:
 
 Download and source `define-options.sh`:
 
-```shell-session
+```bash
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/define-options.sh -o ~/lib/bash-toys/define-options.sh
 $ echo 'source ~/lib/bash-toys/define-options.sh' >> ~/.bashrc
 ```
@@ -464,13 +475,13 @@ export BASH_TOYS_BATCAT_OPTIONS=''
 
 4. Install a tool you want
 
-```shell-session
+```bash
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/bin/bak -o ~/bin/bak
 ```
 
 For `./sources/*`, don't forget to `source`:
 
-```shell-session
+```bash
 $ curl https://raw.githubusercontent.com/aiya000/bash-toys/refs/heads/main/sources/cd-to-git-root.sh -o /path/to/sources/cd-to-git-root.sh
 $ echo 'source /path/to/sources/cd-to-git-root.sh' >> ~/.bashrc
 ```

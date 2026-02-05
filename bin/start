@@ -1,21 +1,6 @@
 #!/bin/bash
 
-# Starts a command in the background with no CLI outputs.
-#
-# ```shell-session
-# $ start vlc
-# (Opening vlc with no outputs)
-# $ ls  # You can stay in your current shell
-# ...
-# ```
-#
-# For comparison, an example case without 'start'.
-# ```shell-session
-# $ vlc
-# VLC media player 3.0.16 Vetinari (revision 3.0.13-8-g41878ff4f2)
-# ...
-# ('Ctrl + c' required to return the shell)
-# ```
+# See ../doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

@@ -1,18 +1,6 @@
 #!/bin/bash
 
-# Sends notification with title and message to your Desktop
-#
-# ```shell-session
-# # Simple usage:
-# $ notify title message
-#
-# # Notify with sound:
-# $ notify title message /path/to/sound
-# ```
-#
-# Note for macOS :
-# To make notifications stay longer, go to System Settings > Notifications & Focus,
-# find "Script Editor" and change the alert style to "Alerts" instead of "Banners".
+# See ../doc/bin.md for description
 
 function show_help() {
   cat << EOF

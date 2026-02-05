@@ -1,25 +1,6 @@
 #!/bin/bash
 
-# Neovim parent file opening via RPC
-# Usage:
-#
-# 1. Install this script & source this. Read ../README.md how to install
-# ```bash
-# # If standalone installed
-# source ~/bash-toys/sources/nvim-parent-edit.sh
-# ```
-#
-# 2. Start Neovim & Run below lua script to open your shell
-# ```lua
-# vim.fn.jobstart(vim.env.SHELL, {
-#   env = {
-#     NVIM_PARENT_ADDRESS = vim.v.servername,
-#   },
-# })
-# ```
-#
-# 3. Run `$ nvim somefile` in the child terminal (started in 2.) simply
-#   - Then, `somefile` is opened in your parent Neovim's new tab
+# See ../doc/sources.md for description
 
 if [[ $NVIM_PARENT_ADDRESS == '' ]] ; then
   return 1

@@ -1,11 +1,6 @@
 #!/bin/bash
 
-# A helper function for ./pomodoro-start-from
-#
-# Example:
-#
-# date-diff-seconds-now '08-05 21:47'
-# date-diff-seconds-now 21:47
+# See ../doc/bin.md for description
 
 function show_help () {
   cat << 'EOF'

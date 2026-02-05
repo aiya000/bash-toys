@@ -1,17 +1,6 @@
 #!/bin/bash
 
-# ```shell-session
-# $ list-dpkg-executables wslu
-# /usr/bin/wslact
-# /usr/bin/wslclip
-# /usr/bin/wslfetch
-# /usr/bin/wslgsu
-# /usr/bin/wslsys
-# /usr/bin/wslupath
-# /usr/bin/wslusc
-# /usr/bin/wslvar
-# /usr/bin/wslview
-# ```
+# See ../doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

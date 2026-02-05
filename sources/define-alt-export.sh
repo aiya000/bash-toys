@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Similar to ./define-alt, but this one performs `export`
-# ```shell-session
-# $ define-alt-export BASH_TOYS_INTERACTIVE_FILTER peco
-# ```
+# See ../doc/sources.md for description
 
 dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 

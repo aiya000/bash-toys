@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# ```shell-session
-# $ export FOO=1
-# $ force-unexport FOO
-# $ [[ -z $FOO ]] && echo yes
-# yes
-# ```
-#
-# See: https://unix.stackexchange.com/questions/252747/how-can-i-un-export-a-variable-without-losing-its-value
+# See ../doc/sources.md for description
 
 function bash-toys::help::force-unexport () {
   cat << 'EOF'

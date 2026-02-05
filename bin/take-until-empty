@@ -1,21 +1,6 @@
 #!/bin/bash
 
-# Takes input lines until a blank line appears.
-#
-# ```shell-session
-# $ touch file
-# $ echo a >> file
-# $ echo b >> file
-# $ echo '' >> file
-# $ echo c >> file
-#
-# $ cat file | take-until-empty
-# a
-# b
-# $ take-until-empty file
-# a
-# b
-# ```
+# See ../doc/bin.md for description
 
 function show_help() {
   cat << 'EOF'

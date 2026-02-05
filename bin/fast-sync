@@ -1,19 +1,6 @@
 #!/bin/bash
 
-# A script to efficiently sync files from a source to a target directory
-# by first comparing file lists to avoid a full rsync scan.
-#
-# Example:
-# ```bash
-# # Initialize sync state for a directory
-# $ fast-sync --init /path/to/source
-#
-# # Sync files from source to target directory
-# $ fast-sync /path/to/source /path/to/target
-#
-# # The script will only sync new files that don't exist in target
-# $ fast-sync /home/user/documents /backup/documents
-# ```
+# See ../doc/bin.md for description
 
 set -e
 set -o pipefail

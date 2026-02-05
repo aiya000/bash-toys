@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# Opens a selected bookmark in the default browser.
-# The bookmarks are defined in BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS (separated by '|').
-#
-# ```shell-session
-# $ bookmark-open
-# # Shows interactive filter with bookmarks
-# # Opens selected bookmark in the default browser
-# ```
+# See ../doc/bin.md for description
 
 if [[ $1 == '--help' || $1 == '-h' ]] ; then
   cat << EOF

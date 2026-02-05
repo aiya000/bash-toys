@@ -1,9 +1,6 @@
 #!/usr/bin/env -S deno run --allow-net
 
-/**
- * Calculate required daily working hours for remaining business days in the month.
- * Automatically fetches Japanese holidays from public API.
- */
+// See ../doc/bin.md for description
 
 async function getJapaneseHolidays(year: number, month: number): Promise<Set<string>> {
   try {

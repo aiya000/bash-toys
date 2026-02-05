@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# A helper function for ./pomodoro-start-from and ./date-diff-seconds-now
-# Calculates minutes of $2 - $1
-#
-# Example:
-#
-# $ date-diff-seconds '08-05 21:47' '08-05 22:33'
-# $ date-diff-seconds 21:47 22:33  -- Infer both times is today's
+# See ../doc/bin.md for description
 
 function show_help () {
   cat << 'EOF'
