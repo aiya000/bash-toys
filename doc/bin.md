@@ -524,6 +524,28 @@ $ git-root
 # Exit status: 1
 ```
 
+### git-common-dir
+
+Shows the git common directory.
+
+```bash
+git-common-dir
+```
+
+**Examples**:
+```bash
+# Inside a git repository
+$ cd /path/to/git/repo/subdir
+$ git-common-dir
+/path/to/git/repo/.git
+
+# Outside a git repository (error)
+$ cd /tmp
+$ git-common-dir
+# (no output)
+# Exit status: 1
+```
+
 ### pathshorten
 
 Abbreviates path like Vim's pathshorten().
