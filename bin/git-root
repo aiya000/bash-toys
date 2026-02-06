@@ -15,11 +15,16 @@ Options:
 
 Description:
   Prints the root directory of the current git repository.
-  Returns exit code 1 if not inside a git repository.
+  Returns exit code 1 **with no ouput** if not inside a git repository.
 
 Examples:
-  cd /path/to/git/repo/subdir && git-root
-  # Output: /path/to/git/repo
+  $ cd /path/to/git/repo/subdir && git-root
+  /path/to/git/repo
+
+  $ cd /path/to/non-git-dir && git-root
+  (No output)
+  $ echo $?
+  1
 EOF
 }
 
