@@ -546,6 +546,41 @@ $ git-common-dir
 # Exit status: 1
 ```
 
+### git-stash-rename
+
+Renames a git stash message by editing the stash log file directly.
+
+```bash
+git-stash-rename <new_message>
+git-stash-rename <stash_index> <new_message>
+```
+
+**Description**:
+
+- If only one argument is provided, it renames `stash@{0}`
+- Works correctly in git worktree environments
+
+**Examples**:
+```bash
+# Rename stash@{0} (default)
+$ git-stash-rename "Standard Dachshund"
+Renamed stash@{0}
+  from: WIP on main: abc1234 Previous work
+  to: Standard Dachshund
+
+# Rename stash@{0} explicitly
+$ git-stash-rename 0 "Miniature Dachshund"
+Renamed stash@{0}
+  from: Standard Dachshund
+  to: Miniature Dachshund
+
+# Rename stash@{1}
+$ git-stash-rename 1 "kaninchen dachshund"
+Renamed stash@{1}
+  from: WIP on feature: def5678 Other work
+  to: kaninchen dachshund
+```
+
 ### pathshorten
 
 Abbreviates path like Vim's pathshorten().
