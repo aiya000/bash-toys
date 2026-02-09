@@ -173,41 +173,70 @@ Error: 1 or more arguments required
 
 ### rm-dust
 
-Alternative to rm that moves files to dustbox instead of deletion.
+Alternative to rm that moves files and directories to dustbox instead of deletion.
 
 ```bash
-rm-dust FILE...
-rm-dust --restore [FILE...]
+rm-dust FILE|DIR...
+rm-dust --restore [FILE|DIR...]
 ```
 
-Files are moved to `$BASH_TOYS_DUSTBOX_DIR` with timestamp.
+Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date-hour directories with encoded full paths.
+
+**Storage Format** (Since PR-52):
+- Directory structure: `YYYY-MM-DD-HH/` (organized by date and hour)
+- Filename format: `+full+path+filename.HH:MM[.ext]` (for files)
+- Directory format: `+full+path+dirname.HH:MM/` (for directories)
+- Path encoding: `/` is replaced with `+`
+- All paths are stored as absolute paths
 
 **Options**:
-- `--restore` - Restore files from dustbox (interactive or specific files)
+- `--restore` - Restore files or directories from dustbox (interactive or specific items)
 
 **Examples**:
 ```bash
-# Move files to dustbox
-$ rm-dust test.txt
-mv test.txt /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt
+# Move files to dustbox (relative path)
+$ cd /home/user/dir
+$ rm-dust file-in-current-directory
+mv file-in-current-directory /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file-in-current-directory.13:58
 
-# Multiple files
-$ rm-dust file1.txt file2.txt
-mv file1.txt /home/user/.backup/dustbox/file1.txt_2026-02-03_13:32:52.txt
-mv file2.txt /home/user/.backup/dustbox/file2.txt_2026-02-03_13:32:53.txt
+# Move files to dustbox (absolute path)
+$ rm-dust /full/path/file.ext
+mv /full/path/file.ext /home/user/.backup/dustbox/2026-02-09-13/+full+path+file.13:58.ext
 
-# Preserves extension
-$ rm-dust document.pdf
-mv document.pdf /home/user/.backup/dustbox/document.pdf_2026-02-03_13:32:52.pdf
+# Move directories to dustbox
+$ cd /home/user
+$ rm-dust my-dir
+mv my-dir /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58/
+$ ls /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58/
+file1.txt  file2.txt  subdir/
 
-# Restore files interactively
+# Multiple versions at different times
+$ rm-dust file.txt
+mv file.txt /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt
+$ # ... edit file.txt ...
+$ rm-dust file.txt
+mv file.txt /home/user/.backup/dustbox/2026-02-09-14/+home+user+dir+file.14:10.txt
+
+# Restore files and directories interactively (shows human-readable format)
 $ rm-dust --restore
-# (Interactive filter appears with dustbox files)
-mv /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt test.txt
+# Display format: YYYY-MM-DD-HH HH:MM: /original/path (directories end with /)
+2026-02-09-13 13:58: /full/path/file.ext
+2026-02-09-13 13:58: /home/user/dir/file-in-current-directory
+2026-02-09-13 13:58: /home/user/my-dir/
+2026-02-09-14 14:10: /home/user/dir/file.txt
+# (Select files or directories to restore)
 
-# Restore specific file
-$ rm-dust --restore +tmp+test.txt_2026-02-03_13:32:52.txt
-mv /home/user/.backup/dustbox/+tmp+test.txt_2026-02-03_13:32:52.txt /tmp/test.txt
+# Restore specific file by filename
+$ rm-dust --restore "+home+user+dir+file.13:58.txt"
+mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# Restore specific directory by filename
+$ rm-dust --restore "+home+user+my-dir.13:58"
+mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58 /home/user/my-dir
+
+# Restore specific file by full path
+$ rm-dust --restore "2026-02-09-13/+home+user+dir+file.13:58.txt"
+mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
 ```
 
 **Bash Completion**:
@@ -218,8 +247,15 @@ source /path/to/bash-toys/completions/rm-dust.bash
 
 Completion features:
 - Option completion: `--help`, `-h`, `--restore`
-- File completion: normal file paths when adding to dustbox
-- Dustbox file completion: files in dustbox when using `--restore`
+- File/directory completion: normal paths when adding to dustbox
+- Dustbox item completion: files and directories in dustbox when using `--restore`
+
+**Migration from Old Format**:
+If you have files or directories in the old format (before PR-52), you need to migrate them to the new format. Run the migration script:
+```bash
+bash /path/to/bash-toys/migration/rm-dust-PR-52.sh
+```
+See [migration script](../migration/rm-dust-PR-52.sh) for details.
 
 ### cat-which
 
