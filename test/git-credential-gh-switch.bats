@@ -51,10 +51,15 @@ setup() {
   # Test that the script runs without crashing when given proper input
   # We don't test actual credential retrieval as it requires gh authentication
   # The script may fail (exit non-zero) if account switch fails, but it should not crash
-  run bash -c 'echo -e "protocol=https\nhost=github.com\n" | git-credential-gh-switch testuser get 2>&1' || true
+  run bash -c 'echo -e "protocol=https\nhost=github.com\n" | git-credential-gh-switch testuser get 2>&1'
 
   # Just verify the command executes (even if it fails due to invalid account)
   # The important thing is that the script doesn't crash with a syntax error
+  # Accept exit codes 0 (success) and 1 (normal failure, e.g., invalid account); others indicate a crash
+  if [[ "$status" -ne 0 && "$status" -ne 1 ]]; then
+    echo "Unexpected exit status from git-credential-gh-switch: $status"
+    return 1
+  fi
   expects "$status" to_be_defined
 }
 
