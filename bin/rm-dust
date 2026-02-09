@@ -4,25 +4,27 @@
 
 function show_help () {
   cat << 'EOF'
-rm-dust - Alternative to rm that moves files to dustbox instead of deletion
+rm-dust - Alternative to rm that moves files and directories to dustbox instead of deletion
 
 Usage:
-  rm-dust FILE...
-  rm-dust --restore [FILE...]
+  rm-dust FILE|DIR...
+  rm-dust --restore [FILE|DIR...]
   rm-dust --help
 
 Arguments:
-  FILE...          Files to move to dustbox or restore
+  FILE|DIR...      Files or directories to move to dustbox or restore
 
 Options:
   -h, --help      Show this help message
-  --restore       Restore files from dustbox
+  --restore       Restore files or directories from dustbox
 
 Notes:
-  - Files are moved to $BASH_TOYS_DUSTBOX_DIR
-  - Timestamp is added to filename to prevent conflicts
-  - Directory structure is flattened (/ replaced with +)
-  - Use --restore to interactively select and restore files
+  - Files and directories are moved to $BASH_TOYS_DUSTBOX_DIR organized by date-hour directories
+  - Files are stored in format: YYYY-MM-DD-HH/+full+path+filename.HH:MM[.ext]
+  - Directories are stored in format: YYYY-MM-DD-HH/+full+path+dirname.HH:MM/
+  - Paths are encoded with / replaced by +
+  - Use --restore to interactively select and restore files or directories
+  - Interactive restore shows: YYYY-MM-DD-HH HH:MM: /original/path
 EOF
 }
 
@@ -51,73 +53,225 @@ fi
 if [[ $restore_mode == 'true' ]] ; then
   # Restore mode
   if [[ $# -eq 0 ]] ; then
-    # Interactive mode - use filter to select files
-    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ $(ls -A "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null) == '' ]] ; then
+    # Interactive mode - use filter to select files and directories
+    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ $(find "$BASH_TOYS_DUSTBOX_DIR" \( -type f -o -type d \) 2>/dev/null | wc -l) -eq 0 ]] ; then
       echo "Dustbox is empty"
       exit 0
     fi
-    
-    selected_files=$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" | eval "$BASH_TOYS_INTERACTIVE_FILTER")
-    
-    if [[ $selected_files == '' ]] ; then
-      echo "No files selected"
+
+    # Build a list with formatted information: "date time: original_path"
+    # Format: YYYY-MM-DD-HH HH:MM: /full/path/to/file (or directory/)
+    temp_list=()
+    declare -A file_map
+
+    # Iterate through all date-hour directories
+    for date_dir in "$BASH_TOYS_DUSTBOX_DIR"/*/ ; do
+      if [[ ! -d $date_dir ]] ; then
+        continue
+      fi
+
+      date_hour=$(basename "$date_dir")
+
+      # Process each file or directory
+      for full_path in "$date_dir"* ; do
+        if [[ ! -e $full_path ]] ; then
+          continue
+        fi
+
+        filename=$(basename "$full_path")
+
+        # Check if it's a directory
+        is_dir=false
+        if [[ -d $full_path ]] ; then
+          is_dir=true
+          # Remove trailing slash if present
+          filename="${filename%/}"
+        fi
+
+        # Extract time and original path from filename
+        # Format: +full+path+name.HH:MM[.ext] (for files) or +full+path+dirname.HH:MM (for directories)
+        if [[ $filename =~ \.([0-9]{2}:[0-9]{2})(\.(.+))?$ ]] ; then
+          time_part="${BASH_REMATCH[1]}"
+          ext_part="${BASH_REMATCH[2]}"
+          # Remove .HH:MM[.ext] from the end
+          rest="${filename%.$time_part*}"
+        else
+          # Invalid format, skip
+          continue
+        fi
+
+        # Decode path: replace + with /
+        original_path=$(echo "$rest" | sed 's;+;/;g')
+        # Add extension back if present (files only)
+        if [[ $is_dir == false ]] ; then
+          original_path="${original_path}${ext_part}"
+        fi
+        # Add trailing slash for directories
+        if [[ $is_dir == true ]] ; then
+          original_path="${original_path}/"
+        fi
+
+        # Create display line
+        display_line="$date_hour $time_part: $original_path"
+        temp_list+=("$display_line")
+        file_map["$display_line"]="$date_hour/$filename"
+      done
+    done
+
+    # Sort by date, time, and path
+    IFS=$'\n' sorted_list=($(printf '%s\n' "${temp_list[@]}" | sort))
+
+    # Present to user for selection
+    selected_lines=$(printf '%s\n' "${sorted_list[@]}" | eval "$BASH_TOYS_INTERACTIVE_FILTER")
+
+    if [[ $selected_lines == '' ]] ; then
+      echo "No files or directories selected"
       exit 0
     fi
-    
+
     # Process each selected file
-    while IFS= read -r dustbox_file ; do
-      if [[ $dustbox_file == '' ]] ; then
+    while IFS= read -r selected_line ; do
+      if [[ $selected_line == '' ]] ; then
         continue
       fi
-      
-      # Extract original path by reversing the transformation
-      # Remove timestamp pattern: _YYYY-MM-DD_HH:MM:SS and optional extension
-      original_name=$(echo "$dustbox_file" | sed -E 's/_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[^.]+)?$//')
-      # Replace + with /
-      original_path=$(echo "$original_name" | sed 's;+;/;g')
-      
+
+      # Get the relative path from the map
+      relative_path="${file_map[$selected_line]}"
+      if [[ $relative_path == '' ]] ; then
+        echo "Warning: Could not find file for selection: $selected_line" >&2
+        continue
+      fi
+
+      # Extract original path from the selected line
+      original_path=$(echo "$selected_line" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}: //')
+
+      # Remove trailing slash if present (for directories)
+      original_path="${original_path%/}"
+
       # Create parent directory if needed
       parent_dir=$(dirname "$original_path")
       if [[ $parent_dir != '.' ]] && [[ ! -d $parent_dir ]] ; then
         mkdir -p "$parent_dir"
       fi
-      
-      echo mv "$BASH_TOYS_DUSTBOX_DIR/$dustbox_file" "$original_path"
-      mv "$BASH_TOYS_DUSTBOX_DIR/$dustbox_file" "$original_path"
-    done <<< "$selected_files"
+
+      echo mv "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
+      mv "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
+    done <<< "$selected_lines"
   else
-    # Direct file restoration
-    for dustbox_file in "$@" ; do
-      if [[ ! -f "$BASH_TOYS_DUSTBOX_DIR/$dustbox_file" ]] ; then
-        echo "File not found in dustbox: $dustbox_file"
+    # Direct file/directory restoration with path pattern: date-hour/name
+    for arg in "$@" ; do
+      # Check if arg contains a /
+      if [[ $arg == */* ]] ; then
+        # Full path in dustbox (date-hour/name)
+        dustbox_path="$arg"
+      else
+        # Just name, need to search for it
+        found=false
+        for date_dir in "$BASH_TOYS_DUSTBOX_DIR"/*/ ; do
+          if [[ -e "$date_dir/$arg" ]] ; then
+            dustbox_path="$(basename "$date_dir")/$arg"
+            found=true
+            break
+          fi
+        done
+
+        if [[ $found == 'false' ]] ; then
+          echo "File or directory not found in dustbox: $arg"
+          continue
+        fi
+      fi
+
+      full_dustbox_path="$BASH_TOYS_DUSTBOX_DIR/$dustbox_path"
+
+      if [[ ! -e $full_dustbox_path ]] ; then
+        echo "File or directory not found in dustbox: $dustbox_path"
         continue
       fi
-      
-      # Extract original path
-      original_name=$(echo "$dustbox_file" | sed -E 's/_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[^.]+)?$//')
-      original_path=$(echo "$original_name" | sed 's;+;/;g')
-      
+
+      filename=$(basename "$dustbox_path")
+
+      # Check if it's a directory
+      is_dir=false
+      if [[ -d $full_dustbox_path ]] ; then
+        is_dir=true
+        # Remove trailing slash if present
+        filename="${filename%/}"
+      fi
+
+      # Extract original path from filename
+      # Format: +full+path+name.HH:MM[.ext] (for files) or +full+path+dirname.HH:MM (for directories)
+      if [[ $filename =~ \.([0-9]{2}:[0-9]{2})(\.(.+))?$ ]] ; then
+        time_part="${BASH_REMATCH[1]}"
+        ext_part="${BASH_REMATCH[2]}"
+        # Remove .HH:MM[.ext] from the end
+        rest="${filename%.$time_part*}"
+      else
+        echo "Invalid filename format: $filename"
+        continue
+      fi
+
+      # Decode path: replace + with /
+      original_path=$(echo "$rest" | sed 's;+;/;g')
+      # Add extension back if present (files only)
+      if [[ $is_dir == false ]] ; then
+        original_path="${original_path}${ext_part}"
+      fi
+
       # Create parent directory if needed
       parent_dir=$(dirname "$original_path")
       if [[ $parent_dir != '.' ]] && [[ ! -d $parent_dir ]] ; then
         mkdir -p "$parent_dir"
       fi
-      
-      echo mv "$BASH_TOYS_DUSTBOX_DIR/$dustbox_file" "$original_path"
-      mv "$BASH_TOYS_DUSTBOX_DIR/$dustbox_file" "$original_path"
+
+      echo mv "$full_dustbox_path" "$original_path"
+      mv "$full_dustbox_path" "$original_path"
     done
   fi
 else
-  # Normal mode - move files to dustbox
+  # Normal mode - move files and directories to dustbox
   for file in "$@" ; do
-    maybe_ext=${file##*.}
-    if [[ $file != "$maybe_ext" ]] ; then
-      ext=".$maybe_ext"
+    # Check if file or directory exists
+    if [[ ! -e $file ]] ; then
+      echo "Error: File or directory not found: $file" >&2
+      continue
     fi
-    new_name=$(echo "${file}_$(date +'%Y-%m-%d')_$(date +'%H:%M:%S')$ext" | sed 's;/;+;g')
 
-    echo mv "$file" "$BASH_TOYS_DUSTBOX_DIR/$new_name"
-    mv "$file" "$BASH_TOYS_DUSTBOX_DIR/$new_name"
+    # Convert to absolute path and resolve symlinks/..
+    if command -v realpath >/dev/null 2>&1 ; then
+      abs_path=$(realpath "$file")
+    else
+      # Fallback if realpath is not available
+      if [[ $file != /* ]] ; then
+        abs_path="$(cd "$(dirname "$file")" && pwd)/$(basename "$file")"
+      else
+        abs_path="$file"
+      fi
+    fi
+
+    # Extract extension
+    ext=''
+    maybe_ext=${abs_path##*.}
+    if [[ $abs_path != "$maybe_ext" ]] && [[ $maybe_ext != '' ]] ; then
+      ext=".$maybe_ext"
+      base_path="${abs_path%.*}"
+    else
+      base_path="$abs_path"
+    fi
+
+    # Create date-hour directory
+    date_hour=$(date +'%Y-%m-%d-%H')
+    date_hour_dir="$BASH_TOYS_DUSTBOX_DIR/$date_hour"
+    if [[ ! -d $date_hour_dir ]] ; then
+      mkdir -p "$date_hour_dir"
+    fi
+
+    # Create new filename: +full+path+filename.HH:MM[.ext]
+    encoded_path=$(echo "$base_path" | sed 's;/;+;g')
+    time_suffix=$(date +'%H:%M')
+    new_name="${encoded_path}.${time_suffix}${ext}"
+
+    echo mv "$file" "$date_hour_dir/$new_name"
+    mv "$file" "$date_hour_dir/$new_name"
   done
 fi
 
