@@ -1,19 +1,19 @@
-name: Test git-common-dir
+name: Test git-common-root
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'bin/git-common-dir'
-      - 'test/git-common-dir.bats'
+      - 'bin/git-common-root'
+      - 'test/git-common-root.bats'
       - 'lib/**'
       - 'sources/**'
   pull_request:
     branches: [main]
     paths:
-      - 'bin/git-common-dir'
-      - 'test/git-common-dir.bats'
+      - 'bin/git-common-root'
+      - 'test/git-common-root.bats'
       - 'lib/**'
       - 'sources/**'
 
@@ -27,4 +27,4 @@ jobs:
       - name: Run test
         run: |
           source ./source-all.sh
-          ./lib/bats/bin/bats ./test/git-common-dir.bats
+          ./lib/bats/bin/bats ./test/git-common-root.bats

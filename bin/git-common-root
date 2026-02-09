@@ -4,27 +4,28 @@
 
 function show_help() {
   cat << 'EOF'
-git-common-dir - Show the git common directory
+git-common-root - Show the git common root directory
 
 Usage:
-  git-common-dir
-  git-common-dir -h | --help
+  git-common-root
+  git-common-root -h | --help
 
 Options:
   -h, --help    Show this help message
 
 Description:
-  Prints the git common directory of the current git repository.
-  Returns exit code 1 **with no ouput** if not inside a git repository.
+  Prints the root directory of the main repository (where .git directory exists).
+  For worktrees, returns the parent repository root, not the worktree root.
+  Returns exit code 1 **with no output** if not inside a git repository.
 
 Examples:
-  $ cd /path/to/git/repo/subdir && git-common-dir
-  /path/to/git/repo/.git
+  $ cd /path/to/git/repo/subdir && git-common-root
+  /path/to/git/repo
 
-  $ cd /path/to/git/repo/some-worktree && git-common-dir
-  /path/to/git/repo/.git
+  $ cd /path/to/git/repo/some-worktree && git-common-root
+  /path/to/git/repo
 
-  $ cd /path/to/non-git-dir && git-common-dir
+  $ cd /path/to/non-git-dir && git-common-root
   (No output)
   $ echo $?
   1
@@ -33,7 +34,10 @@ EOF
 
 [[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
-git rev-parse --git-common-dir 2> /dev/null || exit 1
+if ! git_common_dir=$(git rev-parse --git-common-dir 2> /dev/null) ; then
+  exit 1
+fi
+realpath "$git_common_dir/.." 2> /dev/null
 
 # https://github.com/aiya000/bash-toys
 #

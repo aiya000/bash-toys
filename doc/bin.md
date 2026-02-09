@@ -549,24 +549,29 @@ $ git-root
 # Exit status: 1
 ```
 
-### git-common-dir
+### git-common-root
 
-Shows the git common directory.
+Shows the git common root directory.
 
 ```bash
-git-common-dir
+git-common-root
 ```
 
 **Examples**:
 ```bash
 # Inside a git repository
 $ cd /path/to/git/repo/subdir
-$ git-common-dir
-/path/to/git/repo/.git
+$ git-common-root
+/path/to/git/repo
+
+# Inside a worktree
+$ cd /path/to/git/repo/some-worktree
+$ git-common-root
+/path/to/git/repo
 
 # Outside a git repository (error)
 $ cd /tmp
-$ git-common-dir
+$ git-common-root
 # (no output)
 # Exit status: 1
 ```
