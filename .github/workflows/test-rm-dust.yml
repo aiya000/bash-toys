@@ -1,4 +1,4 @@
-name: Test dust
+name: Test rm-dust
 
 on:
   workflow_dispatch:
@@ -6,14 +6,14 @@ on:
     branches: [main]
     paths:
       - 'bin/rm-dust'
-      - 'test/dust.bats'
+      - 'test/rm-dust.bats'
       - 'lib/**'
       - 'sources/**'
   pull_request:
     branches: [main]
     paths:
       - 'bin/rm-dust'
-      - 'test/dust.bats'
+      - 'test/rm-dust.bats'
       - 'lib/**'
       - 'sources/**'
 
@@ -27,4 +27,4 @@ jobs:
       - name: Run test
         run: |
           source ./source-all.sh
-          ./lib/bats/bin/bats ./test/dust.bats
+          ./lib/bats/bin/bats ./test/rm-dust.bats
