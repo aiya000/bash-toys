@@ -206,7 +206,7 @@ mv /full/path/file.ext /home/user/.backup/dustbox/2026-02-09-13/+full+path+file.
 # Move directories to dustbox
 $ cd /home/user
 $ rm-dust my-dir
-mv my-dir /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58/
+mv my-dir /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58
 $ ls /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58/
 file1.txt  file2.txt  subdir/
 
