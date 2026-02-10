@@ -73,6 +73,7 @@ fi
 migrated=0
 failed=0
 temp_file=$(mktemp)
+trap 'rm -f "$temp_file"' EXIT INT TERM
 
 list_old_format_items "$BASH_TOYS_DUSTBOX_DIR" | while IFS= read -r old_path ; do
   filename=$(basename "$old_path")
