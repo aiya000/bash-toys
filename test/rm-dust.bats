@@ -174,3 +174,74 @@ teardown() {
   [[ "$(cat "$test_file")" == "file content" ]]
   [[ "$(cat "$test_dir/file.txt")" == "dir file content" ]]
 }
+
+@test '`rm-dust` should handle dotfiles correctly' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/.bashrc-$$"
+  echo "# bashrc content" > "$test_file"
+
+  run rm-dust "$test_file"
+  expects "$status" to_be 0
+  [[ ! -f "$test_file" ]]
+  # Check that one file exists in the dustbox
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+
+  # Restore the dotfile
+  run rm-dust --restore
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "# bashrc content" ]]
+}
+
+@test '`rm-dust` should handle files with multiple dots correctly' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/archive.tar.gz-$$"
+  echo "archive content" > "$test_file"
+
+  run rm-dust "$test_file"
+  expects "$status" to_be 0
+  [[ ! -f "$test_file" ]]
+  # Check that one file exists in the dustbox
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+
+  # Restore the file
+  run rm-dust --restore
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "archive content" ]]
+}
+
+@test '`rm-dust` should handle directories with dots correctly' {
+  test_dir="$BATS_TEST_DIRNAME/../tmp/.config-$$"
+  mkdir -p "$test_dir"
+  echo "config content" > "$test_dir/config.txt"
+
+  run rm-dust "$test_dir"
+  expects "$status" to_be 0
+  [[ ! -d "$test_dir" ]]
+  # Check that one directory exists in the dustbox
+  date_hour_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | head -1)
+  [[ $(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l) -eq 1 ]]
+
+  # Restore the directory
+  run rm-dust --restore
+  expects "$status" to_be 0
+  [[ -d "$test_dir" ]]
+  [[ -f "$test_dir/config.txt" ]]
+  [[ "$(cat "$test_dir/config.txt")" == "config content" ]]
+}
+
+@test '`rm-dust` should handle directory names like "my.app.v2" correctly' {
+  test_dir="$BATS_TEST_DIRNAME/../tmp/my.app.v2-$$"
+  mkdir -p "$test_dir"
+  echo "app content" > "$test_dir/app.txt"
+
+  run rm-dust "$test_dir"
+  expects "$status" to_be 0
+  [[ ! -d "$test_dir" ]]
+
+  # Restore the directory
+  run rm-dust --restore
+  expects "$status" to_be 0
+  [[ -d "$test_dir" ]]
+  [[ -f "$test_dir/app.txt" ]]
+  [[ "$(cat "$test_dir/app.txt")" == "app content" ]]
+}

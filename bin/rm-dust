@@ -54,7 +54,7 @@ if [[ $restore_mode == 'true' ]] ; then
   # Restore mode
   if [[ $# -eq 0 ]] ; then
     # Interactive mode - use filter to select files and directories
-    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ $(find "$BASH_TOYS_DUSTBOX_DIR" \( -type f -o -type d \) 2>/dev/null | wc -l) -eq 0 ]] ; then
+    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -mindepth 1 \( -type f -o -type d \) 2>/dev/null | wc -l) -eq 0 ]] ; then
       echo "Dustbox is empty"
       exit 0
     fi
@@ -248,12 +248,16 @@ else
       fi
     fi
 
-    # Extract extension
+    # Extract extension (only for files, not directories)
     ext=''
-    maybe_ext=${abs_path##*.}
-    if [[ $abs_path != "$maybe_ext" ]] && [[ $maybe_ext != '' ]] ; then
-      ext=".$maybe_ext"
-      base_path="${abs_path%.*}"
+    if [[ -f $file ]] ; then
+      maybe_ext=${abs_path##*.}
+      if [[ $abs_path != "$maybe_ext" ]] && [[ $maybe_ext != '' ]] ; then
+        ext=".$maybe_ext"
+        base_path="${abs_path%.*}"
+      else
+        base_path="$abs_path"
+      fi
     else
       base_path="$abs_path"
     fi
