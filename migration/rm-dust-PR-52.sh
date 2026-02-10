@@ -11,13 +11,17 @@
 
 set -euo pipefail
 
-# Detect fd command
+# Detect search command (prefer fd/fdfind, fallback to find)
 if command -v fd &> /dev/null ; then
   FD_CMD="fd"
+  USE_FIND=false
 elif command -v fdfind &> /dev/null ; then
   FD_CMD="fdfind"
+  USE_FIND=false
+elif command -v find &> /dev/null ; then
+  USE_FIND=true
 else
-  echo "Error: fd or fdfind command not found. Please install fd-find."
+  echo "Error: fd, fdfind, or find command not found."
   exit 1
 fi
 
@@ -25,6 +29,16 @@ fi
 if [[ -z ${BASH_TOYS_DUSTBOX_DIR:-} ]] ; then
   BASH_TOYS_DUSTBOX_DIR="$HOME/.backup/dustbox"
 fi
+
+# List items in old format (depth 1, absolute paths)
+list_old_format_items() {
+  local dir="$1"
+  if [[ $USE_FIND == true ]] ; then
+    find "$dir" -maxdepth 1 -mindepth 1 -name "*_????-??-??_*"
+  else
+    "$FD_CMD" -d 1 -a ".*_[0-9]{4}-[0-9]{2}-[0-9]{2}_.*" "$dir"
+  fi
+}
 
 echo "=== rm-dust Migration Script (PR-52) ==="
 echo "Dustbox directory: $BASH_TOYS_DUSTBOX_DIR"
@@ -37,7 +51,7 @@ if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
 fi
 
 # Count old format files and directories
-old_files=$("$FD_CMD" -d 1 ".*_[0-9]{4}-[0-9]{2}-[0-9]{2}_.*" "$BASH_TOYS_DUSTBOX_DIR" | wc -l)
+old_files=$(list_old_format_items "$BASH_TOYS_DUSTBOX_DIR" | wc -l)
 
 if [[ $old_files -eq 0 ]] ; then
   echo "No old format files or directories found. Nothing to migrate."
@@ -60,7 +74,7 @@ migrated=0
 failed=0
 temp_file=$(mktemp)
 
-"$FD_CMD" -d 1 -a ".*_[0-9]{4}-[0-9]{2}-[0-9]{2}_.*" "$BASH_TOYS_DUSTBOX_DIR" | while IFS= read -r old_path ; do
+list_old_format_items "$BASH_TOYS_DUSTBOX_DIR" | while IFS= read -r old_path ; do
   filename=$(basename "$old_path")
 
   # Parse old format: name_YYYY-MM-DD_HH:MM:SS[.ext] (for both files and directories)
