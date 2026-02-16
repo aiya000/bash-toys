@@ -19,7 +19,7 @@ _rm_dust_completion() {
 
   if [[ $cur == -* ]] ; then
     # Complete options
-    COMPREPLY=($(compgen -W '--help -h --restore' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -h --restore --keep' -- "$cur"))
   elif [[ $restore_mode == 'true' ]] ; then
     # Complete with paths from dustbox (supports YYYY-MM-DD-HH/filename format)
     if [[ -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
