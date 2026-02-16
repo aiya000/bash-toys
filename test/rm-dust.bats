@@ -383,3 +383,19 @@ teardown() {
   [[ -f "$test_dir/app.txt" ]]
   [[ "$(cat "$test_dir/app.txt")" == "app content" ]]
 }
+
+@test '`rm-dust` should handle filenames with plus signs like "C++.txt" correctly' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-plus-C++-$$.txt"
+  echo "plus sign content" > "$test_file"
+
+  # Move the file with plus signs in its name to the dustbox
+  run rm-dust "$test_file"
+  expects "$status" to_be 0
+  [[ ! -f "$test_file" ]]
+
+  # Restore the file
+  run rm-dust --restore
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "plus sign content" ]]
+}
