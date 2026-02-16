@@ -229,6 +229,144 @@ teardown() {
   [[ "$(cat "$test_dir/config.txt")" == "config content" ]]
 }
 
+@test '`rm-dust --restore --keep` should copy file from dustbox without removing it' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-keep-$$.txt"
+  echo "keep content" > "$test_file"
+
+  # Move to dustbox
+  rm-dust "$test_file"
+  [[ ! -f "$test_file" ]]
+
+  # Restore with --keep (should copy, not move)
+  run rm-dust --restore --keep
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "keep content" ]]
+  # File should still exist in dustbox
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+}
+
+@test '`rm-dust --restore --keep FILENAME` should copy specific file without removing it' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-keep-direct-$$.txt"
+  echo "keep direct content" > "$test_file"
+
+  # Move to dustbox
+  rm-dust "$test_file"
+  [[ ! -f "$test_file" ]]
+
+  # Get the dustbox filename
+  dustbox_file=$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | head -1 | xargs basename)
+
+  # Restore specific file with --keep
+  run rm-dust --restore --keep "$dustbox_file"
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "keep direct content" ]]
+  # File should still exist in dustbox
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+}
+
+@test '`rm-dust --restore --keep` should copy directory from dustbox without removing it' {
+  test_dir="$BATS_TEST_DIRNAME/../tmp/test-dir-keep-$$"
+  mkdir -p "$test_dir"
+  echo "dir keep content" > "$test_dir/file.txt"
+
+  # Move to dustbox
+  rm-dust "$test_dir"
+  [[ ! -d "$test_dir" ]]
+
+  # Restore with --keep
+  run rm-dust --restore --keep
+  expects "$status" to_be 0
+  [[ -d "$test_dir" ]]
+  [[ -f "$test_dir/file.txt" ]]
+  [[ "$(cat "$test_dir/file.txt")" == "dir keep content" ]]
+  # Directory should still exist in dustbox
+  date_hour_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | head -1)
+  [[ $(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l) -eq 1 ]]
+}
+
+@test '`rm-dust --keep` without --restore should fail with error' {
+  run rm-dust --keep file.txt
+  expects "$status" to_be 1
+  expects "$output" to_contain '--keep requires --restore'
+}
+
+@test '`rm-dust --help` should show --keep option' {
+  run rm-dust --help
+  expects "$status" to_be 0
+  expects "$output" to_match '--keep'
+}
+
+@test '`BASH_TOYS_RESTORE_KEEP=1` should make --keep the default behavior' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-env-keep-$$.txt"
+  echo "env keep content" > "$test_file"
+
+  # Move to dustbox
+  rm-dust "$test_file"
+  [[ ! -f "$test_file" ]]
+
+  # Restore with BASH_TOYS_RESTORE_KEEP=1 (should behave like --keep)
+  BASH_TOYS_RESTORE_KEEP=1 run rm-dust --restore
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "env keep content" ]]
+  # File should still exist in dustbox
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+}
+
+@test '`BASH_TOYS_RESTORE_KEEP=0` should make --keep not the default (move behavior)' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-env-nokeep-$$.txt"
+  echo "env nokeep content" > "$test_file"
+
+  # Move to dustbox
+  rm-dust "$test_file"
+  [[ ! -f "$test_file" ]]
+
+  # Restore with BASH_TOYS_RESTORE_KEEP=0 (should behave like normal mv)
+  BASH_TOYS_RESTORE_KEEP=0 run rm-dust --restore
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "env nokeep content" ]]
+  # File should NOT exist in dustbox anymore
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 0 ]]
+}
+
+@test '`BASH_TOYS_RESTORE_KEEP=1` with --keep should still keep (--keep takes precedence)' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-env-keep-flag-$$.txt"
+  echo "env keep flag content" > "$test_file"
+
+  # Move to dustbox
+  rm-dust "$test_file"
+  [[ ! -f "$test_file" ]]
+
+  # Restore with BASH_TOYS_RESTORE_KEEP=1 and --keep (both agree)
+  BASH_TOYS_RESTORE_KEEP=1 run rm-dust --restore --keep
+  expects "$status" to_be 0
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "env keep flag content" ]]
+  # File should still exist in dustbox
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+}
+
+@test '`BASH_TOYS_RESTORE_KEEP=0` with --keep should keep with warning (--keep takes precedence)' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-env-nokeep-flag-$$.txt"
+  echo "env nokeep flag content" > "$test_file"
+
+  # Move to dustbox
+  rm-dust "$test_file"
+  [[ ! -f "$test_file" ]]
+
+  # Restore with BASH_TOYS_RESTORE_KEEP=0 and --keep (conflict: --keep wins but warns)
+  BASH_TOYS_RESTORE_KEEP=0 run rm-dust --restore --keep
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Warning: --keep specified but BASH_TOYS_RESTORE_KEEP=0'
+  [[ -f "$test_file" ]]
+  [[ "$(cat "$test_file")" == "env nokeep flag content" ]]
+  # File should still exist in dustbox (--keep won)
+  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+}
+
 @test '`rm-dust` should handle directory names like "my.app.v2" correctly' {
   test_dir="$BATS_TEST_DIRNAME/../tmp/my.app.v2-$$"
   mkdir -p "$test_dir"
