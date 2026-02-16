@@ -70,8 +70,6 @@ if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
 fi
 
 # Process each file
-migrated=0
-failed=0
 temp_file=$(mktemp)
 trap 'rm -f "$temp_file"' EXIT INT TERM
 
