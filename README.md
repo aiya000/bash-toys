@@ -404,7 +404,13 @@ $ git clone --depth 1 https://github.com/aiya000/bash-toys.git /path/to/bash-toy
 $ echo 'source /path/to/bash-toys/source-all.sh' >> ~/.bashrc
 ```
 
-3. (**Optional**) Configure options if necessary
+3. (**Optional**) Enable bash completions
+
+```bash
+$ echo 'source /path/to/bash-toys/source-completions-all.sh' >> ~/.bashrc
+```
+
+4. (**Optional**) Configure options if necessary
 
 ```bash
 $ vim /path/to/bash-toys/define-options.sh

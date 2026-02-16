@@ -178,6 +178,7 @@ Alternative to rm that moves files and directories to dustbox instead of deletio
 ```bash
 rm-dust FILE|DIR...
 rm-dust --restore [FILE|DIR...]
+rm-dust --restore --keep [FILE|DIR...]
 ```
 
 Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date-hour directories with encoded full paths.
@@ -191,6 +192,11 @@ Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date-ho
 
 **Options**:
 - `--restore` - Restore files or directories from dustbox (interactive or specific items)
+- `--keep` - Used with `--restore`: copy from dustbox instead of moving (leaves the original in dustbox intact)
+
+**Environment Variables**:
+- `BASH_TOYS_DUSTBOX_DIR` - Directory to store dustbox files (default: `~/.backup/dustbox`)
+- `BASH_TOYS_RESTORE_KEEP` - Set to `1` to make `--keep` the default for `--restore`; `--keep` flag always takes precedence over this variable
 
 **Examples**:
 ```bash
@@ -237,16 +243,58 @@ mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58 /home/user/m
 # Restore specific file by full path
 $ rm-dust --restore "2026-02-09-13/+home+user+dir+file.13:58.txt"
 mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# Restore interactively but keep originals in dustbox (--keep)
+$ rm-dust --restore --keep
+# (Select files or directories to restore)
+cp -ir /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# Restore specific file but keep in dustbox
+$ rm-dust --restore --keep "+home+user+dir+file.13:58.txt"
+cp -ir /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# --keep without --restore is an error
+$ rm-dust --keep file.txt
+Error: --keep requires --restore
+
+# BASH_TOYS_RESTORE_KEEP=1: --keep is the default behavior
+$ BASH_TOYS_RESTORE_KEEP=1 rm-dust --restore
+# (Select files or directories to restore)
+cp -ir /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# BASH_TOYS_RESTORE_KEEP=0: --keep is not the default (explicit is required)
+$ BASH_TOYS_RESTORE_KEEP=0 rm-dust --restore
+# (Select files or directories to restore)
+mv -i /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# BASH_TOYS_RESTORE_KEEP=1 with --keep: keeps (--keep flag takes precedence)
+$ BASH_TOYS_RESTORE_KEEP=1 rm-dust --restore --keep
+cp -ir ...
+
+# BASH_TOYS_RESTORE_KEEP=0 with --keep: keeps with warning (--keep flag takes precedence)
+$ BASH_TOYS_RESTORE_KEEP=0 rm-dust --restore --keep
+Warning: --keep specified but BASH_TOYS_RESTORE_KEEP=0; --keep takes precedence
+cp -ir ...
 ```
 
-**Bash Completion**:
-To enable bash completion, source the completion script:
+**Completion** (bash / zsh):
+To enable completion for all bash-toys commands at once:
+```bash
+# bash (~/.bashrc)
+source /path/to/bash-toys/source-completions-all.sh
+
+# zsh (~/.zshrc)
+autoload -U +X bashcompinit && bashcompinit
+source /path/to/bash-toys/source-completions-all.sh
+```
+
+Or to enable only for `rm-dust`:
 ```bash
 source /path/to/bash-toys/completions/rm-dust.bash
 ```
 
 Completion features:
-- Option completion: `--help`, `-h`, `--restore`
+- Option completion: `--help`, `-h`, `--restore`, `--keep`
 - File/directory completion: normal paths when adding to dustbox
 - Dustbox item completion: files and directories in dustbox when using `--restore`
 
