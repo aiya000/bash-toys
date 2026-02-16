@@ -186,7 +186,7 @@ Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date-ho
 **Storage Format** (Since PR-52):
 - Directory structure: `YYYY-MM-DD-HH/` (organized by date and hour)
 - Filename format: `+full+path+filename.HH:MM[.ext]` (for files)
-- Directory format: `+full+path+dirname.HH:MM/` (for directories)
+- Directory format: `+full+path+dirname.HH:MM` (for directories)
 - Path encoding: `/` is replaced with `+`
 - All paths are stored as absolute paths
 
