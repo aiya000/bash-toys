@@ -11,6 +11,7 @@ dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 
 [[ -z $BASH_TOYS_INTERACTIVE_FILTER ]] && export BASH_TOYS_INTERACTIVE_FILTER='peco --select-1 --initial-filter Fuzzy'
 [[ -z $BASH_TOYS_DUSTBOX_DIR ]] && export BASH_TOYS_DUSTBOX_DIR="$HOME/.backup/dustbox"
+[[ -z $BASH_TOYS_RESTORE_KEEP ]] && export BASH_TOYS_RESTORE_KEEP=  # Set to '1' to make --keep the default for --restore
 [[ -z $BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED ]] && export BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED="vlc --gain=0.3 $dir/assets/notification-impact.mp3"
 [[ -z $BASH_TOYS_POMODORO_DEFAULT_INTERVAL ]] && export BASH_TOYS_POMODORO_DEFAULT_INTERVAL=5  # When not specified minutes for pomodoro-timer command, like `$ pomodoro-timer`
 [[ -z $BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND ]] && export BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND="$dir/assets/notification-1.mp3"

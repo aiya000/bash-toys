@@ -9,6 +9,7 @@ rm-dust - Alternative to rm that moves files and directories to dustbox instead 
 Usage:
   rm-dust FILE|DIR...
   rm-dust --restore [FILE|DIR...]
+  rm-dust --restore --keep [FILE|DIR...]
   rm-dust --help
 
 Arguments:
@@ -17,6 +18,13 @@ Arguments:
 Options:
   -h, --help      Show this help message
   --restore       Restore files or directories from dustbox
+  --keep          Used with --restore: copy from dustbox instead of moving
+                  (leaves the original in dustbox intact)
+
+Environment Variables:
+  BASH_TOYS_DUSTBOX_DIR     Directory to store dustbox files (default: ~/.backup/dustbox)
+  BASH_TOYS_RESTORE_KEEP    Set to '1' to make --keep the default for --restore
+                            (--keep flag always takes precedence over this variable)
 
 Notes:
   - Files and directories are moved to $BASH_TOYS_DUSTBOX_DIR organized by date-hour directories
@@ -29,10 +37,13 @@ EOF
 }
 
 restore_mode=false
+keep_flag=false  # whether --keep was explicitly passed
 args=()
 for arg in "$@"; do
   if [[ $arg == '--restore' ]] ; then
     restore_mode=true
+  elif [[ $arg == '--keep' ]] ; then
+    keep_flag=true
   else
     args+=("$arg")
   fi
@@ -41,10 +52,29 @@ set -- "${args[@]}"
 
 [[ $1 == '--help' || $1 == '-h' ]] && show_help && exit 0
 
+if [[ $keep_flag == 'true' && $restore_mode == 'false' ]] ; then
+  echo "Error: --keep requires --restore" >&2
+  exit 1
+fi
+
 dir=$(dirname "$0")
 
 # shellcheck disable=SC1091
 source "$dir/../define-options.sh"
+
+# Determine keep_mode:
+# Priority: --keep flag > BASH_TOYS_RESTORE_KEEP env var
+# Warn if --keep is explicitly passed while BASH_TOYS_RESTORE_KEEP=0
+keep_mode=false
+if [[ ${BASH_TOYS_RESTORE_KEEP:-} == '1' ]] ; then
+  keep_mode=true
+fi
+if [[ $keep_flag == 'true' ]] ; then
+  if [[ ${BASH_TOYS_RESTORE_KEEP:-} == '0' ]] ; then
+    echo "Warning: --keep specified but BASH_TOYS_RESTORE_KEEP=0; --keep takes precedence" >&2
+  fi
+  keep_mode=true
+fi
 
 if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
   mkdir -p "$BASH_TOYS_DUSTBOX_DIR"
@@ -53,91 +83,77 @@ fi
 if [[ $restore_mode == 'true' ]] ; then
   # Restore mode
   if [[ $# -eq 0 ]] ; then
-    # Interactive mode - use filter to select files and directories
-    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -mindepth 1 \( -type f -o -type d \) 2>/dev/null | wc -l) -eq 0 ]] ; then
+    # Interactive mode - stream entries to filter progressively (most recent first)
+    if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ -z "$(ls -A "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null)" ]] ; then
       echo "Dustbox is empty"
       exit 0
     fi
 
-    # Build a list with formatted information: "date time: original_path"
-    # Format: YYYY-MM-DD-HH HH:MM: /full/path/to/file (or directory/)
-    temp_list=()
-    declare -A file_map
+    # Temp file for display_line -> dustbox relative path mapping
+    # (Avoids declare -A which requires bash 4+)
+    map_file=$(mktemp)
 
-    # Iterate through all date-hour directories
-    for date_dir in "$BASH_TOYS_DUSTBOX_DIR"/*/ ; do
-      if [[ ! -d $date_dir ]] ; then
-        continue
-      fi
+    # Stream entries directly to filter without pre-building the full list.
+    # Date-hour dirs are processed in reverse order (most recent first).
+    selected_lines=$(
+      {
+        while IFS= read -r date_hour ; do
+          [[ -z $date_hour ]] && continue
+          date_dir="${BASH_TOYS_DUSTBOX_DIR}/${date_hour}"
+          [[ -d $date_dir ]] || continue
 
-      date_hour=$(basename "$date_dir")
+          while IFS= read -r filename ; do
+            [[ -z $filename ]] && continue
+            full_path="${date_dir}/${filename}"
+            [[ -e $full_path ]] || continue
 
-      # Process each file or directory
-      for full_path in "$date_dir"* ; do
-        if [[ ! -e $full_path ]] ; then
-          continue
-        fi
+            is_dir=false
+            if [[ -d $full_path ]] ; then
+              is_dir=true
+              filename="${filename%/}"
+            fi
 
-        filename=$(basename "$full_path")
+            # Extract time and original path from filename
+            # Format: +full+path+name.HH:MM[.ext] (files) or +full+path+dirname.HH:MM (dirs)
+            if [[ $filename =~ \.([0-9]{2}:[0-9]{2})(\.(.+))?$ ]] ; then
+              time_part="${BASH_REMATCH[1]}"
+              ext_part="${BASH_REMATCH[2]}"
+              rest="${filename%.$time_part*}"
+            else
+              continue
+            fi
 
-        # Check if it's a directory
-        is_dir=false
-        if [[ -d $full_path ]] ; then
-          is_dir=true
-          # Remove trailing slash if present
-          filename="${filename%/}"
-        fi
+            # Decode path: replace + with /
+            original_path=$(echo "$rest" | sed 's;+;/;g')
+            if [[ $is_dir == false ]] ; then
+              original_path="${original_path}${ext_part}"
+            else
+              original_path="${original_path}/"
+            fi
 
-        # Extract time and original path from filename
-        # Format: +full+path+name.HH:MM[.ext] (for files) or +full+path+dirname.HH:MM (for directories)
-        if [[ $filename =~ \.([0-9]{2}:[0-9]{2})(\.(.+))?$ ]] ; then
-          time_part="${BASH_REMATCH[1]}"
-          ext_part="${BASH_REMATCH[2]}"
-          # Remove .HH:MM[.ext] from the end
-          rest="${filename%.$time_part*}"
-        else
-          # Invalid format, skip
-          continue
-        fi
+            display_line="$date_hour $time_part: $original_path"
+            # Write mapping before echoing to filter (ensures entry is recorded
+            # before the user can possibly select it)
+            printf '%s|||%s\n' "$display_line" "${date_hour}/${filename}" >> "$map_file"
+            echo "$display_line"
+          done < <(ls -1 "$date_dir" 2>/dev/null | sort -r)
+        done < <(ls -1 "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null | sort -r)
+      } | eval "$BASH_TOYS_INTERACTIVE_FILTER"
+    )
 
-        # Decode path: replace + with /
-        original_path=$(echo "$rest" | sed 's;+;/;g')
-        # Add extension back if present (files only)
-        if [[ $is_dir == false ]] ; then
-          original_path="${original_path}${ext_part}"
-        fi
-        # Add trailing slash for directories
-        if [[ $is_dir == true ]] ; then
-          original_path="${original_path}/"
-        fi
-
-        # Create display line
-        display_line="$date_hour $time_part: $original_path"
-        temp_list+=("$display_line")
-        file_map["$display_line"]="$date_hour/$filename"
-      done
-    done
-
-    # Sort by date, time, and path
-    IFS=$'\n' sorted_list=($(printf '%s\n' "${temp_list[@]}" | sort))
-
-    # Present to user for selection
-    selected_lines=$(printf '%s\n' "${sorted_list[@]}" | eval "$BASH_TOYS_INTERACTIVE_FILTER")
-
-    if [[ $selected_lines == '' ]] ; then
+    if [[ -z $selected_lines ]] ; then
       echo "No files or directories selected"
+      rm -f "$map_file"
       exit 0
     fi
 
     # Process each selected file
     while IFS= read -r selected_line ; do
-      if [[ $selected_line == '' ]] ; then
-        continue
-      fi
+      [[ -z $selected_line ]] && continue
 
-      # Get the relative path from the map
-      relative_path="${file_map[$selected_line]}"
-      if [[ $relative_path == '' ]] ; then
+      # Look up dustbox path from mapping file
+      relative_path=$(grep -F "${selected_line}|||" "$map_file" | head -1 | sed 's/^.*|||//')
+      if [[ -z $relative_path ]] ; then
         echo "Warning: Could not find file for selection: $selected_line" >&2
         continue
       fi
@@ -154,9 +170,16 @@ if [[ $restore_mode == 'true' ]] ; then
         mkdir -p "$parent_dir"
       fi
 
-      echo mv "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
-      mv "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
+      if [[ $keep_mode == 'true' ]] ; then
+        echo cp -ir "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
+        cp -ir "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
+      else
+        echo mv -i "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
+        mv -i "$BASH_TOYS_DUSTBOX_DIR/$relative_path" "$original_path"
+      fi
     done <<< "$selected_lines"
+
+    rm -f "$map_file"
   else
     # Direct file/directory restoration with path pattern: date-hour/name
     for arg in "$@" ; do
@@ -223,8 +246,13 @@ if [[ $restore_mode == 'true' ]] ; then
         mkdir -p "$parent_dir"
       fi
 
-      echo mv "$full_dustbox_path" "$original_path"
-      mv "$full_dustbox_path" "$original_path"
+      if [[ $keep_mode == 'true' ]] ; then
+        echo cp -ir "$full_dustbox_path" "$original_path"
+        cp -ir "$full_dustbox_path" "$original_path"
+      else
+        echo mv -i "$full_dustbox_path" "$original_path"
+        mv -i "$full_dustbox_path" "$original_path"
+      fi
     done
   fi
 else
