@@ -8,6 +8,8 @@ setup() {
   # Use a temporary dustbox for testing
   export BASH_TOYS_DUSTBOX_DIR="$BATS_TEST_DIRNAME/../tmp/test-dustbox-$$"
   export BASH_TOYS_INTERACTIVE_FILTER='head -1'
+  # Ensure env vars that affect behavior are not inherited from the shell
+  unset BASH_TOYS_RESTORE_KEEP
   mkdir -p "$BASH_TOYS_DUSTBOX_DIR"
 }
 
