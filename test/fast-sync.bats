@@ -29,32 +29,32 @@ teardown() {
 
 @test '`fast-sync --help` should show help message' {
     run fast-sync --help
-    [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ ^fast-sync\ -\  ]]
+    expects "$status" to_be 0
+    expects "${lines[0]}" to_match '^fast-sync - '
 }
 
 @test '`fast-sync -h` should show help message' {
     run fast-sync -h
-    [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ ^fast-sync\ -\  ]]
+    expects "$status" to_be 0
+    expects "${lines[0]}" to_match '^fast-sync - '
 }
 
 @test '`fast-sync` with no arguments should show usage' {
     run fast-sync
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ "Usage:" ]]
+    expects "$status" to_be 1
+    expects "$output" to_contain 'Usage:'
 }
 
 @test '`fast-sync --init` with no directory should show usage' {
     run fast-sync --init
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ "Usage:" ]]
+    expects "$status" to_be 1
+    expects "$output" to_contain 'Usage:'
 }
 
 @test '`fast-sync --init` should create sync state file' {
     run fast-sync --init "$TEST_INIT_DIR"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "Initialization mode:" ]]
+    expects "$status" to_be 0
+    expects "$output" to_contain 'Initialization mode:'
     [ -f "$HOME/.last_sync" ]
 }
 
@@ -79,8 +79,8 @@ teardown() {
 
     # Second sync should find no new files (no user interaction needed since target isn't empty)
     run fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "All up to date! No new files to sync." ]]
+    expects "$status" to_be 0
+    expects "$output" to_contain 'All up to date! No new files to sync.'
 }
 
 @test '`fast-sync` should only sync new files' {
@@ -93,8 +93,8 @@ teardown() {
 
     # Second sync should sync the new file (total 4 files: 3 existing + 1 new)
     run fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "Found 4 new files to sync" ]]
+    expects "$status" to_be 0
+    expects "$output" to_contain 'Found 4 new files to sync'
     [ -f "$TEST_TARGET_DIR/new_file.txt" ]
 }
 
@@ -141,8 +141,10 @@ teardown() {
 
     # This should prompt for user input, but we can't test interactively
     # Instead, let's test the warning detection logic by checking directory contents
-    [ -z "$(ls -A "$EMPTY_SOURCE" 2>/dev/null)" ]
-    [ -z "$(ls -A "$EMPTY_TARGET" 2>/dev/null)" ]
+    run bash -c "ls -A '$EMPTY_SOURCE' 2>/dev/null"
+    expects "$output" to_equal ''
+    run bash -c "ls -A '$EMPTY_TARGET' 2>/dev/null"
+    expects "$output" to_equal ''
 
     rm -rf "$EMPTY_SOURCE" "$EMPTY_TARGET"
 }

@@ -15,7 +15,7 @@ LAUNCHD_DIR="$HOME/Library/LaunchAgents"
 
 # Helper function to skip tests that affect real jobs
 skip_unless_real_jobs_enabled() {
-  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != "1" ]] ; then
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != 1 ]] ; then
     skip "This test affects real jobs on the host OS. Set BASH_TOYS_TEST_REAL_JOBS=1 to run."
   fi
 }
@@ -24,7 +24,10 @@ skip_unless_real_jobs_enabled() {
 cleanup_launchd_jobs() {
   if [[ -d "$LAUNCHD_DIR" ]] ; then
     for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
-      [[ -f "$plist" ]] || continue
+      run bash -c "[[ -f '$plist' ]]"
+      if [[ $status -ne 0 ]] ; then
+        continue
+      fi
       launchctl unload "$plist" 2>/dev/null || true
       rm -f "$plist"
     done
@@ -46,7 +49,7 @@ cleanup_at_jobs() {
     while IFS= read -r line ; do
       local job_id job_content
 
-      if [[ -z $line ]] ; then
+      if [[ $line == '' ]] ; then
         continue
       fi
 
@@ -73,7 +76,7 @@ cleanup_test_jobs() {
 }
 
 teardown() {
-  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" == "1" ]] ; then
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" == 1 ]] ; then
     cleanup_test_jobs >/dev/null 2>&1 || true
   fi
 }
