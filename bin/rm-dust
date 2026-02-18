@@ -27,12 +27,12 @@ Environment Variables:
                             (--keep flag always takes precedence over this variable)
 
 Notes:
-  - Files and directories are moved to $BASH_TOYS_DUSTBOX_DIR organized by date-hour directories
-  - Files are stored in format: YYYY-MM-DD-HH/+full+path+filename.HH:MM[.ext]
-  - Directories are stored in format: YYYY-MM-DD-HH/+full+path+dirname.HH:MM/
+  - Files and directories are moved to $BASH_TOYS_DUSTBOX_DIR organized by date directories
+  - Files are stored in format: YYYY-MM-DD/+full+path+filename.HH:MM[.ext]
+  - Directories are stored in format: YYYY-MM-DD/+full+path+dirname.HH:MM/
   - Paths are encoded with / replaced by +
   - Use --restore to interactively select and restore files or directories
-  - Interactive restore shows: YYYY-MM-DD-HH HH:MM: /original/path
+  - Interactive restore shows: YYYY-MM-DD HH:MM: /original/path
 EOF
 }
 
@@ -159,7 +159,7 @@ if [[ $restore_mode == 'true' ]] ; then
       fi
 
       # Extract original path from the selected line
-      original_path=$(echo "$selected_line" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}: //')
+      original_path=$(echo "$selected_line" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}: //')
 
       # Remove trailing slash if present (for directories)
       original_path="${original_path%/}"
@@ -277,12 +277,14 @@ else
     fi
 
     # Extract extension (only for files, not directories)
+    # Use basename to avoid incorrectly treating dots in directory path as extensions
     ext=''
     if [[ -f $file ]] ; then
-      maybe_ext=${abs_path##*.}
-      if [[ $abs_path != "$maybe_ext" ]] && [[ $maybe_ext != '' ]] ; then
+      basename_file=$(basename "$abs_path")
+      maybe_ext=${basename_file##*.}
+      if [[ $basename_file != "$maybe_ext" ]] && [[ $maybe_ext != '' ]] ; then
         ext=".$maybe_ext"
-        base_path="${abs_path%.*}"
+        base_path="${abs_path%.$maybe_ext}"
       else
         base_path="$abs_path"
       fi
@@ -290,8 +292,8 @@ else
       base_path="$abs_path"
     fi
 
-    # Create date-hour directory
-    date_hour=$(date +'%Y-%m-%d-%H')
+    # Create date directory
+    date_hour=$(date +'%Y-%m-%d')
     date_hour_dir="$BASH_TOYS_DUSTBOX_DIR/$date_hour"
     if [[ ! -d $date_hour_dir ]] ; then
       mkdir -p "$date_hour_dir"

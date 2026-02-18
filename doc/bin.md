@@ -181,10 +181,10 @@ rm-dust --restore [FILE|DIR...]
 rm-dust --restore --keep [FILE|DIR...]
 ```
 
-Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date-hour directories with encoded full paths.
+Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date directories with encoded full paths.
 
 **Storage Format** (Since PR-52):
-- Directory structure: `YYYY-MM-DD-HH/` (organized by date and hour)
+- Directory structure: `YYYY-MM-DD/` (organized by date)
 - Filename format: `+full+path+filename.HH:MM[.ext]` (for files)
 - Directory format: `+full+path+dirname.HH:MM` (for directories)
 - Path encoding: `/` is replaced with `+`, and `+` in filenames is escaped as `++`
@@ -203,55 +203,55 @@ Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date-ho
 # Move files to dustbox (relative path)
 $ cd /home/user/dir
 $ rm-dust file-in-current-directory
-mv file-in-current-directory /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file-in-current-directory.13:58
+mv file-in-current-directory /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file-in-current-directory.13:58
 
 # Move files to dustbox (absolute path)
 $ rm-dust /full/path/file.ext
-mv /full/path/file.ext /home/user/.backup/dustbox/2026-02-09-13/+full+path+file.13:58.ext
+mv /full/path/file.ext /home/user/.backup/dustbox/2026-02-09/+full+path+file.13:58.ext
 
 # Move directories to dustbox
 $ cd /home/user
 $ rm-dust my-dir
-mv my-dir /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58
-$ ls /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58/
+mv my-dir /home/user/.backup/dustbox/2026-02-09/+home+user+my-dir.13:58
+$ ls /home/user/.backup/dustbox/2026-02-09/+home+user+my-dir.13:58/
 file1.txt  file2.txt  subdir/
 
-# Multiple versions at different times
+# Multiple versions at different times (all go into the same date directory)
 $ rm-dust file.txt
-mv file.txt /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt
+mv file.txt /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt
 $ # ... edit file.txt ...
 $ rm-dust file.txt
-mv file.txt /home/user/.backup/dustbox/2026-02-09-14/+home+user+dir+file.14:10.txt
+mv file.txt /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.14:10.txt
 
 # Restore files and directories interactively (shows human-readable format)
 $ rm-dust --restore
-# Display format: YYYY-MM-DD-HH HH:MM: /original/path (directories end with /)
-2026-02-09-13 13:58: /full/path/file.ext
-2026-02-09-13 13:58: /home/user/dir/file-in-current-directory
-2026-02-09-13 13:58: /home/user/my-dir/
-2026-02-09-14 14:10: /home/user/dir/file.txt
+# Display format: YYYY-MM-DD HH:MM: /original/path (directories end with /)
+2026-02-09 13:58: /full/path/file.ext
+2026-02-09 13:58: /home/user/dir/file-in-current-directory
+2026-02-09 13:58: /home/user/my-dir/
+2026-02-09 14:10: /home/user/dir/file.txt
 # (Select files or directories to restore)
 
 # Restore specific file by filename
 $ rm-dust --restore "+home+user+dir+file.13:58.txt"
-mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+mv /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
 
 # Restore specific directory by filename
 $ rm-dust --restore "+home+user+my-dir.13:58"
-mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+my-dir.13:58 /home/user/my-dir
+mv /home/user/.backup/dustbox/2026-02-09/+home+user+my-dir.13:58 /home/user/my-dir
 
 # Restore specific file by full path
-$ rm-dust --restore "2026-02-09-13/+home+user+dir+file.13:58.txt"
-mv /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+$ rm-dust --restore "2026-02-09/+home+user+dir+file.13:58.txt"
+mv /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
 
 # Restore interactively but keep originals in dustbox (--keep)
 $ rm-dust --restore --keep
 # (Select files or directories to restore)
-cp -ir /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+cp -ir /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
 
 # Restore specific file but keep in dustbox
 $ rm-dust --restore --keep "+home+user+dir+file.13:58.txt"
-cp -ir /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+cp -ir /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
 
 # --keep without --restore is an error
 $ rm-dust --keep file.txt
@@ -260,12 +260,12 @@ Error: --keep requires --restore
 # BASH_TOYS_RESTORE_KEEP=1: --keep is the default behavior
 $ BASH_TOYS_RESTORE_KEEP=1 rm-dust --restore
 # (Select files or directories to restore)
-cp -ir /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+cp -ir /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
 
 # BASH_TOYS_RESTORE_KEEP=0: --keep is not the default (explicit is required)
 $ BASH_TOYS_RESTORE_KEEP=0 rm-dust --restore
 # (Select files or directories to restore)
-mv -i /home/user/.backup/dustbox/2026-02-09-13/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+mv -i /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
 
 # BASH_TOYS_RESTORE_KEEP=1 with --keep: keeps (--keep flag takes precedence)
 $ BASH_TOYS_RESTORE_KEEP=1 rm-dust --restore --keep
@@ -298,12 +298,17 @@ Completion features:
 - File/directory completion: normal paths when adding to dustbox
 - Dustbox item completion: files and directories in dustbox when using `--restore`
 
-**Migration from Old Format**:
-If you have files or directories in the old format (before PR-52), you need to migrate them to the new format. Run the migration script:
+**Migration from Old Formats**:
+
+If you have files in the pre-PR-52 format (flat files with `_YYYY-MM-DD_HH:MM:SS` suffix):
 ```bash
 bash /path/to/bash-toys/migration/rm-dust-PR-52.sh
 ```
-See [migration script](../migration/rm-dust-PR-52.sh) for details.
+
+If you have files in the `YYYY-MM-DD-HH/` directory format (added in PR-52, superseded by date-only format):
+```bash
+bash /path/to/bash-toys/migration/rm-dust-PR-59.sh
+```
 
 ### cat-which
 
