@@ -386,6 +386,25 @@ teardown() {
   expects "$(cat "$test_dir/app.txt")" to_equal 'app content'
 }
 
+@test '`rm-dust` should handle files without extension in directory paths containing dots correctly' {
+  # Regression test: abs_path##*. would grab dots from directory names (e.g. yoichiro.ishikawa or .dotfiles)
+  # and treat the directory portion as an "extension", causing mv to fail with "No such file or directory"
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-no-ext-$$"
+  echo "no ext content" > "$test_file"
+
+  run rm-dust "$test_file"
+  expects "$status" to_be 0
+  expects "$test_file" not to_be_a_file
+  # Check that one file exists in the dustbox
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
+
+  # Restore the file
+  run rm-dust --restore
+  expects "$status" to_be 0
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'no ext content'
+}
+
 @test '`rm-dust` should handle filenames with plus signs like "C++.txt" correctly' {
   test_file="$BATS_TEST_DIRNAME/../tmp/test-file-plus-C++-$$.txt"
   echo "plus sign content" > "$test_file"
