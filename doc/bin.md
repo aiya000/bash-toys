@@ -307,7 +307,7 @@ bash /path/to/bash-toys/migration/rm-dust-PR-52.sh
 
 If you have files in the `YYYY-MM-DD-HH/` directory format (added in PR-52, superseded by date-only format):
 ```bash
-bash /path/to/bash-toys/migration/rm-dust-dir-format-date-only.sh
+bash /path/to/bash-toys/migration/rm-dust-PR-59.sh
 ```
 
 ### cat-which
