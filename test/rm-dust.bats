@@ -389,7 +389,9 @@ teardown() {
 @test '`rm-dust` should handle files without extension in directory paths containing dots correctly' {
   # Regression test: abs_path##*. would grab dots from directory names (e.g. yoichiro.ishikawa or .dotfiles)
   # and treat the directory portion as an "extension", causing mv to fail with "No such file or directory"
-  test_file="$BATS_TEST_DIRNAME/../tmp/test-no-ext-$$"
+  test_dir="$BATS_TEST_DIRNAME/../tmp/user.dotfiles"
+  mkdir -p "$test_dir"
+  test_file="$test_dir/test-no-ext-$$"
   echo "no ext content" > "$test_file"
 
   run rm-dust "$test_file"
@@ -403,6 +405,9 @@ teardown() {
   expects "$status" to_be 0
   expects "$test_file" to_be_a_file
   expects "$(cat "$test_file")" to_equal 'no ext content'
+  
+  # Cleanup
+  rm -rf "$test_dir"
 }
 
 @test '`rm-dust` should handle filenames with plus signs like "C++.txt" correctly' {
