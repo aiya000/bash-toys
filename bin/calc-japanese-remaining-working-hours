@@ -30,10 +30,12 @@ function showHelp() {
 
 Usage:
   calc-japanese-remaining-working-hours HOURS:MINUTES
+  calc-japanese-remaining-working-hours HOURS時間[MINUTES分]
   calc-japanese-remaining-working-hours -h | --help
 
 Arguments:
-  HOURS:MINUTES   Remaining working hours for the month (e.g., 108:37)
+  HOURS:MINUTES         Remaining working hours for the month (e.g., 108:37)
+  HOURS時間[MINUTES分]  Remaining working hours in Japanese format (e.g., 108時間37分)
 
 Options:
   -h, --help      Show this help message
@@ -44,7 +46,10 @@ Description:
 
 Examples:
   calc-japanese-remaining-working-hours 108:37
-  calc-japanese-remaining-working-hours 80:00`);
+  calc-japanese-remaining-working-hours 80:00
+  calc-japanese-remaining-working-hours 108時間37分
+  calc-japanese-remaining-working-hours 51時間
+  calc-japanese-remaining-working-hours 51時間30分`);
 }
 
 async function main() {
@@ -55,23 +60,29 @@ async function main() {
 
   if (Deno.args.length !== 1) {
     console.error("Usage: calc-japanese-remaining-working-hours HOURS:MINUTES");
+    console.error("       calc-japanese-remaining-working-hours HOURS時間[MINUTES分]");
     console.error("Example: calc-japanese-remaining-working-hours 108:37");
+    console.error("         calc-japanese-remaining-working-hours 108時間37分");
     console.error("Use -h or --help for more information.");
     Deno.exit(1);
   }
 
   // Parse input
-  const parts = Deno.args[0].split(':');
-  if (parts.length !== 2) {
-    console.error("Error: Invalid format. Use HOURS:MINUTES (e.g., 108:37)");
-    Deno.exit(1);
-  }
+  let hours: number;
+  let minutes: number;
 
-  const hours = parseInt(parts[0], 10);
-  const minutes = parseInt(parts[1], 10);
+  const input = Deno.args[0];
+  const japaneseMatch = input.match(/^(\d+)時間(?:(\d+)分)?$/);
+  const colonMatch = input.match(/^(\d+):(\d+)$/);
 
-  if (isNaN(hours) || isNaN(minutes)) {
-    console.error("Error: Invalid format. Use HOURS:MINUTES (e.g., 108:37)");
+  if (japaneseMatch) {
+    hours = parseInt(japaneseMatch[1], 10);
+    minutes = japaneseMatch[2] !== undefined ? parseInt(japaneseMatch[2], 10) : 0;
+  } else if (colonMatch) {
+    hours = parseInt(colonMatch[1], 10);
+    minutes = parseInt(colonMatch[2], 10);
+  } else {
+    console.error("Error: Invalid format. Use HOURS:MINUTES (e.g., 108:37) or HOURS時間MINUTES分 (e.g., 108時間37分)");
     Deno.exit(1);
   }
 
