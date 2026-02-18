@@ -393,6 +393,10 @@ teardown() {
   expects "$status" to_be 0
   [[ ! -f "$test_file" ]]
 
+  # Check that + in the filename is encoded as ++ in the dustbox
+  dustbox_file=$(find "$BASH_TOYS_DUSTBOX_DIR" -name '*C++++*')
+  [[ -n "$dustbox_file" ]]
+
   # Restore the file
   run rm-dust --restore
   expects "$status" to_be 0

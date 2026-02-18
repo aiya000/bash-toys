@@ -123,8 +123,8 @@ if [[ $restore_mode == 'true' ]] ; then
               continue
             fi
 
-            # Decode path: replace + with /, then %2B with +
-            original_path=$(echo "$rest" | sed 's;+;/;g;s/%2B/+/g')
+            # Decode path: replace ++ with placeholder, + with /, then placeholder with +
+            original_path=$(echo "$rest" | sed 's/++/%PLUS%/g;s/+/\//g;s/%PLUS%/+/g')
             if [[ $is_dir == false ]] ; then
               original_path="${original_path}${ext_part}"
             else
@@ -233,8 +233,8 @@ if [[ $restore_mode == 'true' ]] ; then
         continue
       fi
 
-      # Decode path: replace + with /, then %2B with +
-      original_path=$(echo "$rest" | sed 's;+;/;g;s/%2B/+/g')
+      # Decode path: replace ++ with placeholder, + with /, then placeholder with +
+      original_path=$(echo "$rest" | sed 's/++/%PLUS%/g;s/+/\//g;s/%PLUS%/+/g')
       # Add extension back if present (files only)
       if [[ $is_dir == false ]] ; then
         original_path="${original_path}${ext_part}"
@@ -298,8 +298,8 @@ else
     fi
 
     # Create new filename: +full+path+filename.HH:MM[.ext]
-    # Escape + in the path before encoding / as + to avoid ambiguity
-    encoded_path=$(echo "$base_path" | sed 's/+/%2B/g;s;/;+;g')
+    # Escape + in the path as ++ before encoding / as + to avoid ambiguity
+    encoded_path=$(echo "$base_path" | sed 's/+/++/g;s;/;+;g')
     time_suffix=$(date +'%H:%M')
     new_name="${encoded_path}.${time_suffix}${ext}"
 
