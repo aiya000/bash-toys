@@ -28,11 +28,11 @@ teardown() {
 
   run rm-dust "$test_file"
   expects "$status" to_be 0
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
   # Check that a date-hour directory was created
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type d -mindepth 1 | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type d -mindepth 1 | wc -l)" to_be 1
   # Check that one file exists in the dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 }
 
 @test '`rm-dust --restore` should restore file from dustbox' {
@@ -41,15 +41,15 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_file"
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Restore from dustbox
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "test content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'test content'
   # Check that dustbox is now empty (no files)
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 0 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 0
 }
 
 @test '`rm-dust --restore` with empty dustbox should print message' {
@@ -66,8 +66,8 @@ teardown() {
 
   # Move both to dustbox
   rm-dust "$test_file1" "$test_file2"
-  [[ ! -f "$test_file1" ]]
-  [[ ! -f "$test_file2" ]]
+  expects "$test_file1" not to_be_a_file
+  expects "$test_file2" not to_be_a_file
 
   # Get the dustbox filename for file1 (search for file1 specifically)
   dustbox_file=$(find "$BASH_TOYS_DUSTBOX_DIR" -type f -name "*test-file1*" | head -1 | xargs basename)
@@ -75,10 +75,10 @@ teardown() {
   # Restore specific file by filename
   run rm-dust --restore "$dustbox_file"
   expects "$status" to_be 0
-  [[ -f "$test_file1" ]]
-  [[ ! -f "$test_file2" ]]
+  expects "$test_file1" to_be_a_file
+  expects "$test_file2" not to_be_a_file
   # Check that one file still remains in dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 }
 
 @test '`rm-dust` should move directory to dustbox' {
@@ -91,17 +91,17 @@ teardown() {
 
   run rm-dust "$test_dir"
   expects "$status" to_be 0
-  [[ ! -d "$test_dir" ]]
+  expects "$test_dir" not to_be_a_dir
   # Check that a date-hour directory was created
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | wc -l)" to_be 1
   # Check that one directory exists in the dustbox (the moved directory)
   date_hour_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | head -1)
-  [[ $(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l) -eq 1 ]]
+  expects "$(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l)" to_be 1
   # Check that the directory contents are preserved
   moved_dir=$(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | head -1)
-  [[ -f "$moved_dir/file1.txt" ]]
-  [[ -f "$moved_dir/file2.txt" ]]
-  [[ -f "$moved_dir/subdir/subfile.txt" ]]
+  expects "$moved_dir/file1.txt" to_be_a_file
+  expects "$moved_dir/file2.txt" to_be_a_file
+  expects "$moved_dir/subdir/subfile.txt" to_be_a_file
 }
 
 @test '`rm-dust --restore` should restore directory from dustbox' {
@@ -111,18 +111,18 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_dir"
-  [[ ! -d "$test_dir" ]]
+  expects "$test_dir" not to_be_a_dir
 
   # Restore from dustbox
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -d "$test_dir" ]]
-  [[ -f "$test_dir/file.txt" ]]
-  [[ "$(cat "$test_dir/file.txt")" == "file content" ]]
+  expects "$test_dir" to_be_a_dir
+  expects "$test_dir/file.txt" to_be_a_file
+  expects "$(cat "$test_dir/file.txt")" to_equal 'file content'
   # Check that dustbox is now empty (no directories in date-hour dir)
   date_hour_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | head -1)
   if [[ -d "$date_hour_dir" ]] ; then
-    [[ $(find "$date_hour_dir" -maxdepth 1 -mindepth 1 | wc -l) -eq 0 ]]
+    expects "$(find "$date_hour_dir" -maxdepth 1 -mindepth 1 | wc -l)" to_be 0
   fi
 }
 
@@ -136,8 +136,8 @@ teardown() {
 
   # Move both to dustbox
   rm-dust "$test_dir1" "$test_dir2"
-  [[ ! -d "$test_dir1" ]]
-  [[ ! -d "$test_dir2" ]]
+  expects "$test_dir1" not to_be_a_dir
+  expects "$test_dir2" not to_be_a_dir
 
   # Get the dustbox dirname for dir1 (search for dir1 specifically)
   dustbox_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -type d -name "*test-dir1*" | head -1 | xargs basename)
@@ -145,12 +145,12 @@ teardown() {
   # Restore specific directory by dirname
   run rm-dust --restore "$dustbox_dir"
   expects "$status" to_be 0
-  [[ -d "$test_dir1" ]]
-  [[ ! -d "$test_dir2" ]]
-  [[ -f "$test_dir1/file1.txt" ]]
+  expects "$test_dir1" to_be_a_dir
+  expects "$test_dir2" not to_be_a_dir
+  expects "$test_dir1/file1.txt" to_be_a_file
   # Check that one directory still remains in dustbox
   date_hour_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | head -1)
-  [[ $(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l) -eq 1 ]]
+  expects "$(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l)" to_be 1
 }
 
 @test '`rm-dust --restore` should handle both files and directories' {
@@ -162,17 +162,17 @@ teardown() {
 
   # Move both to dustbox
   rm-dust "$test_file" "$test_dir"
-  [[ ! -f "$test_file" ]]
-  [[ ! -d "$test_dir" ]]
+  expects "$test_file" not to_be_a_file
+  expects "$test_dir" not to_be_a_dir
 
   # Restore both from dustbox (using BASH_TOYS_INTERACTIVE_FILTER='head -2')
   export BASH_TOYS_INTERACTIVE_FILTER='head -2'
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ -d "$test_dir" ]]
-  [[ "$(cat "$test_file")" == "file content" ]]
-  [[ "$(cat "$test_dir/file.txt")" == "dir file content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$test_dir" to_be_a_dir
+  expects "$(cat "$test_file")" to_equal 'file content'
+  expects "$(cat "$test_dir/file.txt")" to_equal 'dir file content'
 }
 
 @test '`rm-dust` should handle dotfiles correctly' {
@@ -181,15 +181,15 @@ teardown() {
 
   run rm-dust "$test_file"
   expects "$status" to_be 0
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
   # Check that one file exists in the dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 
   # Restore the dotfile
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "# bashrc content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal '# bashrc content'
 }
 
 @test '`rm-dust` should handle files with multiple dots correctly' {
@@ -198,15 +198,15 @@ teardown() {
 
   run rm-dust "$test_file"
   expects "$status" to_be 0
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
   # Check that one file exists in the dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 
   # Restore the file
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "archive content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'archive content'
 }
 
 @test '`rm-dust` should handle directories with dots correctly' {
@@ -216,17 +216,17 @@ teardown() {
 
   run rm-dust "$test_dir"
   expects "$status" to_be 0
-  [[ ! -d "$test_dir" ]]
+  expects "$test_dir" not to_be_a_dir
   # Check that one directory exists in the dustbox
   date_hour_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | head -1)
-  [[ $(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l) -eq 1 ]]
+  expects "$(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l)" to_be 1
 
   # Restore the directory
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -d "$test_dir" ]]
-  [[ -f "$test_dir/config.txt" ]]
-  [[ "$(cat "$test_dir/config.txt")" == "config content" ]]
+  expects "$test_dir" to_be_a_dir
+  expects "$test_dir/config.txt" to_be_a_file
+  expects "$(cat "$test_dir/config.txt")" to_equal 'config content'
 }
 
 @test '`rm-dust --restore --keep` should copy file from dustbox without removing it' {
@@ -235,15 +235,15 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_file"
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Restore with --keep (should copy, not move)
   run rm-dust --restore --keep
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "keep content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'keep content'
   # File should still exist in dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 }
 
 @test '`rm-dust --restore --keep FILENAME` should copy specific file without removing it' {
@@ -252,7 +252,7 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_file"
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Get the dustbox filename
   dustbox_file=$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | head -1 | xargs basename)
@@ -260,10 +260,10 @@ teardown() {
   # Restore specific file with --keep
   run rm-dust --restore --keep "$dustbox_file"
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "keep direct content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'keep direct content'
   # File should still exist in dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 }
 
 @test '`rm-dust --restore --keep` should copy directory from dustbox without removing it' {
@@ -273,17 +273,17 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_dir"
-  [[ ! -d "$test_dir" ]]
+  expects "$test_dir" not to_be_a_dir
 
   # Restore with --keep
   run rm-dust --restore --keep
   expects "$status" to_be 0
-  [[ -d "$test_dir" ]]
-  [[ -f "$test_dir/file.txt" ]]
-  [[ "$(cat "$test_dir/file.txt")" == "dir keep content" ]]
+  expects "$test_dir" to_be_a_dir
+  expects "$test_dir/file.txt" to_be_a_file
+  expects "$(cat "$test_dir/file.txt")" to_equal 'dir keep content'
   # Directory should still exist in dustbox
   date_hour_dir=$(find "$BASH_TOYS_DUSTBOX_DIR" -maxdepth 1 -type d -mindepth 1 | head -1)
-  [[ $(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l) -eq 1 ]]
+  expects "$(find "$date_hour_dir" -maxdepth 1 -type d -mindepth 1 | wc -l)" to_be 1
 }
 
 @test '`rm-dust --keep` without --restore should fail with error' {
@@ -304,15 +304,15 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_file"
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Restore with BASH_TOYS_RESTORE_KEEP=1 (should behave like --keep)
   BASH_TOYS_RESTORE_KEEP=1 run rm-dust --restore
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "env keep content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'env keep content'
   # File should still exist in dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 }
 
 @test '`BASH_TOYS_RESTORE_KEEP=0` should make --keep not the default (move behavior)' {
@@ -321,15 +321,15 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_file"
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Restore with BASH_TOYS_RESTORE_KEEP=0 (should behave like normal mv)
   BASH_TOYS_RESTORE_KEEP=0 run rm-dust --restore
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "env nokeep content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'env nokeep content'
   # File should NOT exist in dustbox anymore
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 0 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 0
 }
 
 @test '`BASH_TOYS_RESTORE_KEEP=1` with --keep should still keep (--keep takes precedence)' {
@@ -338,15 +338,15 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_file"
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Restore with BASH_TOYS_RESTORE_KEEP=1 and --keep (both agree)
   BASH_TOYS_RESTORE_KEEP=1 run rm-dust --restore --keep
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "env keep flag content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'env keep flag content'
   # File should still exist in dustbox
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 }
 
 @test '`BASH_TOYS_RESTORE_KEEP=0` with --keep should keep with warning (--keep takes precedence)' {
@@ -355,16 +355,16 @@ teardown() {
 
   # Move to dustbox
   rm-dust "$test_file"
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Restore with BASH_TOYS_RESTORE_KEEP=0 and --keep (conflict: --keep wins but warns)
   BASH_TOYS_RESTORE_KEEP=0 run rm-dust --restore --keep
   expects "$status" to_be 0
   expects "$output" to_contain 'Warning: --keep specified but BASH_TOYS_RESTORE_KEEP=0'
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "env nokeep flag content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'env nokeep flag content'
   # File should still exist in dustbox (--keep won)
-  [[ $(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l) -eq 1 ]]
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
 }
 
 @test '`rm-dust` should handle directory names like "my.app.v2" correctly' {
@@ -374,14 +374,14 @@ teardown() {
 
   run rm-dust "$test_dir"
   expects "$status" to_be 0
-  [[ ! -d "$test_dir" ]]
+  expects "$test_dir" not to_be_a_dir
 
   # Restore the directory
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -d "$test_dir" ]]
-  [[ -f "$test_dir/app.txt" ]]
-  [[ "$(cat "$test_dir/app.txt")" == "app content" ]]
+  expects "$test_dir" to_be_a_dir
+  expects "$test_dir/app.txt" to_be_a_file
+  expects "$(cat "$test_dir/app.txt")" to_equal 'app content'
 }
 
 @test '`rm-dust` should handle filenames with plus signs like "C++.txt" correctly' {
@@ -391,15 +391,15 @@ teardown() {
   # Move the file with plus signs in its name to the dustbox
   run rm-dust "$test_file"
   expects "$status" to_be 0
-  [[ ! -f "$test_file" ]]
+  expects "$test_file" not to_be_a_file
 
   # Check that + in the filename is encoded as ++ in the dustbox
   dustbox_file=$(find "$BASH_TOYS_DUSTBOX_DIR" -name '*C++++*')
-  [[ -n "$dustbox_file" ]]
+  expects "$dustbox_file" to_be_defined
 
   # Restore the file
   run rm-dust --restore
   expects "$status" to_be 0
-  [[ -f "$test_file" ]]
-  [[ "$(cat "$test_file")" == "plus sign content" ]]
+  expects "$test_file" to_be_a_file
+  expects "$(cat "$test_file")" to_equal 'plus sign content'
 }
