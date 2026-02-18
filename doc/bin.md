@@ -382,7 +382,7 @@ expects VALUE MATCHER [EXPECTED]
 expects VALUE not MATCHER [EXPECTED]
 ```
 
-**Matchers**: `to_be`, `to_equal`, `to_be_less_than`, `to_be_greater_than`, `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`
+**Matchers**: `to_be`, `to_equal`, `to_be_less_than`, `to_be_greater_than`, `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`, `to_be_a_file`, `to_be_a_dir`
 
 **Examples**:
 ```bash
@@ -423,6 +423,16 @@ Test passed
 
 $ expects "" to_be_defined
 FAIL: expected {actual} to_be_defined, but {actual} is (empty)
+
+# File and directory assertions
+$ expects /path/to/file.txt to_be_a_file && echo "Test passed"
+Test passed
+
+$ expects /no/such/file to_be_a_file
+FAIL: expected {actual} to_be_a_file, but {actual} is '/no/such/file'
+
+$ expects /path/to/dir to_be_a_dir && echo "Test passed"
+Test passed
 ```
 
 ## Process Management

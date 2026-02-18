@@ -235,3 +235,49 @@ setup() {
   [[ $status -eq 1 ]]
   [[ $output == "FAIL: expected {actual} to_equal (empty), but {actual} is 'x'" ]]
 }
+
+@test '`expects /existing/file to_be_a_file` should succeed' {
+  tmp_file=$(mktemp)
+  run expects "$tmp_file" to_be_a_file
+  [[ $status -eq 0 ]]
+  rm -f "$tmp_file"
+}
+
+@test '`expects /nonexistent to_be_a_file` should fail' {
+  run expects '/nonexistent/path/file.txt' to_be_a_file
+  [[ $status -eq 1 ]]
+  [[ $output == "FAIL: expected {actual} to_be_a_file, but {actual} is '/nonexistent/path/file.txt'" ]]
+}
+
+@test '`expects /nonexistent not to_be_a_file` should succeed' {
+  run expects '/nonexistent/path/file.txt' not to_be_a_file
+  [[ $status -eq 0 ]]
+}
+
+@test '`expects /existing/file not to_be_a_file` should fail' {
+  tmp_file=$(mktemp)
+  run expects "$tmp_file" not to_be_a_file
+  [[ $status -eq 1 ]]
+  rm -f "$tmp_file"
+}
+
+@test '`expects /existing/dir to_be_a_dir` should succeed' {
+  run expects "$BATS_TEST_DIRNAME" to_be_a_dir
+  [[ $status -eq 0 ]]
+}
+
+@test '`expects /nonexistent to_be_a_dir` should fail' {
+  run expects '/nonexistent/path/dir' to_be_a_dir
+  [[ $status -eq 1 ]]
+  [[ $output == "FAIL: expected {actual} to_be_a_dir, but {actual} is '/nonexistent/path/dir'" ]]
+}
+
+@test '`expects /nonexistent not to_be_a_dir` should succeed' {
+  run expects '/nonexistent/path/dir' not to_be_a_dir
+  [[ $status -eq 0 ]]
+}
+
+@test '`expects /existing/dir not to_be_a_dir` should fail' {
+  run expects "$BATS_TEST_DIRNAME" not to_be_a_dir
+  [[ $status -eq 1 ]]
+}
