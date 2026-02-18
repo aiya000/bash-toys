@@ -63,7 +63,7 @@ setup() {
   # Start run-wait-output: command1 outputs "after_cmd2" after a long sleep
   timeout 8 run-wait-output 1000 "echo before ; sleep 2 ; echo after_cmd2 ; sleep 1" "echo done > $tmpfile" > $outputfile 2>&1
 
-  output=$(cat "$outputfile")
+  saved_output=$(cat "$outputfile")
 
   # Check if command2 executed
   run bash -c "[[ -f '$tmpfile' ]]"
@@ -72,7 +72,7 @@ setup() {
   expects "$output" to_equal 'done'
 
   # Check if command1 continued running after command2 (should see "after_cmd2")
-  expects "$output" to_contain 'after_cmd2'
+  expects "$saved_output" to_contain 'after_cmd2'
 
   rm -f "$tmpfile" "$outputfile"
 }
