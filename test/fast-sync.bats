@@ -55,7 +55,8 @@ teardown() {
     run fast-sync --init "$TEST_INIT_DIR"
     expects "$status" to_be 0
     expects "$output" to_contain 'Initialization mode:'
-    [ -f "$HOME/.last_sync" ]
+    run bash -c "[[ -f '$HOME/.last_sync' ]]"
+    expects "$status" to_be 0
 }
 
 @test '`fast-sync` should sync new files' {
@@ -67,9 +68,12 @@ teardown() {
     echo "yes" | fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
 
     # Check that files were synced
-    [ -f "$TEST_TARGET_DIR/file1.txt" ]
-    [ -f "$TEST_TARGET_DIR/file2.txt" ]
-    [ -f "$TEST_TARGET_DIR/subdir/file3.txt" ]
+    run bash -c "[[ -f '$TEST_TARGET_DIR/file1.txt' ]]"
+    expects "$status" to_be 0
+    run bash -c "[[ -f '$TEST_TARGET_DIR/file2.txt' ]]"
+    expects "$status" to_be 0
+    run bash -c "[[ -f '$TEST_TARGET_DIR/subdir/file3.txt' ]]"
+    expects "$status" to_be 0
 }
 
 @test '`fast-sync` should detect no new files on second run' {
@@ -95,7 +99,8 @@ teardown() {
     run fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
     expects "$status" to_be 0
     expects "$output" to_contain 'Found 4 new files to sync'
-    [ -f "$TEST_TARGET_DIR/new_file.txt" ]
+    run bash -c "[[ -f '$TEST_TARGET_DIR/new_file.txt' ]]"
+    expects "$status" to_be 0
 }
 
 @test 'fast-sync should create log directory and files' {
@@ -105,14 +110,17 @@ teardown() {
     echo "yes" | fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
 
     # Check log directory exists
-    [ -d "$HOME/.cache/fast-sync/logs" ]
+    run bash -c "[[ -d '$HOME/.cache/fast-sync/logs' ]]"
+    expects "$status" to_be 0
 
     # Check that log files were created (should have current date)
     LOG_COUNT=$(find "$HOME/.cache/fast-sync/logs" -name "*.log" | wc -l)
     ERROR_LOG_COUNT=$(find "$HOME/.cache/fast-sync/logs" -name "*.error.log" | wc -l)
 
-    [ "$LOG_COUNT" -ge 1 ]
-    [ "$ERROR_LOG_COUNT" -ge 1 ]
+    run bash -c "[[ $LOG_COUNT -ge 1 ]]"
+    expects "$status" to_be 0
+    run bash -c "[[ $ERROR_LOG_COUNT -ge 1 ]]"
+    expects "$status" to_be 0
 }
 
 @test 'fast-sync log file should contain execution details' {
@@ -122,7 +130,8 @@ teardown() {
 
     # Find the latest log file
     LATEST_LOG=$(find "$HOME/.cache/fast-sync/logs" -name "*.log" -not -name "*.error.log" | sort | tail -1)
-    [ -f "$LATEST_LOG" ]
+    run bash -c "[[ -f '$LATEST_LOG' ]]"
+    expects "$status" to_be 0
 
     # Check log content
     grep -q "Fast Sync Log Started" "$LATEST_LOG"
