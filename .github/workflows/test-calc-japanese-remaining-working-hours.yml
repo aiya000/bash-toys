@@ -1,0 +1,34 @@
+name: Test calc-japanese-remaining-working-hours
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'bin/calc-japanese-remaining-working-hours'
+      - 'test/calc-japanese-remaining-working-hours.bats'
+      - 'lib/**'
+      - 'sources/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'bin/calc-japanese-remaining-working-hours'
+      - 'test/calc-japanese-remaining-working-hours.bats'
+      - 'lib/**'
+      - 'sources/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Run test
+        run: |
+          source ./source-all.sh
+          ./lib/bats/bin/bats ./test/calc-japanese-remaining-working-hours.bats
