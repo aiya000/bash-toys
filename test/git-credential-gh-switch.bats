@@ -87,8 +87,8 @@ setup() {
   local test_dir
   test_dir=$(mktemp -d)
 
-  # Create bare repository (remote)
-  git init --bare "$test_dir/remote-repo.git"
+  # Create bare repository (remote) with main as default branch
+  git init --bare --initial-branch=main "$test_dir/remote-repo.git"
 
   # Clone and setup main repository
   git clone "$test_dir/remote-repo.git" "$test_dir/main-repo"
