@@ -3,12 +3,14 @@
 # Bash completion for rm-dust command
 
 _rm_dust_completion() {
-  local cur prev words cword
-  _init_completion || return
+  local cur prev
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   # If --restore option is present, complete with dustbox files
   local restore_mode=false
-  for word in "${words[@]}"; do
+  local word
+  for word in "${COMP_WORDS[@]}"; do
     if [[ $word == '--restore' ]] ; then
       restore_mode=true
       break
@@ -17,19 +19,37 @@ _rm_dust_completion() {
 
   if [[ $cur == -* ]] ; then
     # Complete options
-    COMPREPLY=($(compgen -W '--help -h --restore' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -h --restore --keep' -- "$cur"))
   elif [[ $restore_mode == 'true' ]] ; then
-    # Complete with files from dustbox
+    # Complete with paths from dustbox (supports YYYY-MM-DD-HH/filename format)
     if [[ -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
-      local dustbox_files
-      dustbox_files=$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null)
-      if [[ $dustbox_files != '' ]] ; then
-        COMPREPLY=($(compgen -W "$dustbox_files" -- "$cur"))
+      COMPREPLY=()
+      local dir_part file_part target_dir
+      if [[ $cur == */* ]] ; then
+        dir_part="${cur%/*}/"
+        file_part="${cur##*/}"
+      else
+        dir_part=""
+        file_part="$cur"
+      fi
+      target_dir="${BASH_TOYS_DUSTBOX_DIR}/${dir_part}"
+      if [[ -d $target_dir ]] ; then
+        local entry
+        while IFS= read -r entry; do
+          [[ -z $entry ]] && continue
+          # Skip entries not matching current prefix (substring comparison to avoid glob issues)
+          [[ -n $file_part && ${entry:0:${#file_part}} != $file_part ]] && continue
+          if [[ -d "${target_dir}${entry}" ]] ; then
+            COMPREPLY+=("${dir_part}${entry}/")
+          else
+            COMPREPLY+=("${dir_part}${entry}")
+          fi
+        done < <(ls -1 "${target_dir}" 2>/dev/null)
       fi
     fi
   else
-    # Default file completion
-    _filedir
+    # Default file/directory completion
+    COMPREPLY=($(compgen -f -- "$cur"))
   fi
 }
 

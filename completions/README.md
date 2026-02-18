@@ -1,21 +1,41 @@
-# Bash Completion Scripts
+# Completion Scripts
 
-This directory contains bash completion scripts for bash-toys commands.
+This directory contains shell completion scripts for bash-toys commands.
+
+The scripts use the bash completion API (`complete`, `compgen`, `COMPREPLY`),
+which works in both **bash** and **zsh** (via `bashcompinit`).
+
+Note: `.bash` is a naming convention for completion scripts using the bash completion API.
 
 ## Installation
 
-To enable bash completion, add the following to your `~/.bashrc`:
+### Bash
+
+Add the following to your `~/.bashrc`:
 
 ```bash
-# Source bash-toys completions
-for completion in /path/to/bash-toys/completions/*.bash; do
-  source "$completion"
-done
+source /path/to/bash-toys/source-completions-all.sh
 ```
 
-Or for a specific command:
+### Zsh
+
+Add the following to your `~/.zshrc`:
+
+```zsh
+autoload -U +X bashcompinit && bashcompinit
+source /path/to/bash-toys/source-completions-all.sh
+```
+
+### Individual completion
+
+Or for a specific command only:
 
 ```bash
+# bash
+source /path/to/bash-toys/completions/rm-dust.bash
+
+# zsh (after bashcompinit is loaded)
+autoload -U +X bashcompinit && bashcompinit
 source /path/to/bash-toys/completions/rm-dust.bash
 ```
 
