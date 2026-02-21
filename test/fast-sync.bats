@@ -141,10 +141,8 @@ teardown() {
 
     # This should prompt for user input, but we can't test interactively
     # Instead, let's test the warning detection logic by checking directory contents
-    run bash -c "ls -A '$EMPTY_SOURCE' 2>/dev/null"
-    expects "$output" to_equal ''
-    run bash -c "ls -A '$EMPTY_TARGET' 2>/dev/null"
-    expects "$output" to_equal ''
+    expects "$(ls -A "$EMPTY_SOURCE" 2>/dev/null)" to_equal ''
+    expects "$(ls -A "$EMPTY_TARGET" 2>/dev/null)" to_equal ''
 
     rm -rf "$EMPTY_SOURCE" "$EMPTY_TARGET"
 }
