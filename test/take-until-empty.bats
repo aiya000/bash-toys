@@ -6,6 +6,9 @@ file_contains_empty_line="$BATS_TMPDIR/file_contains_empty_line"
 file_does_not_contain_empty_line="$BATS_TMPDIR/file_does_not_contain_empty_line"
 
 setup () {
+  # Ensure we use commands from this repository, not from PATH
+  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+
   touch "$file_contains_empty_line"
   {
     echo a
@@ -25,11 +28,6 @@ setup () {
 teardown () {
   rm -f "$file_contains_empty_line"
   rm -f "$file_does_not_contain_empty_line"
-}
-
-setup() {
-  # Ensure we use commands from this repository, not from PATH
-  export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
 }
 
 @test '`take-until-empty --help` should show help message' {
