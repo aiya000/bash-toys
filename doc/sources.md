@@ -81,28 +81,30 @@ package.json
 Defines variable if not already defined.
 
 ```bash
-define-alt <var_name> [value...]
-define-alt --empty-array <var_name>
+define-alt [--export] <var_name> [value...]
+define-alt [--export] --empty-array <var_name>
 ```
+
+**Options**:
+- `--export` - Also export the variable (like `define-alt-export`)
 
 **Examples**:
 ```bash
-define-alt a 10           # Define scalar: a=10
-define-alt xs 1 2 3       # Define array: xs=(1 2 3)
-define-alt --empty-array ys  # Define empty array
+define-alt a 10                  # Define scalar: a=10
+define-alt xs 1 2 3             # Define array: xs=(1 2 3)
+define-alt --empty-array ys     # Define empty array
+define-alt --export EDITOR vim  # Define and export
 ```
 
 If variable already exists, value is not changed.
 
 ### define-alt-export
 
-Defines and exports variable if not already defined.
+Alias for `define-alt --export`. Defines and exports variable if not already defined.
 
 ```bash
 define-alt-export <var_name> [value...]
 ```
-
-Similar to define-alt, but also exports the variable.
 
 **Examples**:
 ```bash

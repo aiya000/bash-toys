@@ -7,7 +7,7 @@ _define_alt_completion() {
   cur="${COMP_WORDS[COMP_CWORD]}"
 
   if [[ $cur == -* ]] ; then
-    COMPREPLY=($(compgen -W '--help -h --empty-array' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -h --empty-array --export' -- "$cur"))
   fi
 }
 

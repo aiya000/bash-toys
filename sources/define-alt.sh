@@ -7,8 +7,8 @@ function bash-toys::help::define-alt () {
 define-alt - Define variable if not already defined
 
 Usage:
-  define-alt <var_name> [value...]
-  define-alt --empty-array <var_name>
+  define-alt [--export] <var_name> [value...]
+  define-alt [--export] --empty-array <var_name>
   define-alt -h | --help
 
 Arguments:
@@ -16,12 +16,14 @@ Arguments:
   value         Value(s) to assign (multiple = array)
 
 Options:
+  --export      Also export the variable
   --empty-array Define an empty array variable
 
 Examples:
-  define-alt a 10           # Define scalar
-  define-alt xs 1 2 3       # Define array
-  define-alt --empty-array ys  # Define empty array
+  define-alt a 10                    # Define scalar
+  define-alt xs 1 2 3               # Define array
+  define-alt --empty-array ys       # Define empty array
+  define-alt --export EDITOR vim    # Define and export
 EOF
 }
 
@@ -30,6 +32,17 @@ function define-alt () {
     bash-toys::help::define-alt
     return 0
   fi
+
+  local export_flag=false
+  local positional=()
+  for arg in "$@" ; do
+    if [[ $arg == --export ]] ; then
+      export_flag=true
+    else
+      positional+=("$arg")
+    fi
+  done
+  set -- "${positional[@]}"
 
   local var_name=$1
 
@@ -42,6 +55,9 @@ function define-alt () {
   if [[ $1 == --empty-array ]] ; then
     var_name=$2
     eval "$var_name=()"
+    if [[ $export_flag == true ]] ; then
+      export "$var_name"
+    fi
     return
   fi
   local value=$2
@@ -50,14 +66,20 @@ function define-alt () {
   # Define an empty variable or a variable with a value
   if [[ $values_length -le 1 ]] ; then
     eval "$var_name=$value"
+    if [[ $export_flag == true ]] ; then
+      export "$var_name"
+    fi
     return
   fi
 
   # Define an array variable with elements
-  local args=("$@") values_last_index values
+  local remaining_args=("$@") values_last_index values
   values_last_index=$((values_length - 1))
-  values=("${args[@]:1:$values_last_index}")
+  values=("${remaining_args[@]:1:$values_last_index}")
   eval "$var_name=(${values[*]})"
+  if [[ $export_flag == true ]] ; then
+    export "$var_name"
+  fi
 }
 
 # https://github.com/aiya000/bash-toys
