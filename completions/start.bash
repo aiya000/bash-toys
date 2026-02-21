@@ -8,8 +8,12 @@ _start_completion() {
 
   if [[ $cur == -* ]] ; then
     COMPREPLY=($(compgen -W '--help -h' -- "$cur"))
-  else
+  elif [[ $COMP_CWORD -eq 1 ]]; then
+    # First non-flag argument: complete command names
     COMPREPLY=($(compgen -c -- "$cur"))
+  else
+    # Subsequent arguments: complete files/directories
+    COMPREPLY=($(compgen -f -- "$cur"))
   fi
 }
 
