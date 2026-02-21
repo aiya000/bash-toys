@@ -5,13 +5,28 @@
 setup() {
   # Ensure we use commands from this repository, not from PATH
   export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
-  # Clean up any existing pomodoro count files
-  rm -f /tmp/pomodoro-* 2> /dev/null
+  # Back up any existing pomodoro count files so tests don't delete real user state
+  POMODORO_BACKUP_DIR=''
+  for f in /tmp/pomodoro-* ; do
+    [[ -e $f ]] || continue
+    if [[ $POMODORO_BACKUP_DIR == '' ]] ; then
+      POMODORO_BACKUP_DIR="$(mktemp -d)"
+    fi
+    mv "$f" "$POMODORO_BACKUP_DIR"/
+  done
 }
 
 teardown() {
   # Clean up any pomodoro count files created during tests
   rm -f /tmp/pomodoro-* 2> /dev/null
+  # Restore any pomodoro count files that existed before the test run
+  if [[ -d ${POMODORO_BACKUP_DIR:-} ]] ; then
+    for f in "$POMODORO_BACKUP_DIR"/pomodoro-* ; do
+      [[ -e $f ]] || continue
+      mv "$f" /tmp/
+    done
+    rm -rf "$POMODORO_BACKUP_DIR"
+  fi
 }
 
 @test '`pomodoro-timer --help` should show help message' {
@@ -39,7 +54,7 @@ teardown() {
 }
 
 @test '`pomodoro-timer --from` with expired time should show error' {
-  run pomodoro-timer --from 00:00 1
+  run pomodoro-timer --from 00:00 0
   expects "$status" to_be 1
   expects "$output" to_contain 'Timer has already expired'
 }

@@ -233,6 +233,7 @@ $ notify-cascade 18:00 "Dinner" "Cook" 1h --mobile --local  # Both mobile and de
 $ pomodoro-timer              # Default 30 minutes
 $ pomodoro-timer 25           # Classic 25-minute pomodoro
 $ pomodoro-timer --rest 5     # 5-minute break timer
+$ pomodoro-timer --from 09:30 60   # Resume timer that started at 09:30 for 60 minutes
 ```
 
 <!-- }}} -->
