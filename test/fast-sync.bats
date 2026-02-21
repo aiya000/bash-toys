@@ -111,10 +111,8 @@ teardown() {
     LOG_COUNT=$(find "$HOME/.cache/fast-sync/logs" -name "*.log" | wc -l)
     ERROR_LOG_COUNT=$(find "$HOME/.cache/fast-sync/logs" -name "*.error.log" | wc -l)
 
-    run bash -c "[[ $LOG_COUNT -ge 1 ]]"
-    expects "$status" to_be 0
-    run bash -c "[[ $ERROR_LOG_COUNT -ge 1 ]]"
-    expects "$status" to_be 0
+    expects "$LOG_COUNT" to_be_greater_than_or_equal_to 1
+    expects "$ERROR_LOG_COUNT" to_be_greater_than_or_equal_to 1
 }
 
 @test 'fast-sync log file should contain execution details' {
