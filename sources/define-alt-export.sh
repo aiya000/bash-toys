@@ -16,8 +16,7 @@ Usage:
   define-alt-export -h | --help
 
 Description:
-  Similar to define-alt, but also exports the variable.
-  See define-alt --help for detailed usage.
+  Alias for `define-alt --export`. See define-alt --help for detailed usage.
 
 Examples:
   define-alt-export BASH_TOYS_INTERACTIVE_FILTER peco
@@ -30,13 +29,7 @@ function define-alt-export () {
     return 0
   fi
 
-  define-alt "$@"
-
-  local var_name=$1
-  if [[ $1 == --empty-array ]] ; then
-    var_name=$2
-  fi
-  export "$var_name"
+  define-alt --export "$@"
 }
 
 # https://github.com/aiya000/bash-toys

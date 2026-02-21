@@ -63,7 +63,7 @@ source /path/to/bash-toys/completions/rm-dust.bash
 | Function | Options | Argument completion |
 |---|---|---|
 | `alias-of` | `--help`, `-h` | command names |
-| `define-alt` | `--help`, `-h`, `--empty-array` | — |
+| `define-alt` | `--help`, `-h`, `--empty-array`, `--export` | — |
 | `force-unexport` | `--help`, `-h` | exported variable names |
 | `get-var` | `--help`, `-h` | variable names |
 | `i-have` | `--help`, `-h` | command names |
