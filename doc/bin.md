@@ -835,6 +835,7 @@ CLI pomodoro timer.
 pomodoro-timer [minutes]
 pomodoro-timer --rest [minutes]
 pomodoro-timer --from HH:MM minutes
+pomodoro-timer --from 'YYYY-MM-DD HH:MM' minutes
 pomodoro-timer --set-count N
 pomodoro-timer --get-count
 pomodoro-timer --clean
@@ -880,7 +881,7 @@ Calculates time difference in minutes.
 date-diff-seconds TIME1 TIME2
 ```
 
-**TIME formats**: `MM-DD HH:MM` or `HH:MM`
+**TIME formats**: `YYYY-MM-DD HH:MM`, `MM-DD HH:MM`, or `HH:MM`
 
 **Examples**:
 ```bash
@@ -890,6 +891,10 @@ $ date-diff-seconds 21:47 22:33
 
 # With specific dates
 $ date-diff-seconds '08-05 21:47' '08-05 22:33'
+46
+
+# With full date and time
+$ date-diff-seconds '2025-09-25 21:47' '2025-09-25 22:33'
 46
 
 # Negative result (TIME1 is later than TIME2)

@@ -11,7 +11,7 @@ Usage:
   date-diff-seconds --help
 
 Arguments:
-  TIME1, TIME2      Time in format 'MM-DD HH:MM' or just 'HH:MM'
+  TIME1, TIME2      Time in format 'YYYY-MM-DD HH:MM', 'MM-DD HH:MM', or just 'HH:MM'
                     When only HH:MM is given, current date is assumed
 
 Options:
@@ -36,7 +36,10 @@ this_month=$(date +%m-%d)
 function get_fully_qualified_date () {
   local text=$1
 
-  if [[ $text =~ ^[0-9][0-9]-[0-9][0-9] ]] ; then
+  if [[ $text =~ ^[0-9]{4}- ]] ; then
+    # YYYY-MM-DD HH:MM format, already fully qualified.
+    echo "$text"
+  elif [[ $text =~ ^[0-9][0-9]-[0-9][0-9] ]] ; then
     # If a day is specified.
     echo "$this_year-$text"
   else
