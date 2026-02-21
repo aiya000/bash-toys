@@ -26,11 +26,11 @@ setup() {
 @test '`gh-issue-view-select` should display selected issue content' {
   # Mock gh command
   function gh () {
-    if [[ $1 == 'issue' && $2 == 'list' ]] ; then
+    if [[ $1 == issue && $2 == list ]] ; then
       echo '#42  Issue title  enhancement  2024-03-05'
       return 0
     fi
-    if [[ $1 == 'issue' && $2 == 'view' && $3 == '42' ]] ; then
+    if [[ $1 == issue && $2 == view && $3 == 42 ]] ; then
       echo "Issue #42 content" >> "$GH_OUTPUT"
       return 0
     fi

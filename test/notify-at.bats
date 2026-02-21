@@ -16,7 +16,7 @@ LAUNCHD_DIR="$HOME/Library/LaunchAgents"
 
 # Helper function to skip tests that affect real jobs
 skip_unless_real_jobs_enabled() {
-  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != "1" ]] ; then
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != 1 ]] ; then
     skip "This test affects real jobs on the host OS. Set BASH_TOYS_TEST_REAL_JOBS=1 to run."
   fi
 }
@@ -39,7 +39,7 @@ cleanup_at_jobs() {
     while IFS= read -r line ; do
       local job_id job_content
 
-      if [[ -z $line ]] ; then
+      if [[ $line == '' ]] ; then
         continue
       fi
 
@@ -84,7 +84,7 @@ cleanup_test_jobs() {
 
 teardown() {
   # Only cleanup if real jobs testing is enabled
-  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" == "1" ]] ; then
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" == 1 ]] ; then
     cleanup_test_jobs >/dev/null 2>&1 || true
   fi
 }
@@ -283,7 +283,7 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_equal ''
+  expects "$job_id" to_be_defined
 
   # Cancel the job
   run notify-at -c "$job_id"

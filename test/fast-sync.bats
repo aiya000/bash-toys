@@ -29,33 +29,33 @@ teardown() {
 
 @test '`fast-sync --help` should show help message' {
     run fast-sync --help
-    [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ ^fast-sync\ -\  ]]
+    expects "$status" to_be 0
+    expects "${lines[0]}" to_match '^fast-sync - '
 }
 
 @test '`fast-sync -h` should show help message' {
     run fast-sync -h
-    [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ ^fast-sync\ -\  ]]
+    expects "$status" to_be 0
+    expects "${lines[0]}" to_match '^fast-sync - '
 }
 
 @test '`fast-sync` with no arguments should show usage' {
     run fast-sync
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ "Usage:" ]]
+    expects "$status" to_be 1
+    expects "$output" to_contain 'Usage:'
 }
 
 @test '`fast-sync --init` with no directory should show usage' {
     run fast-sync --init
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ "Usage:" ]]
+    expects "$status" to_be 1
+    expects "$output" to_contain 'Usage:'
 }
 
 @test '`fast-sync --init` should create sync state file' {
     run fast-sync --init "$TEST_INIT_DIR"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "Initialization mode:" ]]
-    [ -f "$HOME/.last_sync" ]
+    expects "$status" to_be 0
+    expects "$output" to_contain 'Initialization mode:'
+    expects "$HOME/.last_sync" to_be_a_file
 }
 
 @test '`fast-sync` should sync new files' {
@@ -67,9 +67,9 @@ teardown() {
     echo "yes" | fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
 
     # Check that files were synced
-    [ -f "$TEST_TARGET_DIR/file1.txt" ]
-    [ -f "$TEST_TARGET_DIR/file2.txt" ]
-    [ -f "$TEST_TARGET_DIR/subdir/file3.txt" ]
+    expects "$TEST_TARGET_DIR/file1.txt" to_be_a_file
+    expects "$TEST_TARGET_DIR/file2.txt" to_be_a_file
+    expects "$TEST_TARGET_DIR/subdir/file3.txt" to_be_a_file
 }
 
 @test '`fast-sync` should detect no new files on second run' {
@@ -79,8 +79,8 @@ teardown() {
 
     # Second sync should find no new files (no user interaction needed since target isn't empty)
     run fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "All up to date! No new files to sync." ]]
+    expects "$status" to_be 0
+    expects "$output" to_contain 'All up to date! No new files to sync.'
 }
 
 @test '`fast-sync` should only sync new files' {
@@ -93,9 +93,9 @@ teardown() {
 
     # Second sync should sync the new file (total 4 files: 3 existing + 1 new)
     run fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
-    [ "$status" -eq 0 ]
-    [[ "$output" =~ "Found 4 new files to sync" ]]
-    [ -f "$TEST_TARGET_DIR/new_file.txt" ]
+    expects "$status" to_be 0
+    expects "$output" to_contain 'Found 4 new files to sync'
+    expects "$TEST_TARGET_DIR/new_file.txt" to_be_a_file
 }
 
 @test 'fast-sync should create log directory and files' {
@@ -105,14 +105,14 @@ teardown() {
     echo "yes" | fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
 
     # Check log directory exists
-    [ -d "$HOME/.cache/fast-sync/logs" ]
+    expects "$HOME/.cache/fast-sync/logs" to_be_a_dir
 
     # Check that log files were created (should have current date)
     LOG_COUNT=$(find "$HOME/.cache/fast-sync/logs" -name "*.log" | wc -l)
     ERROR_LOG_COUNT=$(find "$HOME/.cache/fast-sync/logs" -name "*.error.log" | wc -l)
 
-    [ "$LOG_COUNT" -ge 1 ]
-    [ "$ERROR_LOG_COUNT" -ge 1 ]
+    expects "$LOG_COUNT" to_be_greater_than_or_equal_to 1
+    expects "$ERROR_LOG_COUNT" to_be_greater_than_or_equal_to 1
 }
 
 @test 'fast-sync log file should contain execution details' {
@@ -122,7 +122,7 @@ teardown() {
 
     # Find the latest log file
     LATEST_LOG=$(find "$HOME/.cache/fast-sync/logs" -name "*.log" -not -name "*.error.log" | sort | tail -1)
-    [ -f "$LATEST_LOG" ]
+    expects "$LATEST_LOG" to_be_a_file
 
     # Check log content
     grep -q "Fast Sync Log Started" "$LATEST_LOG"
@@ -141,8 +141,8 @@ teardown() {
 
     # This should prompt for user input, but we can't test interactively
     # Instead, let's test the warning detection logic by checking directory contents
-    [ -z "$(ls -A "$EMPTY_SOURCE" 2>/dev/null)" ]
-    [ -z "$(ls -A "$EMPTY_TARGET" 2>/dev/null)" ]
+    expects "$(ls -A "$EMPTY_SOURCE" 2>/dev/null)" to_equal ''
+    expects "$(ls -A "$EMPTY_TARGET" 2>/dev/null)" to_equal ''
 
     rm -rf "$EMPTY_SOURCE" "$EMPTY_TARGET"
 }

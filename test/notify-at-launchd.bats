@@ -21,14 +21,14 @@ LAUNCHD_DIR="$HOME/Library/LaunchAgents"
 
 # Helper function to skip tests that affect real jobs
 skip_unless_real_jobs_enabled() {
-  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != "1" ]] ; then
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != 1 ]] ; then
     skip "This test affects real jobs on the host OS. Set BASH_TOYS_TEST_REAL_JOBS=1 to run."
   fi
 }
 
 # Helper function to skip tests on non-macOS platforms
 skip_unless_macos() {
-  if [[ "$(uname -s)" != "Darwin" ]] ; then
+  if [[ "$(uname -s)" != Darwin ]] ; then
     skip "Test only runs on macOS"
   fi
 }
@@ -58,7 +58,7 @@ cleanup_launchd_jobs() {
 
 teardown() {
   # Only cleanup if real jobs testing is enabled
-  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" == "1" ]] ; then
+  if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" == 1 ]] ; then
     cleanup_launchd_jobs >/dev/null 2>&1 || true
   fi
 }
@@ -79,11 +79,11 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_equal ''
+  expects "$job_id" to_be_defined
 
   # Check plist file contains StartCalendarInterval
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
-  [[ -f "$plist_path" ]] || fail "plist file should exist: $plist_path"
+  expects "$plist_path" to_be_a_file
 
   run cat "$plist_path"
   expects "$output" to_contain '<key>StartCalendarInterval</key>'
@@ -109,11 +109,11 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_equal ''
+  expects "$job_id" to_be_defined
 
   # Check wrapper script exists
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
-  [[ -f "$script_path" ]] || fail "wrapper script should exist: $script_path"
+  expects "$script_path" to_be_a_file
 
   # Check script contains year validation
   run cat "$script_path"
@@ -140,21 +140,21 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_equal ''
+  expects "$job_id" to_be_defined
 
   # Verify files exist before cancel
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
-  [[ -f "$plist_path" ]] || fail "plist file should exist: $plist_path"
-  [[ -f "$script_path" ]] || fail "wrapper script should exist: $script_path"
+  expects "$plist_path" to_be_a_file
+  expects "$script_path" to_be_a_file
 
   # Cancel the job
   run notify-at -c "$job_id"
   expects "$status" to_be 0
 
   # Verify files are removed
-  [[ ! -f "$plist_path" ]] || fail "plist file should be removed: $plist_path"
-  [[ ! -f "$script_path" ]] || fail "wrapper script should be removed: $script_path"
+  expects "$plist_path" not to_be_a_file
+  expects "$script_path" not to_be_a_file
 }
 
 # Tests for script cleanup behavior
@@ -173,14 +173,14 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_equal ''
+  expects "$job_id" to_be_defined
 
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
 
   # Verify files exist
-  [[ -f "$plist_path" ]] || fail "plist file should exist before test: $plist_path"
-  [[ -f "$script_path" ]] || fail "script file should exist before test: $script_path"
+  expects "$plist_path" to_be_a_file
+  expects "$script_path" to_be_a_file
 
   # Modify the script to have a past timestamp (yesterday)
   local past_timestamp
@@ -196,8 +196,8 @@ teardown() {
   expects "$status" to_be 0
 
   # Verify files are removed (cleanup was executed)
-  [[ ! -f "$plist_path" ]] || fail "plist file should be removed after cleanup: $plist_path"
-  [[ ! -f "$script_path" ]] || fail "script file should be removed after cleanup: $script_path"
+  expects "$plist_path" not to_be_a_file
+  expects "$script_path" not to_be_a_file
 }
 
 @test '`notify-at-launchd` script should cleanup when year does not match' {
@@ -214,14 +214,14 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_equal ''
+  expects "$job_id" to_be_defined
 
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
 
   # Verify files exist
-  [[ -f "$plist_path" ]] || fail "plist file should exist before test: $plist_path"
-  [[ -f "$script_path" ]] || fail "script file should exist before test: $script_path"
+  expects "$plist_path" to_be_a_file
+  expects "$script_path" to_be_a_file
 
   # Modify the script to have next year
   local next_year
@@ -237,6 +237,6 @@ teardown() {
   expects "$status" to_be 0
 
   # Verify files are removed (cleanup was executed)
-  [[ ! -f "$plist_path" ]] || fail "plist file should be removed after cleanup: $plist_path"
-  [[ ! -f "$script_path" ]] || fail "script file should be removed after cleanup: $script_path"
+  expects "$plist_path" not to_be_a_file
+  expects "$script_path" not to_be_a_file
 }

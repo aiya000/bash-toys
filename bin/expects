@@ -13,7 +13,8 @@ Usage:
 
 Arguments:
   VALUE               The value to test
-  MATCHER            One of: to_be, to_equal, to_be_less_than, to_be_greater_than,
+  MATCHER            One of: to_be, to_equal, to_be_less_than (lt), to_be_greater_than (gt),
+                     to_be_less_than_or_equal_to (le), to_be_greater_than_or_equal_to (ge),
                      to_contain, to_match, to_be_true, to_be_false, to_be_defined,
                      to_be_a_file, to_be_a_dir
   EXPECTED           Expected value (if required by matcher)
@@ -27,6 +28,8 @@ Examples:
   expects true to_be_true
   expects foo to_contain oo
   expects 123 to_match '^[0-9]+$'
+  expects 5 lt 10
+  expects 10 ge 5
 EOF
 }
 
@@ -52,12 +55,20 @@ function test_value () {
       [[ $actual -eq $expected ]]
       return $?
       ;;
-    to_be_less_than)
+    to_be_less_than|lt)
       [[ $actual -lt $expected ]]
       return $?
       ;;
-    to_be_greater_than)
+    to_be_greater_than|gt)
       [[ $actual -gt $expected ]]
+      return $?
+      ;;
+    to_be_less_than_or_equal_to|le)
+      [[ $actual -le $expected ]]
+      return $?
+      ;;
+    to_be_greater_than_or_equal_to|ge)
+      [[ $actual -ge $expected ]]
       return $?
       ;;
     to_equal)
