@@ -18,7 +18,7 @@ fi
 
 selected=$(echo "$BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS" | tr '|' '\n' | sed -E 's/\((.*?)=(.*?)\)/\1: \2/' | eval "$BASH_TOYS_INTERACTIVE_FILTER")
 if [[ -n $selected ]] ; then
-  url=$(echo "$selected" | sed -E 's/.*?: *//')
+  url=$(echo "$selected" | sed -E 's/^[^:]+: //')
   xdg-open "$url" >/dev/null 2>&1
 fi
 

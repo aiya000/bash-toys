@@ -91,10 +91,11 @@ teardown() {
     # Add a new file to source
     echo "new content" > "$TEST_SOURCE_DIR/new_file.txt"
 
-    # Second sync should sync the new file (total 4 files: 3 existing + 1 new)
+    # Second sync should sync only the 1 new file
     run fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
+    clean_output=$(echo "$output" | sed 's/\x1b\[[0-9;]*m//g')
     expects "$status" to_be 0
-    expects "$output" to_contain 'Found 4 new files to sync'
+    expects "$clean_output" to_contain 'Found 1 new files to sync'
     expects "$TEST_TARGET_DIR/new_file.txt" to_be_a_file
 }
 
