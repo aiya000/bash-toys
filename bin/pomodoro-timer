@@ -10,6 +10,7 @@ Usage:
   pomodoro-timer [minutes]
   pomodoro-timer --rest [minutes]
   pomodoro-timer --from HH:MM minutes
+  pomodoro-timer --from 'YYYY-MM-DD HH:MM' minutes
   pomodoro-timer --set-count N
   pomodoro-timer --get-count
   pomodoro-timer --clean
@@ -17,7 +18,8 @@ Usage:
 
 Options:
   --rest          Start break time (default: 5 minutes)
-  --from HH:MM    Start timer from specified time
+  --from HH:MM                     Start timer from specified time
+  --from 'YYYY-MM-DD HH:MM'        Start timer from specified date and time
   --set-count N   Set pomodoro count to N
   --get-count     Display current pomodoro count
   --clean         Reset pomodoro count
@@ -39,7 +41,7 @@ EOF
 
 if [[ $1 == --set-count ]] ; then
   if [[ $2 == '' ]] ; then
-    echo '--set-count requires minutes as a second argument' > /dev/stderr
+    echo '--set-count requires count as a second argument' > /dev/stderr
     exit 1
   fi
 
@@ -62,7 +64,11 @@ if [[ $1 == --from ]] ; then
 
   dir=$(dirname "$0")
   from=$2
-  to=$(date +'%H:%M')  # Now
+  if [[ $from =~ ^[0-9]{4}- ]] ; then
+    to=$(date +'%Y-%m-%d %H:%M')  # Full datetime for YYYY-MM-DD HH:MM format
+  else
+    to=$(date +'%H:%M')  # Now
+  fi
   count=$3
   consumed_minutes=$("$dir/date-diff-seconds" "$from" "$to")
 
@@ -110,7 +116,7 @@ is_rest_time=false
 interval=${BASH_TOYS_POMODORO_DEFAULT_INTERVAL:-30}
 if [[ $1 == --rest ]] ; then
   is_rest_time=true
-  if [[ -n $2 ]] ; then
+  if [[ $2 != '' ]] ; then
     interval=$2
   else
     interval=5
