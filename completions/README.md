@@ -41,11 +41,41 @@ source /path/to/bash-toys/completions/rm-dust.bash
 
 ## Available Completions
 
-### rm-dust
+### bin commands
+
+| Command | Options | Argument completion |
+|---|---|---|
+| `cat-which` | `--help`, `-h`, `--no-bat` | command names |
+| `expects` | `--help`, `-h` | matchers (`to_be`, `to_equal`, `not`, …) |
+| `fast-sync` | `--help`, `-h`, `--init` | directories |
+| `gh-run-view-latest` | `--help`, `-h`, `--log`, `--web`, `--json` | — |
+| `list-dpkg-executables` | `--help`, `-h` | package names |
+| `notify-at` | `--help`, `-h`, `--ntfy`, `--local`, `-l`, `--list`, `-c`, `--cancel` | — |
+| `notify-at-at` | `--help`, `-h`, `--ntfy`, `--local`, `-l`, `--list`, `-c`, `--cancel` | — |
+| `notify-at-launchd` | `--help`, `-h`, `--ntfy`, `--local`, `-l`, `--list`, `-c`, `--cancel` | — |
+| `notify-cascade` | `--help`, `-h`, `--ntfy`, `--local` | — |
+| `pomodoro-timer` | `--help`, `-h`, `--rest`, `--from`, `--set-count`, `--get-count`, `--clean` | — |
+| `rm-dust` | `--help`, `-h`, `--restore`, `--keep` | files / dustbox entries |
+| `start` | `--help`, `-h` | command names |
+
+### source functions
+
+| Function | Options | Argument completion |
+|---|---|---|
+| `alias-of` | `--help`, `-h` | command names |
+| `define-alt` | `--help`, `-h`, `--empty-array` | — |
+| `force-unexport` | `--help`, `-h` | exported variable names |
+| `get-var` | `--help`, `-h` | variable names |
+| `i-have` | `--help`, `-h` | command names |
+| `is-array` | `--help`, `-h` | variable names |
+| `load-my-env` | `--help`, `-h` | env names (`cabal`, `cargo`, `nvm`, …) |
+| `nvim-parent-edit` | `--help`, `-h` | open methods (`tabnew`, `split`, `vsplit`) then files |
+
+### rm-dust (detailed)
 
 Provides intelligent completion for the `rm-dust` command:
 
-- **Options**: Completes `--help`, `-h`, `--restore`
+- **Options**: Completes `--help`, `-h`, `--restore`, `--keep`
 - **File paths**: Completes normal file paths when adding files to dustbox
 - **Dustbox files**: When using `--restore`, completes with files currently in the dustbox
 
@@ -54,7 +84,7 @@ Provides intelligent completion for the `rm-dust` command:
 ```bash
 # Complete options
 $ rm-dust --<TAB>
---help  --restore
+--help  --restore  --keep
 
 # Complete with dustbox files when using --restore
 $ rm-dust --restore <TAB>
