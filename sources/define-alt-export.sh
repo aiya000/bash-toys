@@ -36,8 +36,7 @@ function define-alt-export () {
   if [[ $1 == --empty-array ]] ; then
     var_name=$2
   fi
-  # TODO
-  # if eval "[[ \$$var_name != '' ]]"
+  export "$var_name"
 }
 
 # https://github.com/aiya000/bash-toys
