@@ -66,8 +66,7 @@ setup() {
   saved_output=$(cat "$outputfile")
 
   # Check if command2 executed
-  run bash -c "[[ -f '$tmpfile' ]]"
-  expects "$status" to_be 0
+  expects "$tmpfile" to_be_a_file
   run cat "$tmpfile"
   expects "$output" to_equal 'done'
 
@@ -104,8 +103,7 @@ setup() {
   run timeout 5 run-wait-output 100 'echo first' "echo \$\$ > $tmpfile ; sleep 0.5"
   expects "$status" to_be 0
 
-  run bash -c "[[ -f '$tmpfile' ]]"
-  if [[ $status -eq 0 ]] ; then
+  if [[ -f "$tmpfile" ]] ; then
     run cat "$tmpfile"
     expects "$output" to_match '^[0-9]+$'
     rm -f "$tmpfile"
@@ -124,8 +122,7 @@ setup() {
   sleep 1
 
   # Verify the PID file was created (command2 executed)
-  run bash -c "[[ -f '$tmpfile' ]]"
-  expects "$status" to_be 0
+  expects "$tmpfile" to_be_a_file
 
   # Clean up
   kill $runner_pid 2>/dev/null || true

@@ -29,8 +29,7 @@ teardown() {
   run rm-dust "$test_file"
   expects "$status" to_be 0
   expects "$test_file" not to_be_a_file
-  run bash -c "ls -1 '$BASH_TOYS_DUSTBOX_DIR' | wc -l"
-  expects "$output" to_be 1
+  expects "$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" | wc -l)" to_be 1
 }
 
 @test '`rm-dust --restore` should restore file from dustbox' {
@@ -47,8 +46,7 @@ teardown() {
   expects "$test_file" to_be_a_file
   run cat "$test_file"
   expects "$output" to_equal 'test content'
-  run bash -c "ls -1 '$BASH_TOYS_DUSTBOX_DIR' | wc -l"
-  expects "$output" to_be 0
+  expects "$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" | wc -l)" to_be 0
 }
 
 @test '`rm-dust --restore` with empty dustbox should print message' {
@@ -76,6 +74,5 @@ teardown() {
   expects "$status" to_be 0
   expects "$test_file1" to_be_a_file
   expects "$test_file2" not to_be_a_file
-  run bash -c "ls -1 '$BASH_TOYS_DUSTBOX_DIR' | wc -l"
-  expects "$output" to_be 1
+  expects "$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" | wc -l)" to_be 1
 }
