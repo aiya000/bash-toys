@@ -55,8 +55,7 @@ teardown() {
     run fast-sync --init "$TEST_INIT_DIR"
     expects "$status" to_be 0
     expects "$output" to_contain 'Initialization mode:'
-    run bash -c "[[ -f '$HOME/.last_sync' ]]"
-    expects "$status" to_be 0
+    expects "$HOME/.last_sync" to_be_a_file
 }
 
 @test '`fast-sync` should sync new files' {
@@ -68,12 +67,9 @@ teardown() {
     echo "yes" | fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
 
     # Check that files were synced
-    run bash -c "[[ -f '$TEST_TARGET_DIR/file1.txt' ]]"
-    expects "$status" to_be 0
-    run bash -c "[[ -f '$TEST_TARGET_DIR/file2.txt' ]]"
-    expects "$status" to_be 0
-    run bash -c "[[ -f '$TEST_TARGET_DIR/subdir/file3.txt' ]]"
-    expects "$status" to_be 0
+    expects "$TEST_TARGET_DIR/file1.txt" to_be_a_file
+    expects "$TEST_TARGET_DIR/file2.txt" to_be_a_file
+    expects "$TEST_TARGET_DIR/subdir/file3.txt" to_be_a_file
 }
 
 @test '`fast-sync` should detect no new files on second run' {
@@ -99,8 +95,7 @@ teardown() {
     run fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
     expects "$status" to_be 0
     expects "$output" to_contain 'Found 4 new files to sync'
-    run bash -c "[[ -f '$TEST_TARGET_DIR/new_file.txt' ]]"
-    expects "$status" to_be 0
+    expects "$TEST_TARGET_DIR/new_file.txt" to_be_a_file
 }
 
 @test 'fast-sync should create log directory and files' {
@@ -110,8 +105,7 @@ teardown() {
     echo "yes" | fast-sync "$TEST_SOURCE_DIR" "$TEST_TARGET_DIR"
 
     # Check log directory exists
-    run bash -c "[[ -d '$HOME/.cache/fast-sync/logs' ]]"
-    expects "$status" to_be 0
+    expects "$HOME/.cache/fast-sync/logs" to_be_a_dir
 
     # Check that log files were created (should have current date)
     LOG_COUNT=$(find "$HOME/.cache/fast-sync/logs" -name "*.log" | wc -l)
@@ -130,8 +124,7 @@ teardown() {
 
     # Find the latest log file
     LATEST_LOG=$(find "$HOME/.cache/fast-sync/logs" -name "*.log" -not -name "*.error.log" | sort | tail -1)
-    run bash -c "[[ -f '$LATEST_LOG' ]]"
-    expects "$status" to_be 0
+    expects "$LATEST_LOG" to_be_a_file
 
     # Check log content
     grep -q "Fast Sync Log Started" "$LATEST_LOG"

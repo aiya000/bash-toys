@@ -14,7 +14,8 @@ Usage:
 Arguments:
   VALUE               The value to test
   MATCHER            One of: to_be, to_equal, to_be_less_than, to_be_greater_than,
-                     to_contain, to_match, to_be_true, to_be_false, to_be_defined
+                     to_contain, to_match, to_be_true, to_be_false, to_be_defined,
+                     to_be_a_file, to_be_a_dir
   EXPECTED           Expected value (if required by matcher)
 
 Options:
@@ -81,6 +82,14 @@ function test_value () {
       ;;
     to_be_defined)
       [[ -n $actual ]]
+      return $?
+      ;;
+    to_be_a_file)
+      [[ -f $actual ]]
+      return $?
+      ;;
+    to_be_a_dir)
+      [[ -d $actual ]]
       return $?
       ;;
     *)

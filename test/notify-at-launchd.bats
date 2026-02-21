@@ -82,12 +82,11 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_be_defined
+  expects "$job_id" to_be_defined
 
   # Check plist file contains StartCalendarInterval
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
-  run bash -c "[[ -f '$plist_path' ]]"
-  expects "$status" to_be 0
+  expects "$plist_path" to_be_a_file
 
   run cat "$plist_path"
   expects "$output" to_contain '<key>StartCalendarInterval</key>'
@@ -113,12 +112,11 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_be_defined
+  expects "$job_id" to_be_defined
 
   # Check wrapper script exists
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
-  run bash -c "[[ -f '$script_path' ]]"
-  expects "$status" to_be 0
+  expects "$script_path" to_be_a_file
 
   # Check script contains year validation
   run cat "$script_path"
@@ -145,25 +143,21 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_be_defined
+  expects "$job_id" to_be_defined
 
   # Verify files exist before cancel
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
-  run bash -c "[[ -f '$plist_path' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ -f '$script_path' ]]"
-  expects "$status" to_be 0
+  expects "$plist_path" to_be_a_file
+  expects "$script_path" to_be_a_file
 
   # Cancel the job
   run notify-at -c "$job_id"
   expects "$status" to_be 0
 
   # Verify files are removed
-  run bash -c "[[ ! -f '$plist_path' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ ! -f '$script_path' ]]"
-  expects "$status" to_be 0
+  expects "$plist_path" not to_be_a_file
+  expects "$script_path" not to_be_a_file
 }
 
 # Tests for script cleanup behavior
@@ -182,16 +176,14 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_be_defined
+  expects "$job_id" to_be_defined
 
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
 
   # Verify files exist
-  run bash -c "[[ -f '$plist_path' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ -f '$script_path' ]]"
-  expects "$status" to_be 0
+  expects "$plist_path" to_be_a_file
+  expects "$script_path" to_be_a_file
 
   # Modify the script to have a past timestamp (yesterday)
   local past_timestamp
@@ -207,10 +199,8 @@ teardown() {
   expects "$status" to_be 0
 
   # Verify files are removed (cleanup was executed)
-  run bash -c "[[ ! -f '$plist_path' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ ! -f '$script_path' ]]"
-  expects "$status" to_be 0
+  expects "$plist_path" not to_be_a_file
+  expects "$script_path" not to_be_a_file
 }
 
 @test '`notify-at-launchd` script should cleanup when year does not match' {
@@ -227,16 +217,14 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_be_defined
+  expects "$job_id" to_be_defined
 
   local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
   local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
 
   # Verify files exist
-  run bash -c "[[ -f '$plist_path' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ -f '$script_path' ]]"
-  expects "$status" to_be 0
+  expects "$plist_path" to_be_a_file
+  expects "$script_path" to_be_a_file
 
   # Modify the script to have next year
   local next_year
@@ -252,8 +240,6 @@ teardown() {
   expects "$status" to_be 0
 
   # Verify files are removed (cleanup was executed)
-  run bash -c "[[ ! -f '$plist_path' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ ! -f '$script_path' ]]"
-  expects "$status" to_be 0
+  expects "$plist_path" not to_be_a_file
+  expects "$script_path" not to_be_a_file
 }

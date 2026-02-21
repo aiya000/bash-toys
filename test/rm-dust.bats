@@ -28,10 +28,9 @@ teardown() {
   
   run rm-dust "$test_file"
   expects "$status" to_be 0
-  run bash -c "[[ ! -f '$test_file' ]]"
-  expects "$status" to_be 0
+  expects "$test_file" not to_be_a_file
   run bash -c "ls -1 '$BASH_TOYS_DUSTBOX_DIR' | wc -l"
-  expects "$output" to_equal '1'
+  expects "$output" to_be 1
 }
 
 @test '`rm-dust --restore` should restore file from dustbox' {
@@ -40,18 +39,16 @@ teardown() {
   
   # Move to dustbox
   rm-dust "$test_file"
-  run bash -c "[[ ! -f '$test_file' ]]"
-  expects "$status" to_be 0
+  expects "$test_file" not to_be_a_file
   
   # Restore from dustbox
   run rm-dust --restore
   expects "$status" to_be 0
-  run bash -c "[[ -f '$test_file' ]]"
-  expects "$status" to_be 0
+  expects "$test_file" to_be_a_file
   run cat "$test_file"
   expects "$output" to_equal 'test content'
   run bash -c "ls -1 '$BASH_TOYS_DUSTBOX_DIR' | wc -l"
-  expects "$output" to_equal '0'
+  expects "$output" to_be 0
 }
 
 @test '`rm-dust --restore` with empty dustbox should print message' {
@@ -68,10 +65,8 @@ teardown() {
   
   # Move both to dustbox
   rm-dust "$test_file1" "$test_file2"
-  run bash -c "[[ ! -f '$test_file1' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ ! -f '$test_file2' ]]"
-  expects "$status" to_be 0
+  expects "$test_file1" not to_be_a_file
+  expects "$test_file2" not to_be_a_file
   
   # Get the dustbox filename for file1
   dustbox_file=$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" | head -1)
@@ -79,10 +74,8 @@ teardown() {
   # Restore specific file
   run rm-dust --restore "$dustbox_file"
   expects "$status" to_be 0
-  run bash -c "[[ -f '$test_file1' ]]"
-  expects "$status" to_be 0
-  run bash -c "[[ ! -f '$test_file2' ]]"
-  expects "$status" to_be 0
+  expects "$test_file1" to_be_a_file
+  expects "$test_file2" not to_be_a_file
   run bash -c "ls -1 '$BASH_TOYS_DUSTBOX_DIR' | wc -l"
-  expects "$output" to_equal '1'
+  expects "$output" to_be 1
 }

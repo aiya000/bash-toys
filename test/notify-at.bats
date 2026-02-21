@@ -286,7 +286,7 @@ teardown() {
   # Extract job ID from output
   local job_id
   job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
-  expects "$job_id" not to_be_defined
+  expects "$job_id" to_be_defined
 
   # Cancel the job
   run notify-at -c "$job_id"
