@@ -1,11 +1,8 @@
 #!/usr/bin/env bats
 
-setup () {
+setup() {
   export BASH_TOYS_INTERACTIVE_FILTER='head -n 1'
   export BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS='(Example=https://example.com)|(GitHub=https://github.com)'
-}
-
-setup() {
   # Ensure we use commands from this repository, not from PATH
   export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
 }

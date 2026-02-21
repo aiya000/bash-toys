@@ -21,9 +21,10 @@ setup() {
 
 @test '`git-root` should print git repository root when inside a git repo' {
   # This test runs in the bash-toys repository itself
+  expected_root="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
   run git-root
   expects "$status" to_be 0
-  expects "$output" to_match '/bash-toys/main$'
+  expects "$output" to_equal "$expected_root"
 }
 
 @test '`git-root` should exit with code 1 and no output when not in a git repo' {
