@@ -173,53 +173,142 @@ Error: 1 or more arguments required
 
 ### rm-dust
 
-Alternative to rm that moves files to dustbox instead of deletion.
+Alternative to rm that moves files and directories to dustbox instead of deletion.
 
 ```bash
-rm-dust FILE...
-rm-dust --restore [FILE...]
+rm-dust FILE|DIR...
+rm-dust --restore [FILE|DIR...]
+rm-dust --restore --keep [FILE|DIR...]
 ```
 
-Files are moved to `$BASH_TOYS_DUSTBOX_DIR` with timestamp.
+Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date directories with encoded full paths.
+
+**Storage Format** (Since PR-52):
+- Directory structure: `YYYY-MM-DD/` (organized by date)
+- Filename format: `+full+path+filename.HH:MM[.ext]` (for files)
+- Directory format: `+full+path+dirname.HH:MM` (for directories)
+- Path encoding: `/` is replaced with `+`, and `+` in filenames is escaped as `++`
+- All paths are stored as absolute paths
 
 **Options**:
-- `--restore` - Restore files from dustbox (interactive or specific files)
+- `--restore` - Restore files or directories from dustbox (interactive or specific items)
+- `--keep` - Used with `--restore`: copy from dustbox instead of moving (leaves the original in dustbox intact)
+
+**Environment Variables**:
+- `BASH_TOYS_DUSTBOX_DIR` - Directory to store dustbox files (default: `~/.backup/dustbox`)
+- `BASH_TOYS_RESTORE_KEEP` - Set to `1` to make `--keep` the default for `--restore`; `--keep` flag always takes precedence over this variable
 
 **Examples**:
 ```bash
-# Move files to dustbox
-$ rm-dust test.txt
-mv test.txt /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt
+# Move files to dustbox (relative path)
+$ cd /home/user/dir
+$ rm-dust file-in-current-directory
+mv file-in-current-directory /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file-in-current-directory.13:58
 
-# Multiple files
-$ rm-dust file1.txt file2.txt
-mv file1.txt /home/user/.backup/dustbox/file1.txt_2026-02-03_13:32:52.txt
-mv file2.txt /home/user/.backup/dustbox/file2.txt_2026-02-03_13:32:53.txt
+# Move files to dustbox (absolute path)
+$ rm-dust /full/path/file.ext
+mv /full/path/file.ext /home/user/.backup/dustbox/2026-02-09/+full+path+file.13:58.ext
 
-# Preserves extension
-$ rm-dust document.pdf
-mv document.pdf /home/user/.backup/dustbox/document.pdf_2026-02-03_13:32:52.pdf
+# Move directories to dustbox
+$ cd /home/user
+$ rm-dust my-dir
+mv my-dir /home/user/.backup/dustbox/2026-02-09/+home+user+my-dir.13:58
+$ ls /home/user/.backup/dustbox/2026-02-09/+home+user+my-dir.13:58/
+file1.txt  file2.txt  subdir/
 
-# Restore files interactively
+# Multiple versions at different times (all go into the same date directory)
+$ rm-dust file.txt
+mv file.txt /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt
+$ # ... edit file.txt ...
+$ rm-dust file.txt
+mv file.txt /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.14:10.txt
+
+# Restore files and directories interactively (shows human-readable format)
 $ rm-dust --restore
-# (Interactive filter appears with dustbox files)
-mv /home/user/.backup/dustbox/test.txt_2026-02-03_13:32:52.txt test.txt
+# Display format: YYYY-MM-DD HH:MM: /original/path (directories end with /)
+2026-02-09 13:58: /full/path/file.ext
+2026-02-09 13:58: /home/user/dir/file-in-current-directory
+2026-02-09 13:58: /home/user/my-dir/
+2026-02-09 14:10: /home/user/dir/file.txt
+# (Select files or directories to restore)
 
-# Restore specific file
-$ rm-dust --restore +tmp+test.txt_2026-02-03_13:32:52.txt
-mv /home/user/.backup/dustbox/+tmp+test.txt_2026-02-03_13:32:52.txt /tmp/test.txt
+# Restore specific file by filename
+$ rm-dust --restore "+home+user+dir+file.13:58.txt"
+mv /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# Restore specific directory by filename
+$ rm-dust --restore "+home+user+my-dir.13:58"
+mv /home/user/.backup/dustbox/2026-02-09/+home+user+my-dir.13:58 /home/user/my-dir
+
+# Restore specific file by full path
+$ rm-dust --restore "2026-02-09/+home+user+dir+file.13:58.txt"
+mv /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# Restore interactively but keep originals in dustbox (--keep)
+$ rm-dust --restore --keep
+# (Select files or directories to restore)
+cp -ir /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# Restore specific file but keep in dustbox
+$ rm-dust --restore --keep "+home+user+dir+file.13:58.txt"
+cp -ir /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# --keep without --restore is an error
+$ rm-dust --keep file.txt
+Error: --keep requires --restore
+
+# BASH_TOYS_RESTORE_KEEP=1: --keep is the default behavior
+$ BASH_TOYS_RESTORE_KEEP=1 rm-dust --restore
+# (Select files or directories to restore)
+cp -ir /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# BASH_TOYS_RESTORE_KEEP=0: --keep is not the default (explicit is required)
+$ BASH_TOYS_RESTORE_KEEP=0 rm-dust --restore
+# (Select files or directories to restore)
+mv -i /home/user/.backup/dustbox/2026-02-09/+home+user+dir+file.13:58.txt /home/user/dir/file.txt
+
+# BASH_TOYS_RESTORE_KEEP=1 with --keep: keeps (--keep flag takes precedence)
+$ BASH_TOYS_RESTORE_KEEP=1 rm-dust --restore --keep
+cp -ir ...
+
+# BASH_TOYS_RESTORE_KEEP=0 with --keep: keeps with warning (--keep flag takes precedence)
+$ BASH_TOYS_RESTORE_KEEP=0 rm-dust --restore --keep
+Warning: --keep specified but BASH_TOYS_RESTORE_KEEP=0; --keep takes precedence
+cp -ir ...
 ```
 
-**Bash Completion**:
-To enable bash completion, source the completion script:
+**Completion** (bash / zsh):
+To enable completion for all bash-toys commands at once:
+```bash
+# bash (~/.bashrc)
+source /path/to/bash-toys/source-completions-all.sh
+
+# zsh (~/.zshrc)
+autoload -U +X bashcompinit && bashcompinit
+source /path/to/bash-toys/source-completions-all.sh
+```
+
+Or to enable only for `rm-dust`:
 ```bash
 source /path/to/bash-toys/completions/rm-dust.bash
 ```
 
 Completion features:
-- Option completion: `--help`, `-h`, `--restore`
-- File completion: normal file paths when adding to dustbox
-- Dustbox file completion: files in dustbox when using `--restore`
+- Option completion: `--help`, `-h`, `--restore`, `--keep`
+- File/directory completion: normal paths when adding to dustbox
+- Dustbox item completion: files and directories in dustbox when using `--restore`
+
+**Migration from Old Formats**:
+
+If you have files in the pre-PR-52 format (flat files with `_YYYY-MM-DD_HH:MM:SS` suffix):
+```bash
+bash /path/to/bash-toys/migration/rm-dust-PR-52.sh
+```
+
+If you have files in the `YYYY-MM-DD-HH/` directory format (added in PR-52, superseded by date-only format):
+```bash
+bash /path/to/bash-toys/migration/rm-dust-PR-59.sh
+```
 
 ### cat-which
 
@@ -382,7 +471,7 @@ expects VALUE MATCHER [EXPECTED]
 expects VALUE not MATCHER [EXPECTED]
 ```
 
-**Matchers**: `to_be`, `to_equal`, `to_be_less_than`, `to_be_greater_than`, `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`
+**Matchers**: `to_be`, `to_equal`, `to_be_less_than`, `to_be_greater_than`, `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`, `to_be_a_file`, `to_be_a_dir`
 
 **Examples**:
 ```bash
@@ -423,6 +512,16 @@ Test passed
 
 $ expects "" to_be_defined
 FAIL: expected {actual} to_be_defined, but {actual} is (empty)
+
+# File and directory assertions
+$ expects /path/to/file.txt to_be_a_file && echo "Test passed"
+Test passed
+
+$ expects /no/such/file to_be_a_file
+FAIL: expected {actual} to_be_a_file, but {actual} is '/no/such/file'
+
+$ expects /path/to/dir to_be_a_dir && echo "Test passed"
+Test passed
 ```
 
 ## Process Management
