@@ -10,6 +10,7 @@ Usage:
   rm-dust FILE|DIR...
   rm-dust --restore [FILE|DIR...]
   rm-dust --restore --keep [FILE|DIR...]
+  rm-dust --list
   rm-dust --help
 
 Arguments:
@@ -20,6 +21,7 @@ Options:
   --restore       Restore files or directories from dustbox
   --keep          Used with --restore: copy from dustbox instead of moving
                   (leaves the original in dustbox intact)
+  --list          List all files and directories in dustbox
 
 Environment Variables:
   BASH_TOYS_DUSTBOX_DIR     Directory to store dustbox files (default: ~/.backup/dustbox)
@@ -33,17 +35,21 @@ Notes:
   - Paths are encoded with / replaced by +
   - Use --restore to interactively select and restore files or directories
   - Interactive restore shows: YYYY-MM-DD HH:MM: /original/path
+  - Use --list to show all dustbox entries in the same format without interaction
 EOF
 }
 
 restore_mode=false
 keep_flag=false  # whether --keep was explicitly passed
+list_mode=false
 args=()
 for arg in "$@"; do
   if [[ $arg == '--restore' ]] ; then
     restore_mode=true
   elif [[ $arg == '--keep' ]] ; then
     keep_flag=true
+  elif [[ $arg == '--list' ]] ; then
+    list_mode=true
   else
     args+=("$arg")
   fi
@@ -54,6 +60,11 @@ set -- "${args[@]}"
 
 if [[ $keep_flag == 'true' && $restore_mode == 'false' ]] ; then
   echo "Error: --keep requires --restore" >&2
+  exit 1
+fi
+
+if [[ $list_mode == 'true' && ($restore_mode == 'true' || $keep_flag == 'true') ]] ; then
+  echo "Error: --list cannot be combined with --restore or --keep" >&2
   exit 1
 fi
 
@@ -78,6 +89,49 @@ fi
 
 if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] ; then
   mkdir -p "$BASH_TOYS_DUSTBOX_DIR"
+fi
+
+if [[ $list_mode == 'true' ]] ; then
+  if [[ ! -d $BASH_TOYS_DUSTBOX_DIR ]] || [[ -z "$(ls -A "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null)" ]] ; then
+    echo "Dustbox is empty"
+    exit 0
+  fi
+
+  while IFS= read -r date_hour ; do
+    [[ -z $date_hour ]] && continue
+    date_dir="${BASH_TOYS_DUSTBOX_DIR}/${date_hour}"
+    [[ -d $date_dir ]] || continue
+
+    while IFS= read -r filename ; do
+      [[ -z $filename ]] && continue
+      full_path="${date_dir}/${filename}"
+      [[ -e $full_path ]] || continue
+
+      is_dir=false
+      if [[ -d $full_path ]] ; then
+        is_dir=true
+        filename="${filename%/}"
+      fi
+
+      if [[ $filename =~ \.([0-9]{2}:[0-9]{2})(\.(.+))?$ ]] ; then
+        time_part="${BASH_REMATCH[1]}"
+        ext_part="${BASH_REMATCH[2]}"
+        rest="${filename%.$time_part*}"
+      else
+        continue
+      fi
+
+      original_path=$(echo "$rest" | sed 's/++/%PLUS%/g;s/+/\//g;s/%PLUS%/+/g')
+      if [[ $is_dir == false ]] ; then
+        original_path="${original_path}${ext_part}"
+      else
+        original_path="${original_path}/"
+      fi
+
+      echo "$date_hour $time_part: $original_path"
+    done < <(ls -1 "$date_dir" 2>/dev/null | sort -r)
+  done < <(ls -1 "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null | sort -r)
+  exit 0
 fi
 
 if [[ $restore_mode == 'true' ]] ; then

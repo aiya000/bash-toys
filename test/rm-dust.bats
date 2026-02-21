@@ -429,3 +429,60 @@ teardown() {
   expects "$test_file" to_be_a_file
   expects "$(cat "$test_file")" to_equal 'plus sign content'
 }
+
+@test '`rm-dust --list` should print dustbox entries in YYYY-MM-DD HH:MM: /path format' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-list-$$.txt"
+  echo "list content" > "$test_file"
+
+  rm-dust "$test_file"
+  expects "$test_file" not to_be_a_file
+
+  run rm-dust --list
+  expects "$status" to_be 0
+  expects "$output" to_match '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}: '
+  expects "$output" to_match 'test-file-list'
+}
+
+@test '`rm-dust --list` with empty dustbox should print message' {
+  run rm-dust --list
+  expects "$status" to_be 0
+  expects "$output" to_equal 'Dustbox is empty'
+}
+
+@test '`rm-dust --list` should list directories with trailing slash' {
+  test_dir="$BATS_TEST_DIRNAME/../tmp/test-dir-list-$$"
+  mkdir -p "$test_dir"
+  echo "dir content" > "$test_dir/file.txt"
+
+  rm-dust "$test_dir"
+  expects "$test_dir" not to_be_a_dir
+
+  run rm-dust --list
+  expects "$status" to_be 0
+  expects "$output" to_match 'test-dir-list.*/$'
+}
+
+@test '`rm-dust --list` should not restore any files' {
+  test_file="$BATS_TEST_DIRNAME/../tmp/test-file-list-norestore-$$.txt"
+  echo "no restore" > "$test_file"
+
+  rm-dust "$test_file"
+  expects "$test_file" not to_be_a_file
+
+  run rm-dust --list
+  expects "$status" to_be 0
+  expects "$test_file" not to_be_a_file
+  expects "$(find "$BASH_TOYS_DUSTBOX_DIR" -type f | wc -l)" to_be 1
+}
+
+@test '`rm-dust --list` combined with --restore should fail with error' {
+  run rm-dust --list --restore
+  expects "$status" to_be 1
+  expects "$output" to_contain '--list cannot be combined with --restore or --keep'
+}
+
+@test '`rm-dust --help` should show --list option' {
+  run rm-dust --help
+  expects "$status" to_be 0
+  expects "$output" to_match '--list'
+}
