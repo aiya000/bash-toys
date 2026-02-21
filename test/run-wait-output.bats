@@ -67,8 +67,7 @@ setup() {
 
   # Check if command2 executed
   expects "$tmpfile" to_be_a_file
-  run cat "$tmpfile"
-  expects "$output" to_equal 'done'
+  expects "$(cat "$tmpfile")" to_equal 'done'
 
   # Check if command1 continued running after command2 (should see "after_cmd2")
   expects "$saved_output" to_contain 'after_cmd2'
@@ -104,8 +103,7 @@ setup() {
   expects "$status" to_be 0
 
   if [[ -f "$tmpfile" ]] ; then
-    run cat "$tmpfile"
-    expects "$output" to_match '^[0-9]+$'
+    expects "$(cat "$tmpfile")" to_match '^[0-9]+$'
     rm -f "$tmpfile"
   fi
 }

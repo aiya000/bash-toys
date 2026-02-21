@@ -44,8 +44,7 @@ teardown() {
   run rm-dust --restore
   expects "$status" to_be 0
   expects "$test_file" to_be_a_file
-  run cat "$test_file"
-  expects "$output" to_equal 'test content'
+  expects "$(cat "$test_file")" to_equal 'test content'
   expects "$(ls -1 "$BASH_TOYS_DUSTBOX_DIR" | wc -l)" to_be 0
 }
 
