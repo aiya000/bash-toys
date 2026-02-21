@@ -35,8 +35,8 @@ setup() {
   unset DEFINE_ALT_EXPORT_TEST_VAR
 }
 
-@test '`define-alt-export --empty-array` should define and export an empty array variable' {
+@test '`define-alt-export --empty-array` should define an empty array variable' {
   unset DEFINE_ALT_EXPORT_TEST_ARR
   define-alt-export --empty-array DEFINE_ALT_EXPORT_TEST_ARR
-  expects "$(bash -c 'echo "${DEFINE_ALT_EXPORT_TEST_ARR[@]}"')" to_be ''
+  expects "${#DEFINE_ALT_EXPORT_TEST_ARR[@]}" to_be 0
 }
