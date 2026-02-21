@@ -116,7 +116,7 @@ is_rest_time=false
 interval=${BASH_TOYS_POMODORO_DEFAULT_INTERVAL:-30}
 if [[ $1 == --rest ]] ; then
   is_rest_time=true
-  if [[ -n $2 ]] ; then
+  if [[ $2 != '' ]] ; then
     interval=$2
   else
     interval=5
