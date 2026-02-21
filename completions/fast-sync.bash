@@ -9,8 +9,6 @@ _fast_sync_completion() {
 
   if [[ $cur == -* ]] ; then
     COMPREPLY=($(compgen -W '--help -h --init' -- "$cur"))
-  elif [[ $prev == '--init' ]] ; then
-    COMPREPLY=($(compgen -d -- "$cur"))
   else
     COMPREPLY=($(compgen -d -- "$cur"))
   fi
