@@ -56,10 +56,7 @@ cleanup_at_jobs() {
 cleanup_launchd_jobs() {
   if [[ -d "$LAUNCHD_DIR" ]] ; then
     for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
-      run bash -c "[[ -f '$plist' ]]"
-      if [[ $status -ne 0 ]] ; then
-        continue
-      fi
+      [[ -f "$plist" ]] || continue
       launchctl unload "$plist" 2>/dev/null || true
       rm -f "$plist"
     done
