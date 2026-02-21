@@ -8,7 +8,6 @@ load-my-env - Load environment configurations for various tools
 
 Usage:
   load-my-env <env_name>
-  load-my-env help
   load-my-env -h | --help
 
 Arguments:
@@ -34,28 +33,6 @@ function load-my-env () {
 
   case $target_name in
     # Also please update /.zsh/complete/_load-my-env when update here.
-    help)
-      echo 'Available:'
-
-      echo '  - cabal'
-      echo '  - cargo'
-      echo '  - ccache'
-      echo '  - conda'
-      echo '  - docker'
-      echo '  - drawio'
-      echo '  - gcloud'
-      echo '  - gradlew'
-      echo '  - idris'
-      echo '  - linuxbrew'
-      echo '  - mise'
-      echo '  - nvm'
-      echo '  - pkgsrc'
-      echo '  - rbenv'
-      echo '  - stack'
-      echo '  - travis'
-      echo '  - virtualenv'
-
-      ;;
 
     stack)
       alias si='stack install'
