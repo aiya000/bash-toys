@@ -59,7 +59,7 @@ teardown() {
   expects "$output" to_contain 'Timer has already expired'
 }
 
-@test '`pomodoro-timer --from YYYY-MM-DD HH:MM` with expired date should show error' {
+@test 'pomodoro-timer --from YYYY-MM-DD HH:MM with expired date should show error' {
   run pomodoro-timer --from '2020-01-01 00:00' 60
   expects "$status" to_be 1
   expects "$output" to_contain 'Timer has already expired'

@@ -19,6 +19,13 @@ Options:
   --export      Also export the variable
   --empty-array Define an empty array variable
 
+Notes:
+  Array variables defined with --export are available in the current shell,
+  but cannot be passed to child processes via the environment. This is a
+  POSIX limitation: the environment only supports string key=value pairs,
+  so arrays are silently reduced to a scalar when exported.
+  Neither bash nor zsh can work around this constraint.
+
 Examples:
   define-alt a 10                    # Define scalar
   define-alt xs 1 2 3               # Define array

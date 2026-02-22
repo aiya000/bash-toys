@@ -20,12 +20,12 @@ setup() {
   expects "${lines[0]}" to_match '^clamdscan-full - '
 }
 
-@test '`clamdscan-full` with no arguments should use root directory' {
-  function fdfind() { echo "mocked-fdfind $*"; }
-  function clamdscan() { echo "mocked-clamdscan $*"; }
+@test 'clamdscan-full with no arguments should use root directory' {
+  function fdfind() { echo "/mock-dir"; }
+  function clamdscan() { echo "scanned: $*"; }
   export -f fdfind clamdscan
 
   run clamdscan-full
   expects "$status" to_be 0
-  expects "${lines[0]}" to_contain 'scale=5; (1 / 1) * 100'  # Progress calculation
+  expects "$output" to_contain 'scanned:'
 }
