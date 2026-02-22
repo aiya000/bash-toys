@@ -98,6 +98,12 @@ define-alt --export EDITOR vim  # Define and export
 
 If variable already exists, value is not changed.
 
+> **Note:** Array variables set with `--export` are accessible in the current
+> shell, but **cannot be passed to child processes** via the environment. This
+> is a POSIX limitation: the environment only supports string `key=value` pairs,
+> so arrays are silently reduced to a scalar when exported. Neither bash nor zsh
+> can work around this constraint.
+
 ### define-alt-export
 
 Alias for `define-alt --export`. Defines and exports variable if not already defined.
