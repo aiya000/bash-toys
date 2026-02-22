@@ -1,13 +1,10 @@
 #!/usr/bin/env bats
 
-setup () {
-  export GH_OUTPUT
-  GH_OUTPUT="$(mktemp)"
-}
-
 setup() {
   # Ensure we use commands from this repository, not from PATH
   export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+  export GH_OUTPUT
+  GH_OUTPUT="$(mktemp)"
 }
 
 @test '`gh-issue-view-select --help` should show help message with usage' {
@@ -27,7 +24,7 @@ setup() {
   # Mock gh command
   function gh () {
     if [[ $1 == issue && $2 == list ]] ; then
-      echo '#42  Issue title  enhancement  2024-03-05'
+      echo '42  Issue title  enhancement  2024-03-05'
       return 0
     fi
     if [[ $1 == issue && $2 == view && $3 == 42 ]] ; then
