@@ -150,8 +150,9 @@ CREDENTIALS
   fi
 
   # Create a temporary directory for testing
-  local test_dir
+  local test_dir original_dir
   test_dir=$(mktemp -d)
+  original_dir=$(pwd)
 
   # Create bare repository (remote) with main as default branch
   git init --bare --initial-branch=main "$test_dir/remote-repo.git"
@@ -181,6 +182,6 @@ CREDENTIALS
   expects "$output" to_contain "password="
 
   # Cleanup
-  cd /tmp
+  cd "$original_dir"
   rm -rf "$test_dir"
 }
