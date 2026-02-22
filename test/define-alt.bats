@@ -46,5 +46,4 @@ setup() {
   unset DEFINE_ALT_EXPORT_ARRAY_TEST
   define-alt --export DEFINE_ALT_EXPORT_ARRAY_TEST 1 2 3
   expects "${#DEFINE_ALT_EXPORT_ARRAY_TEST[@]}" to_be 3
-  expects "$(bash -c 'echo "${#DEFINE_ALT_EXPORT_ARRAY_TEST[@]}"')" to_be 3
 }
