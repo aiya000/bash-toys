@@ -664,7 +664,7 @@ $ echo -e "protocol=https\nhost=github.com\n" | git-credential-gh-switch aiya000
 protocol=https
 host=github.com
 username=aiya000
-password=ghp_xxxxxxxxxxxxx
+password=<token>
 ```
 
 ### pathshorten
