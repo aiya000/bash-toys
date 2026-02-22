@@ -46,4 +46,9 @@ setup() {
   unset DEFINE_ALT_EXPORT_ARRAY_TEST
   define-alt --export DEFINE_ALT_EXPORT_ARRAY_TEST 1 2 3
   expects "${#DEFINE_ALT_EXPORT_ARRAY_TEST[@]}" to_be 3
+  # NOTE: Bash (and zsh) cannot transmit arrays through the environment to child
+  # processes. The POSIX environment only supports string key=value pairs, so
+  # array variables are silently reduced to a scalar in the env.
+  # Therefore we only verify the array is set in the current shell, not in
+  # a subprocess (which would always return 0).
 }
