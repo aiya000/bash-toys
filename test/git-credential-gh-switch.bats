@@ -129,7 +129,7 @@ CREDENTIALS
   expects "$output" to_contain 'username=currentuser'
 }
 
-@test '`git-credential-gh-switch` should work as credential helper in actual git push' {
+@test '`git-credential-gh-switch` should work as credential helper via git credential fill' {
   skip_unless_real_jobs_enabled
 
   # Skip this test if gh is not installed
@@ -162,24 +162,23 @@ CREDENTIALS
   git config user.email "test@example.com"
   git config user.name "Test User"
 
-  # Configure credential helper
+  # Configure credential helper for GitHub
   git config --local credential.helper ''
   git config --local credential.https://github.com.helper "!$BATS_TEST_DIRNAME/../bin/git-credential-gh-switch $current_user"
 
-  # Create and commit a test file
-  echo "test content" > test.txt
-  git add test.txt
-  git commit -m "Test commit"
-
-  # Push to the bare repository
-  run git push origin main
+  # Test credential helper using git credential fill
+  # This actually invokes the credential helper with protocol=https and host=github.com
+  run bash -c 'echo -e "protocol=https\nhost=github.com\n" | git credential fill'
+  
+  # Verify the command succeeded
   expects "$status" to_be 0
-
-  # Verify the push succeeded by checking the remote
-  cd "$test_dir/remote-repo.git"
-  run git log --oneline
-  expects "$status" to_be 0
-  expects "$output" to_contain "Test commit"
+  
+  # Verify the output contains credential information
+  # The output should include protocol, host, username, and password
+  expects "$output" to_contain "protocol=https"
+  expects "$output" to_contain "host=github.com"
+  expects "$output" to_contain "username="
+  expects "$output" to_contain "password="
 
   # Cleanup
   cd /tmp
