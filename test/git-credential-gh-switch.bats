@@ -18,6 +18,15 @@ skip_unless_real_jobs_enabled() {
 setup() {
   # Ensure we use commands from this repository, not from PATH
   export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
+  test_dir=''
+}
+
+teardown() {
+  if [[ $test_dir != '' ]] ; then
+    cd /tmp || true
+    rm -rf "$test_dir"
+    test_dir=''
+  fi
 }
 
 @test '`git-credential-gh-switch --help` should show help message' {
@@ -150,7 +159,6 @@ CREDENTIALS
   fi
 
   # Create a temporary directory for testing
-  local test_dir
   test_dir=$(mktemp -d)
 
   # Create bare repository (remote) with main as default branch
@@ -179,8 +187,4 @@ CREDENTIALS
   expects "$output" to_contain "host=github.com"
   expects "$output" to_contain "username="
   expects "$output" to_contain "password="
-
-  # Cleanup
-  cd /tmp
-  rm -rf "$test_dir"
 }
