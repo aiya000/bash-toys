@@ -2,16 +2,17 @@
 
 # shellcheck disable=SC2016
 
-# Note: Some tests perform actual git push operations with credential helpers.
+# Note: Some tests perform actual git credential-helper / GitHub CLI integration
+# (e.g., exercising `git credential fill` via `gh auth git-credential`).
 # To run these tests, set BASH_TOYS_TEST_REAL_JOBS=1
 #
 # Example:
 #   BASH_TOYS_TEST_REAL_JOBS=1 bats test/git-credential-gh-switch.bats
 
-# Helper function to skip tests that affect real git operations
+# Helper function to skip tests that affect real git credential-helper / gh operations
 skip_unless_real_jobs_enabled() {
   if [[ "${BASH_TOYS_TEST_REAL_JOBS:-}" != "1" ]] ; then
-    skip "This test affects real git operations on the host OS. Set BASH_TOYS_TEST_REAL_JOBS=1 to run."
+    skip "This test affects real git credential-helper / GitHub CLI operations on the host OS. Set BASH_TOYS_TEST_REAL_JOBS=1 to run."
   fi
 }
 
