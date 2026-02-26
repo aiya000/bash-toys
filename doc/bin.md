@@ -725,6 +725,62 @@ Renamed stash@{1}
   to: kaninchen dachshund
 ```
 
+### git-credential-gh-switch
+
+Git credential helper that switches GitHub account before authentication.
+For switching GitHub account before `git-push`, we can use this instead of `pre-push`.
+
+```bash
+git-credential-gh-switch <account> <git-credential-args>
+```
+
+**Description**:
+
+- Switches GitHub account using `gh auth switch` before delegating to `gh auth git-credential`
+- Allows using different GitHub accounts for different repositories
+- Configure in each repository's `.git/config` using `git config --local`
+
+**Examples**:
+```bash
+# Configure for personal repository
+$ cd ~/path/to/personal-repo
+$ git config --local credential.helper ''
+$ git config --local credential.https://github.com.helper '!/usr/bin/env git-credential-gh-switch aiya000'
+
+# Check the configuration
+$ cat .git/config
+[credential]
+    helper =
+[credential "https://github.com"]
+    helper = !/usr/bin/env git-credential-gh-switch aiya000
+
+# Configure for organization repository
+$ cd ~/path/to/organization-repo
+$ git config --local credential.helper ''
+$ git config --local credential.https://github.com.helper '!/usr/bin/env git-credential-gh-switch organizationmember'
+
+# Check the configuration
+$ cat .git/config
+[credential]
+    helper =
+[credential "https://github.com"]
+    helper = !/usr/bin/env git-credential-gh-switch organizationmember
+
+# Git automatically calls this helper when accessing GitHub
+$ git pull
+# (Switches to the configured account and uses its credentials)
+
+$ git push
+# (Uses the account-specific credentials)
+
+# Test the credential helper manually
+$ echo -e "protocol=https\nhost=github.com\n" | git-credential-gh-switch aiya000 get
+protocol=https
+host=github.com
+username=aiya000
+password=<token>
+```
+
 ### pathshorten
 
 Abbreviates path like Vim's pathshorten().
