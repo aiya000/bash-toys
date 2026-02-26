@@ -152,7 +152,7 @@ else
   increase_count_file
 fi
 
-$BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED
+eval "${BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED}"
 
 # https://github.com/aiya000/bash-toys
 #
