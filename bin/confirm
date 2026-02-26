@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << 'EOF'
+confirm - Ask a yes/no confirmation question
+
+Usage:
+  confirm [--full-message] [--always-true] <message>
+  confirm -h | --help
+
+Arguments:
+  message         The question to ask the user
+
+Options:
+  --full-message  Use message as-is for the prompt (without ' (y/n): ' suffix)
+  --always-true   Always exit 0 regardless of the answer
+  -h, --help      Show this help message
+
+Description:
+  Prompts the user with a yes/no question.
+  Exits with 0 if the user answers 'y' or 'yes', 1 otherwise.
+
+Examples:
+  confirm 'Do you want to continue?'
+  # Prompt: 'Do you want to continue? (y/n): '
+  # Exit status: 0 (if user answers y/yes)
+  # Exit status: 1 (if user answers n/no)
+
+  confirm --full-message 'Are you sure? '
+  # Prompt: 'Are you sure? '
+
+  confirm --always-true 'Proceed?'
+  # Exit status: 0 (regardless of answer)
+
+  confirm 'Remove all temporary files?' && rm-dust /tmp/my-temp-files
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
+full_message=false
+always_true=false
+positional_args=()
+
+for arg in "$@" ; do
+  case "$arg" in
+    --full-message)
+      full_message=true
+      ;;
+    --always-true)
+      always_true=true
+      ;;
+    *)
+      positional_args+=("$arg")
+      ;;
+  esac
+done
+
+message="${positional_args[0]}"
+
+if [[ $message == '' ]] ; then
+  echo 'Error: message is required' >&2
+  exit 2
+fi
+
+if [[ $full_message == true ]] ; then
+  prompt="$message"
+else
+  prompt="$message (y/n): "
+fi
+
+read -rp "$prompt" answer
+if [[ $always_true == true || $answer == 'y' || $answer == 'yes' ]] ; then
+  exit 0
+fi
+exit 1
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.

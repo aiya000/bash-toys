@@ -993,6 +993,49 @@ $ make && sudo make install
 
 ## Other Utilities
 
+### confirm
+
+Prompts the user with a yes/no question and exits with status based on the answer.
+
+```bash
+confirm [--full-message] [--always-true] <message>
+```
+
+**Options**:
+- `--full-message` - Use message as-is for the prompt (without ` (y/n): ` suffix)
+- `--always-true` - Always exit 0 regardless of the answer
+
+**Examples**:
+```bash
+# Basic confirmation
+$ confirm 'Do you want to continue?'
+Do you want to continue? (y/n): y
+# Exit status: 0
+
+# Denied confirmation
+$ confirm 'Delete all files?'
+Delete all files? (y/n): n
+# Exit status: 1
+
+# Use in scripts to guard destructive operations
+$ confirm 'Remove all temporary files?' && rm-dust /tmp/my-temp-files
+
+# Custom prompt (no '(y/n):' suffix)
+$ confirm --full-message 'Are you sure? '
+Are you sure? y
+# Exit status: 0
+
+# Always succeed regardless of answer
+$ confirm --always-true 'Proceed?'
+Proceed? (y/n): n
+# Exit status: 0
+
+# No message (error)
+$ confirm
+Error: message is required
+# Exit status: 2
+```
+
 ### bookmark-open
 
 Opens a selected bookmark in the default browser.
