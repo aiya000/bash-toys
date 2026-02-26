@@ -1036,6 +1036,34 @@ Error: message is required
 # Exit status: 2
 ```
 
+### prompt
+
+Displays a prompt and waits for the user to press Enter. Always exits with 0.
+
+```bash
+prompt [message]
+```
+
+A convenient wrapper around `confirm --always-true --full-message`.
+
+**Examples**:
+```bash
+# Default message
+$ prompt
+Enter to continue...
+# (waits for input)
+# Exit status: 0
+
+# Custom message
+$ prompt 'Press Enter to deploy: '
+Press Enter to deploy:
+# (waits for input)
+# Exit status: 0
+
+# Use in scripts to pause execution
+$ build && prompt 'Build done. Press Enter to deploy: ' && deploy
+```
+
 ### bookmark-open
 
 Opens a selected bookmark in the default browser.
