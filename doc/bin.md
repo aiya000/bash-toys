@@ -44,6 +44,10 @@ notify-at (-c | --cancel) JOB_ID
 - `--ntfy` - Send notification via ntfy.sh
 - `--local` - Send to local desktop (default)
 
+**Environment Variables**:
+- `BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND` - Default sound file path (default: `notification-1.mp3` from assets)
+- `BASH_TOYS_NTFY_TOPIC` - Your ntfy.sh topic name (required when using `--ntfy`)
+
 **Examples**:
 ```bash
 # Schedule notification at 3 PM today
@@ -79,6 +83,10 @@ notify-cascade [options] TIME title message [timing1] [timing2] ... [sound]
 **Options**:
 - `--ntfy` - Send notification via ntfy.sh (disables local notification unless `--local` is also specified)
 - `--local` - Send to local desktop (default if no options specified)
+
+**Environment Variables**:
+- `BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND` - Default sound file path (default: `notification-1.mp3` from assets)
+- `BASH_TOYS_NTFY_TOPIC` - Your ntfy.sh topic name (required when using `--ntfy`)
 
 **Note**: To receive notifications on both ntfy.sh and desktop, either:
 - Specify both `--ntfy` and `--local` options
@@ -120,7 +128,8 @@ Sends notification to devices that installed ntfy.sh (e.g., Android, iOS, Window
 notify-ntfy <title> <message>
 ```
 
-**Requires**: `BASH_TOYS_NTFY_TOPIC` environment variable
+**Environment Variables**:
+- `BASH_TOYS_NTFY_TOPIC` - Your ntfy.sh topic name (required)
 
 **Examples**:
 ```bash
@@ -197,6 +206,7 @@ Files and directories are moved to `$BASH_TOYS_DUSTBOX_DIR` organized in date di
 **Environment Variables**:
 - `BASH_TOYS_DUSTBOX_DIR` - Directory to store dustbox files (default: `~/.backup/dustbox`)
 - `BASH_TOYS_RESTORE_KEEP` - Set to `1` to make `--keep` the default for `--restore`; `--keep` flag always takes precedence over this variable
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for `--restore` selection (default: `peco`)
 
 **Examples**:
 ```bash
@@ -320,6 +330,10 @@ cat-which --no-bat COMMAND
 ```
 
 Uses bat/batcat if available, falls back to cat.
+
+**Environment Variables**:
+- `BASH_TOYS_NO_BAT` - Set to `1` to use `cat` instead of `bat`/`batcat`
+- `BASH_TOYS_BATCAT_OPTIONS` - Additional options passed to `bat`/`batcat` (default: `--number`)
 
 **Examples**:
 ```bash
@@ -559,7 +573,8 @@ Interactively selects and kills processes.
 kill-list [signal]
 ```
 
-Uses `BASH_TOYS_INTERACTIVE_FILTER` for selection.
+**Environment Variables**:
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for process selection (default: `peco`)
 
 **Examples**:
 ```bash
@@ -743,6 +758,9 @@ Interactively selects and attaches to a running Docker container.
 docker-attach-menu
 ```
 
+**Environment Variables**:
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for container selection (default: `peco`)
+
 **Examples**:
 ```bash
 # Select and attach to a running container
@@ -760,6 +778,9 @@ Interactively selects and kills a running Docker container.
 ```bash
 docker-kill-menu
 ```
+
+**Environment Variables**:
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for container selection (default: `peco`)
 
 **Examples**:
 ```bash
@@ -781,6 +802,9 @@ Shows GitHub issues in interactive filter and opens selected issue.
 ```bash
 gh-issue-view-select
 ```
+
+**Environment Variables**:
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for issue selection (default: `peco`)
 
 **Examples**:
 ```bash
@@ -840,6 +864,10 @@ pomodoro-timer --set-count N
 pomodoro-timer --get-count
 pomodoro-timer --clean
 ```
+
+**Environment Variables**:
+- `BASH_TOYS_POMODORO_DEFAULT_INTERVAL` - Default work interval in minutes (default: `30`)
+- `BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED` - Command to run when timer finishes, executed via `eval` (default: `notify 'Pomodoro Timer' 'Pomodoro complete!'`)
 
 **Examples**:
 ```bash
@@ -1072,7 +1100,9 @@ Opens a selected bookmark in the default browser.
 bookmark-open
 ```
 
-Bookmarks defined in `BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS` (separated by `|`).
+**Environment Variables**:
+- `BASH_TOYS_BOOKMARK_OPEN_BOOKMARKS` - Bookmark definitions in `(Name=URL)` format, separated by `|`
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for bookmark selection (default: `peco`)
 
 **Examples**:
 ```bash

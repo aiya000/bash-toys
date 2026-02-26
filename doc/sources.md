@@ -22,6 +22,9 @@ cd-finddir
 
 Lists directories (up to 6 depth with fd, 3 with find) and lets you select one using `BASH_TOYS_INTERACTIVE_FILTER`.
 
+**Environment Variables**:
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for directory selection (default: `peco`)
+
 **Examples**:
 ```bash
 $ cd-finddir
