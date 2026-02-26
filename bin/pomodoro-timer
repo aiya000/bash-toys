@@ -28,7 +28,6 @@ Options:
 Environment:
   BASH_TOYS_POMODORO_DEFAULT_INTERVAL    Default work interval (default: 30)
   BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED Command to run when timer finishes
-  BASH_TOYS_DURATION_WHEN_POMODORO_TIMER_FINISHED  Duration for notification
 
 Examples:
   pomodoro-timer          # 30 minute work session
@@ -153,13 +152,7 @@ else
   increase_count_file
 fi
 
-$BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED &
-
-player_pid=$!
-(
-  sleep "$BASH_TOYS_DURATION_WHEN_POMODORO_TIMER_FINISHED"
-  kill "$player_pid" 2> /dev/null
-) &
+$BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED
 
 # https://github.com/aiya000/bash-toys
 #
