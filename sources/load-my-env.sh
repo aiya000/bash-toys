@@ -14,8 +14,8 @@ Arguments:
   env_name    Name of the environment to load
 
 Available environments:
-  cabal, cargo, ccache, conda, docker, drawio, gcloud, gradlew,
-  idris, linuxbrew, mise, nvm, pkgsrc, rbenv, stack, travis, virtualenv
+  cargo, ccache, conda, docker, drawio, gcloud, gradlew,
+  idris, linuxbrew, mise, nvm, pkgsrc, rbenv, cabal, stack, ghcup, travis, virtualenv
 
 Examples:
   load-my-env docker
@@ -54,11 +54,18 @@ function load-my-env () {
       }
       ;;
 
+    ghcup)
+      if [[ ! -f ~/.ghcup/env ]] ; then
+        return 1
+      fi
+      source ~/.ghcup/env # ghcup-env
+      ;;
+
     cabal)
       alias ci='cabal new-install'
 
       if [[ -d ~/.cabal ]] ; then
-        PATH=$PATH:$HOME/.cabal/bin:./.cabal-sandbox/bin
+        PATH=$PATH:~/.cabal/bin:./.cabal-sandbox/bin
       else
         echo "$HOME/.cabal is not found." > /dev/stderr
       fi
