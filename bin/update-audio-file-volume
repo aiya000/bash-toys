@@ -4,12 +4,12 @@
 
 function show_help() {
   cat << 'EOF'
-set-audio-volume - Adjust audio volume to match a target level
+update-audio-file-volume - Adjust audio volume to match a target level
 
 Usage:
-  set-audio-volume --input INPUT --output OUTPUT --mean-volume DB [--overwrite]
-  set-audio-volume --input INPUT --output OUTPUT --max-volume DB [--overwrite]
-  set-audio-volume -h | --help
+  update-audio-file-volume --input INPUT --output OUTPUT --mean-volume DB [--overwrite]
+  update-audio-file-volume --input INPUT --output OUTPUT --max-volume DB [--overwrite]
+  update-audio-file-volume -h | --help
 
 Options:
   --input INPUT         Input audio file (mp3, ogg, wav, etc.)
@@ -20,8 +20,8 @@ Options:
   -h, --help            Show this help message
 
 Examples:
-  set-audio-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
-  set-audio-volume --input foo.ogg --output bar.ogg --max-volume -26.2 --overwrite
+  update-audio-file-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
+  update-audio-file-volume --input foo.ogg --output bar.ogg --max-volume -26.2 --overwrite
 
 Tips:
   To get the volume of an audio file:
