@@ -1077,13 +1077,13 @@ $ make && sudo make install
 
 ## Audio
 
-### set-audio-volume
+### update-audio-file-volume
 
 Adjusts audio volume to match a target level using ffmpeg.
 
 ```bash
-set-audio-volume --input INPUT --output OUTPUT --mean-volume DB [--overwrite]
-set-audio-volume --input INPUT --output OUTPUT --max-volume DB [--overwrite]
+update-audio-file-volume --input INPUT --output OUTPUT --mean-volume DB [--overwrite]
+update-audio-file-volume --input INPUT --output OUTPUT --max-volume DB [--overwrite]
 ```
 
 **Dependencies**: `ffmpeg`
@@ -1111,25 +1111,25 @@ Same-format processing (mp3 to mp3, ogg to ogg) is recommended.
 **Examples**:
 ```bash
 # Match mean volume
-$ set-audio-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
+$ update-audio-file-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
 Current mean_volume: -54.2 dB
 Target  mean_volume: -48.7 dB
 Applying volume adjustment: 5.5 dB
 # (bar.mp3 is created with adjusted volume)
 
 # Match max volume with overwrite
-$ set-audio-volume --input foo.ogg --output bar.ogg --max-volume -26.2 --overwrite
+$ update-audio-file-volume --input foo.ogg --output bar.ogg --max-volume -26.2 --overwrite
 Current max_volume: -30.1 dB
 Target  max_volume: -26.2 dB
 Applying volume adjustment: 3.9 dB
 
 # Output file exists (asks before overwriting)
-$ set-audio-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
+$ update-audio-file-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
 Output file 'bar.mp3' already exists. Overwrite? [y/N] n
 Aborted.
 
 # Missing required argument (error)
-$ set-audio-volume --input foo.mp3 --output bar.mp3
+$ update-audio-file-volume --input foo.mp3 --output bar.mp3
 Error: Either --mean-volume or --max-volume is required
 # Exit status: 1
 ```
