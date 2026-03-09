@@ -44,18 +44,42 @@ overwrite=false
 while [[ $# -gt 0 ]]; do
   case $1 in
     --input)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --input requires a value' >&2
+        exit 1
+      fi
       input="$2"
       shift 2
       ;;
     --output)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --output requires a value' >&2
+        exit 1
+      fi
       output="$2"
       shift 2
       ;;
     --mean-volume)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --mean-volume requires a value' >&2
+        exit 1
+      fi
+      if ! [[ $2 =~ ^-?[0-9]+(\.[0-9]+)?$ ]] ; then
+        echo "Error: Invalid value for --mean-volume: $2" >&2
+        exit 1
+      fi
       mean_volume="$2"
       shift 2
       ;;
     --max-volume)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --max-volume requires a value' >&2
+        exit 1
+      fi
+      if ! [[ $2 =~ ^-?[0-9]+(\.[0-9]+)?$ ]] ; then
+        echo "Error: Invalid value for --max-volume: $2" >&2
+        exit 1
+      fi
       max_volume="$2"
       shift 2
       ;;

@@ -54,3 +54,39 @@ setup() {
   expects "$status" to_be 1
   expects "$output" to_contain 'Error: Unknown option: --unknown-option'
 }
+
+@test 'should error when --input is provided without a value' {
+  run set-audio-volume --input --output bar.mp3 --mean-volume -18.3
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --input requires a value'
+}
+
+@test 'should error when --output is provided without a value' {
+  run set-audio-volume --input foo.mp3 --output --mean-volume -18.3
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --output requires a value'
+}
+
+@test 'should error when --mean-volume is provided without a value' {
+  run set-audio-volume --input foo.mp3 --output bar.mp3 --mean-volume
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --mean-volume requires a value'
+}
+
+@test 'should error when --max-volume is provided without a value' {
+  run set-audio-volume --input foo.mp3 --output bar.mp3 --max-volume
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --max-volume requires a value'
+}
+
+@test 'should error when --mean-volume is non-numeric' {
+  run set-audio-volume --input foo.mp3 --output bar.mp3 --mean-volume not-a-number
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: Invalid value for --mean-volume: not-a-number'
+}
+
+@test 'should error when --max-volume is non-numeric' {
+  run set-audio-volume --input foo.mp3 --output bar.mp3 --max-volume loud
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: Invalid value for --max-volume: loud'
+}
