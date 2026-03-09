@@ -145,9 +145,9 @@ script_path="SCRIPT_PATH_PLACEHOLDER"
 current_year=$(date +%Y)
 if [[ "$current_year" != "$target_year" ]] ; then
   # Wrong year, cleanup and exit
-  launchctl unload "$plist_path" 2>/dev/null || true
   rm -f "$plist_path"
   rm -f "$script_path"
+  launchctl bootout "gui/$(id -u)/$label" 2>/dev/null || true
   exit 0
 fi
 
@@ -158,9 +158,9 @@ time_diff=$((current_timestamp - target_timestamp))
 # If we're way past the target time (more than 2 minutes late), cleanup
 if [[ $time_diff -gt 120 ]] ; then
   # Target time has passed, cleanup without sending notification
-  launchctl unload "$plist_path" 2>/dev/null || true
   rm -f "$plist_path"
   rm -f "$script_path"
+  launchctl bootout "gui/$(id -u)/$label" 2>/dev/null || true
   exit 0
 fi
 
@@ -208,10 +208,11 @@ EOF
 
   # Add cleanup
   cat >> "$script_path" << 'EOF'
-# Cleanup: unload and remove plist, remove script
-launchctl unload "$plist_path" 2>/dev/null || true
+# Cleanup: remove files first, then bootout from launchd
+# (rm -f before launchctl to avoid SIGTERM killing us before cleanup)
 rm -f "$plist_path"
 rm -f "$script_path"
+launchctl bootout "gui/$(id -u)/$label" 2>/dev/null || true
 EOF
 
   chmod +x "$script_path"

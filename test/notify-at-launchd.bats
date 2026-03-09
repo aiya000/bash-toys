@@ -200,6 +200,102 @@ teardown() {
   expects "$script_path" not to_be_a_file
 }
 
+@test '`notify-at-launchd` generated script should use `launchctl bootout` instead of `launchctl unload`' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+
+  cleanup_launchd_jobs
+
+  run notify-at 23:59 'Bootout Test' 'Test message'
+  expects "$status" to_be 0
+
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" to_be_defined
+
+  local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
+  expects "$script_path" to_be_a_file
+
+  # Should use bootout, not unload
+  run cat "$script_path"
+  expects "$output" to_contain 'launchctl bootout'
+  expects "$output" not to_contain 'launchctl unload'
+
+  run notify-at -c "$job_id"
+  expects "$status" to_be 0
+}
+
+@test '`notify-at-launchd` generated script should remove files before calling launchctl in cleanup' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+
+  cleanup_launchd_jobs
+
+  run notify-at 23:59 'Cleanup Order Test' 'Test message'
+  expects "$status" to_be 0
+
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" to_be_defined
+
+  local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
+  expects "$script_path" to_be_a_file
+
+  # Find the last rm -f "$plist_path" and launchctl bootout line numbers
+  local rm_line launchctl_line
+  rm_line=$(grep -n 'rm -f "\$plist_path"' "$script_path" | tail -1 | cut -d: -f1)
+  launchctl_line=$(grep -n 'launchctl bootout' "$script_path" | tail -1 | cut -d: -f1)
+
+  # rm -f must appear before launchctl bootout in the cleanup section
+  [[ "$rm_line" -lt "$launchctl_line" ]]
+
+  run notify-at -c "$job_id"
+  expects "$status" to_be 0
+}
+
+@test '`notify-at-launchd` cleanup should remove files even if launchctl fails' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+
+  cleanup_launchd_jobs
+
+  run notify-at 23:59 'Launchctl Failure Test' 'Test message'
+  expects "$status" to_be 0
+
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" to_be_defined
+
+  local plist_path="$LAUNCHD_DIR/$LAUNCHD_PREFIX.$job_id.plist"
+  local script_path="$HOME/.local/share/notify-at/notify-at-$job_id.sh"
+
+  expects "$plist_path" to_be_a_file
+  expects "$script_path" to_be_a_file
+
+  # Set a past timestamp to trigger the "too late" cleanup branch
+  local past_timestamp
+  past_timestamp=$(($(date +%s) - 86400))
+  local current_timestamp
+  current_timestamp=$(grep '^target_timestamp=' "$script_path" | cut -d'"' -f2)
+  sed -i '' "s/target_timestamp=\"$current_timestamp\"/target_timestamp=\"$past_timestamp\"/" "$script_path"
+
+  # Create a mock launchctl that always fails
+  local mock_bin_dir
+  mock_bin_dir=$(mktemp -d)
+  printf '#!/bin/bash\nexit 1\n' > "$mock_bin_dir/launchctl"
+  chmod +x "$mock_bin_dir/launchctl"
+
+  # Run the cleanup script with mock launchctl
+  PATH="$mock_bin_dir:$PATH" run bash "$script_path"
+  expects "$status" to_be 0
+
+  # Files must be removed despite launchctl failing
+  expects "$plist_path" not to_be_a_file
+  expects "$script_path" not to_be_a_file
+
+  rm -rf "$mock_bin_dir"
+}
+
 @test '`notify-at-launchd` script should cleanup when year does not match' {
   skip_unless_real_jobs_enabled
   skip_unless_macos
