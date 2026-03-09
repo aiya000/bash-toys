@@ -1,0 +1,195 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << 'EOF'
+update-audio-file-volume - Adjust audio volume to match a target level
+
+Usage:
+  update-audio-file-volume --input INPUT --output OUTPUT --mean-volume DB [--overwrite]
+  update-audio-file-volume --input INPUT --output OUTPUT --max-volume DB [--overwrite]
+  update-audio-file-volume -h | --help
+
+Options:
+  --input INPUT         Input audio file (mp3, ogg, wav, etc.)
+  --output OUTPUT       Output audio file
+  --mean-volume DB      Target mean volume in dBFS (e.g., -18.3)
+  --max-volume DB       Target max volume in dBFS (e.g., -26.2)
+  --overwrite           Overwrite output file without asking
+  -h, --help            Show this help message
+
+Examples:
+  update-audio-file-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
+  update-audio-file-volume --input foo.ogg --output bar.ogg --max-volume -26.2 --overwrite
+
+Tips:
+  To get the volume of an audio file:
+    ffmpeg -i input.mp3 -af "volumedetect" -f null /dev/null
+
+  Cross-format conversion is supported (e.g., mp3 to ogg), but converting
+  between two lossy formats causes quality degradation due to double compression.
+  Same-format processing (mp3 to mp3, ogg to ogg) is recommended.
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
+input=''
+output=''
+mean_volume=''
+max_volume=''
+overwrite=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --input)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --input requires a value' >&2
+        exit 1
+      fi
+      input="$2"
+      shift 2
+      ;;
+    --output)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --output requires a value' >&2
+        exit 1
+      fi
+      output="$2"
+      shift 2
+      ;;
+    --mean-volume)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --mean-volume requires a value' >&2
+        exit 1
+      fi
+      if ! [[ $2 =~ ^-?[0-9]+(\.[0-9]+)?$ ]] ; then
+        echo "Error: Invalid value for --mean-volume: $2" >&2
+        exit 1
+      fi
+      mean_volume="$2"
+      shift 2
+      ;;
+    --max-volume)
+      if [[ $# -lt 2 || $2 == --* ]] ; then
+        echo 'Error: --max-volume requires a value' >&2
+        exit 1
+      fi
+      if ! [[ $2 =~ ^-?[0-9]+(\.[0-9]+)?$ ]] ; then
+        echo "Error: Invalid value for --max-volume: $2" >&2
+        exit 1
+      fi
+      max_volume="$2"
+      shift 2
+      ;;
+    --overwrite)
+      overwrite=true
+      shift
+      ;;
+    *)
+      echo "Error: Unknown option: $1" >&2
+      echo >&2
+      show_help
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$input" ]]; then
+  echo 'Error: --input is required' >&2
+  exit 1
+fi
+
+if [[ -z "$output" ]]; then
+  echo 'Error: --output is required' >&2
+  exit 1
+fi
+
+if [[ -z "$mean_volume" && -z "$max_volume" ]]; then
+  echo 'Error: Either --mean-volume or --max-volume is required' >&2
+  exit 1
+fi
+
+if [[ -n "$mean_volume" && -n "$max_volume" ]]; then
+  echo 'Error: --mean-volume and --max-volume cannot be used together' >&2
+  exit 1
+fi
+
+if [[ ! -f "$input" ]]; then
+  echo "Error: Input file not found: $input" >&2
+  exit 1
+fi
+
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  echo 'Error: ffmpeg is not installed' >&2
+  exit 1
+fi
+
+ffmpeg_y_flag=''
+if [[ -f "$output" ]]; then
+  if [[ "$overwrite" == true ]]; then
+    ffmpeg_y_flag='-y'
+  else
+    read -r -p "Output file '$output' already exists. Overwrite? [y/N] " answer
+    case "$answer" in
+      [yY]*)
+        ffmpeg_y_flag='-y'
+        ;;
+      *)
+        echo 'Aborted.'
+        exit 0
+        ;;
+    esac
+  fi
+fi
+
+detect_output=$(ffmpeg -i "$input" -af "volumedetect" -f null /dev/null 2>&1)
+
+if [[ -n "$mean_volume" ]]; then
+  current_vol=$(echo "$detect_output" | grep mean_volume | awk '{print $5}')
+  target_vol="$mean_volume"
+  mode='mean'
+else
+  current_vol=$(echo "$detect_output" | grep max_volume | awk '{print $5}')
+  target_vol="$max_volume"
+  mode='max'
+fi
+
+if [[ -z "$current_vol" ]]; then
+  echo "Error: Could not detect volume from '$input'" >&2
+  exit 1
+fi
+
+diff=$(echo "$target_vol - $current_vol" | bc)
+
+echo "Current ${mode}_volume: ${current_vol} dB"
+echo "Target  ${mode}_volume: ${target_vol} dB"
+echo "Applying volume adjustment: ${diff} dB"
+
+# shellcheck disable=SC2086
+ffmpeg $ffmpeg_y_flag -i "$input" -af "volume=${diff}dB" "$output"
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.

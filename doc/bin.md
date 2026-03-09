@@ -1075,6 +1075,65 @@ $ vim-configure-macos
 $ make && sudo make install
 ```
 
+## Audio
+
+### update-audio-file-volume
+
+Adjusts audio volume to match a target level using ffmpeg.
+
+```bash
+update-audio-file-volume --input INPUT --output OUTPUT --mean-volume DB [--overwrite]
+update-audio-file-volume --input INPUT --output OUTPUT --max-volume DB [--overwrite]
+```
+
+**Dependencies**: `ffmpeg`
+
+**Options**:
+- `--input INPUT` - Input audio file (mp3, ogg, wav, and any format supported by ffmpeg)
+- `--output OUTPUT` - Output audio file
+- `--mean-volume DB` - Target mean volume in dBFS (e.g., `-48.7`)
+- `--max-volume DB` - Target max volume in dBFS (e.g., `-26.2`)
+- `--overwrite` - Overwrite output file without asking
+
+**Tips**:
+- To get the volume values of an audio file:
+  ```bash
+  ffmpeg -i input.mp3 -af "volumedetect" -f null /dev/null
+  # Look for: mean_volume: -48.7 dB  and  max_volume: -26.2 dB
+  ```
+- `mean_volume` represents the average loudness of the entire file — use this to match overall perceived loudness
+- `max_volume` represents the peak loudness — use this when you want to match peak levels
+
+**Note**: Cross-format conversion is supported (e.g., mp3 to ogg), but converting between two
+lossy formats causes quality degradation due to double compression.
+Same-format processing (mp3 to mp3, ogg to ogg) is recommended.
+
+**Examples**:
+```bash
+# Match mean volume
+$ update-audio-file-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
+Current mean_volume: -54.2 dB
+Target  mean_volume: -48.7 dB
+Applying volume adjustment: 5.5 dB
+# (bar.mp3 is created with adjusted volume)
+
+# Match max volume with overwrite
+$ update-audio-file-volume --input foo.ogg --output bar.ogg --max-volume -26.2 --overwrite
+Current max_volume: -30.1 dB
+Target  max_volume: -26.2 dB
+Applying volume adjustment: 3.9 dB
+
+# Output file exists (asks before overwriting)
+$ update-audio-file-volume --input foo.mp3 --output bar.mp3 --mean-volume -48.7
+Output file 'bar.mp3' already exists. Overwrite? [y/N] n
+Aborted.
+
+# Missing required argument (error)
+$ update-audio-file-volume --input foo.mp3 --output bar.mp3
+Error: Either --mean-volume or --max-volume is required
+# Exit status: 1
+```
+
 ## Other Utilities
 
 ### confirm
