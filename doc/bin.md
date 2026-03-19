@@ -957,6 +957,57 @@ $ pomodoro-timer --clean
 Removed: /tmp/pomodoro-3
 ```
 
+### pomodoro-cycle
+
+Runs a full pomodoro cycle with multiple work sessions.
+
+```bash
+pomodoro-cycle [--ntfy] [steps [time1 [time2 [time3]]]]
+```
+
+**Arguments**:
+- `steps` - Number of work steps in the cycle (default: `3`)
+- `time1`, `time2`, `time3` - Duration of each step in minutes (default: `30`)
+
+**Options**:
+- `--ntfy` - Send ntfy notification when cycle finishes (in addition to desktop notification)
+
+**Description**:
+
+Runs a sequence of pomodoro work sessions. Between each step (except the last), a break timer starts and then waits for the user to press Enter before continuing. After the final step, sends a desktop notification. If `--ntfy` is specified, also sends an ntfy notification.
+
+**Examples**:
+```bash
+# Run 3 steps of 30 minutes each (default)
+$ pomodoro-cycle
+Start pomodoro cycle: 3 steps with [30 30 30] minutes in each step
+
+> Starting 1-th work time
+> 1 minutes / 30
+...
+> The 1-th work hour is over
+> Starting break time
+...
+> Now it's time to get to work
+Enter to continue...
+
+# Run 2 steps of 45 minutes each
+$ pomodoro-cycle 2 45 45
+Start pomodoro cycle: 2 steps with [45 45] minutes in each step
+...
+
+# Run 3 classic pomodoro steps (25 min each)
+$ pomodoro-cycle 3 25 25 25
+Start pomodoro cycle: 3 steps with [25 25 25] minutes in each step
+...
+
+# With ntfy notification at the end
+$ pomodoro-cycle --ntfy 3 25 25 25
+Start pomodoro cycle: 3 steps with [25 25 25] minutes in each step
+...
+# (ntfy notification sent after final step)
+```
+
 ### date-diff-seconds
 
 Calculates time difference in minutes.
