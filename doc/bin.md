@@ -993,7 +993,7 @@ Enter to continue...
 
 # Run 2 steps of 45 minutes each
 $ pomodoro-cycle 2 45 45
-Start pomodoro cycle: 2 steps with [45 45 30] minutes in each step
+Start pomodoro cycle: 2 steps with [45 45] minutes in each step
 ...
 
 # Run 3 classic pomodoro steps (25 min each)
