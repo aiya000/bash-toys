@@ -89,6 +89,7 @@ These dependencies are documented at the beginning of the script.
 | [`pathshorten`](./bin/pathshorten) | Abbreviate file path with shortened parent directories | `$ pathshorten ~/Documents/Proj # => ~/Docu/Proj` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`peco-reverse`](./bin/peco-reverse) | Reverse order interactive filter using peco | `$ ls \| peco-reverse # reversed filter` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`photoframe`](./bin/photoframe) | Display photos in fullscreen slideshow mode using feh | `$ photoframe ~/Pictures # slideshow` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`pomodoro-cycle`](./bin/pomodoro-cycle) | Run a full pomodoro cycle with multiple work sessions and breaks | `$ pomodoro-cycle 3 25 25 25 # 3x25min cycle` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-cycle.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-cycle.yml) |
 | [`pomodoro-timer`](./bin/pomodoro-timer) | A simplest Pomodoro Timer implementation in shell script | `$ pomodoro-timer 25 # start 25min` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-timer.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-timer.yml) |
 | [`prompt`](./bin/prompt) | Display a prompt and wait for the user to press Enter (always exits 0) | `$ prompt 'Press Enter: ' # pause` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-prompt.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-prompt.yml) |
 | [`rm-dust`](./bin/rm-dust) | An alternative to `rm`, moving files to a dustbox instead. Use `--restore` to recover files. `alias rm=rm-dust` is recommended! | `$ rm-dust file.txt # mv to dustbox` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml) |
@@ -237,6 +238,14 @@ $ pomodoro-timer              # Default 30 minutes
 $ pomodoro-timer 25           # Classic 25-minute pomodoro
 $ pomodoro-timer --rest 5     # 5-minute break timer
 $ pomodoro-timer --from 09:30 60   # Resume timer that started at 09:30 for 60 minutes
+```
+
+**[`pomodoro-cycle`](./bin/pomodoro-cycle)** - Run a full multi-step Pomodoro cycle with breaks between sessions.
+
+```bash
+$ pomodoro-cycle              # 3 steps × 30 min (default)
+$ pomodoro-cycle 3 25 25 25   # Classic 3 × 25 min pomodoro
+$ pomodoro-cycle 2 45 30      # step 1: 45 min, step 2: 30 min
 ```
 
 <!-- }}} -->

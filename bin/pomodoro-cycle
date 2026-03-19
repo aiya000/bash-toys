@@ -1,0 +1,106 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << 'EOF'
+pomodoro-cycle - Run a full pomodoro cycle with multiple work sessions
+
+Usage:
+  pomodoro-cycle [--ntfy] [steps [time1 [time2 [time3]]]]
+  pomodoro-cycle -h | --help
+
+Arguments:
+  steps   Number of work steps in the cycle (default: 3)
+  time1   Duration of step 1 in minutes (default: 30)
+  time2   Duration of step 2 in minutes (default: 30)
+  time3   Duration of step 3 in minutes (default: 30)
+
+Options:
+  --ntfy          Send ntfy notification when cycle finishes
+  -h, --help      Show this help message
+
+Description:
+  Runs a sequence of pomodoro work sessions. Between each step, a break
+  timer starts and waits for the user to press Enter before continuing.
+  After the final step, sends a desktop notification. If --ntfy is
+  specified, also sends an ntfy notification.
+
+Examples:
+  pomodoro-cycle            # 3 steps of 30 minutes each
+  pomodoro-cycle 2          # 2 steps of 30 minutes each
+  pomodoro-cycle 3 25 25 25 # 3 steps of 25 minutes each
+  pomodoro-cycle 2 45 30    # step 1: 45 min, step 2: 30 min
+  pomodoro-cycle --ntfy     # 3 steps, with ntfy notification at the end
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
+# Parse --ntfy flag from args, leaving positional args intact
+use_ntfy=false
+args=()
+for arg in "$@"; do
+  if [[ $arg == --ntfy ]]; then
+    use_ntfy=true
+  else
+    args+=("$arg")
+  fi
+done
+set -- "${args[@]}"
+
+function pomodoro-start () {
+  local time is_last_step
+  time=${1:-30}
+  is_last_step=${2:-false}
+
+  pomodoro-timer "$time"
+
+  if [[ $is_last_step != true ]]; then
+    # Wait for the user to start the next step
+    pomodoro-timer --rest
+    prompt
+    return
+  fi
+
+  # Notify the end of the cycle
+  sleep 3
+  [[ $use_ntfy == true ]] && notify-ntfy pomodoro-cycle finished &
+  notify pomodoro-cycle finished ~/.dotfiles/bash-toys/assets/onepoint30.mp3 &
+}
+
+steps_in_cycle=${1:-3}
+time_in_step=("${2:-30}" "${3:-30}" "${4:-30}")
+
+echo "Start pomodoro cycle: $steps_in_cycle steps with [${time_in_step[*]}] minutes in each step"
+pomodoro-timer --clean
+echo
+
+for (( i = 0; i < $((steps_in_cycle - 1)); i++ )) ; do
+  pomodoro-start "${time_in_step[i]}"
+done
+pomodoro-start "${time_in_step[steps_in_cycle - 1]}" true # For the last step, skip `prompt` and notify the end of the cycle
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
