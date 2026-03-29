@@ -68,22 +68,16 @@ function nvim-parent-edit() {
       result_code=$?
       ;;
     split)
-      echo 'split method is not yet implemented' 2>&1
-      return 1
-      # TODO: Implement
-      # local vim_command
-      # vim_command=$(printf "execute('split ' .. shellescape('%s'))" "$filepath")
-      # nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
-      # result_code=$?
+      local vim_command
+      vim_command=$(printf "execute('split ' .. fnameescape('%s'))" "$filepath")
+      nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
+      result_code=$?
       ;;
     vsplit)
-      echo 'vsplit method is not yet implemented' 2>&1
-      return 1
-      # TODO: Implement
-      # local vim_command
-      # vim_command=$(printf "execute('vsplit ' .. shellescape('%s'))" "$filepath")
-      # nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
-      # result_code=$?
+      local vim_command
+      vim_command=$(printf "execute('vsplit ' .. fnameescape('%s'))" "$filepath")
+      nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
+      result_code=$?
       ;;
     *)
       echo "Unknown open method: $open_method"
