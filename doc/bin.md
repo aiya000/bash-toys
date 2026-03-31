@@ -827,6 +827,24 @@ $ docker-attach-menu
 # (Select a container to attach)
 ```
 
+### docker-clean-all
+
+Removes all Docker containers and volumes at once.
+
+```bash
+docker-clean-all
+```
+
+**Examples**:
+```bash
+# Remove all containers and volumes
+$ docker-clean-all
+docker compose down -v --remove-orphans
+docker container prune -f
+docker volume prune -f
+docker volume rm ...
+```
+
 ### docker-kill-menu
 
 Interactively selects and kills a running Docker container.
