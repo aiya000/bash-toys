@@ -5,7 +5,20 @@
 # $ source path/to/bash-toys/source-completions-all.sh
 # ```
 
-dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
+# Resolve the directory containing this script, compatible with both bash and zsh.
+# ${(%):-%x} is zsh-specific so it is hidden inside eval to avoid bash parse errors.
+if [[ -n $BASH_VERSION ]] ; then
+  dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd || exit 1)"
+else
+  eval 'dir="$(cd -- "$(dirname -- "${(%):-%x}")" && pwd || exit 1)"'
+fi
+
+# In zsh, enable bash completion compatibility.
+# compinit must run before bashcompinit; call it here if it has not been called yet.
+if [[ -n $ZSH_VERSION ]] ; then
+  type compdef > /dev/null 2>&1 || { autoload -Uz compinit && compinit ; }
+  autoload -U +X bashcompinit && bashcompinit
+fi
 
 for completion in "$dir"/completions/*.bash ; do
   # shellcheck disable=SC1090

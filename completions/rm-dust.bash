@@ -36,24 +36,28 @@ _rm_dust_completion() {
       if [[ -d $target_dir ]] ; then
         local entry
         while IFS= read -r entry; do
-          [[ -z $entry ]] && continue
+          [[ $entry == '' ]] && continue
           # Skip entries not matching current prefix (substring comparison to avoid glob issues)
-          [[ -n $file_part && ${entry:0:${#file_part}} != $file_part ]] && continue
+          [[ $file_part != '' && ${entry:0:${#file_part}} != $file_part ]] && continue
           if [[ -d "${target_dir}${entry}" ]] ; then
             COMPREPLY+=("${dir_part}${entry}/")
           else
             COMPREPLY+=("${dir_part}${entry}")
           fi
         done < <(ls -1 "${target_dir}" 2>/dev/null)
+        # Enable filename mode so bash properly escapes spaces in completion candidates
+        compopt -o filenames 2>/dev/null || :
       fi
     fi
   else
-    # Default file/directory completion
-    COMPREPLY=($(compgen -f -- "$cur"))
+    # Leave COMPREPLY empty so the shell falls back to its built-in file/directory
+    # completion (enabled via -o default on the complete registration below).
+    # This correctly handles ~/, spaces in filenames, etc. — same behaviour as rm.
+    COMPREPLY=()
   fi
 }
 
-complete -F _rm_dust_completion rm-dust
+complete -o default -F _rm_dust_completion rm-dust
 
 # https://github.com/aiya000/bash-toys
 #
