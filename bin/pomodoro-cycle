@@ -12,9 +12,9 @@ Usage:
 
 Arguments:
   steps   Number of work steps in the cycle (default: 3)
-  time1   Duration of step 1 in minutes (default: 30)
-  time2   Duration of step 2 in minutes (default: 30)
-  time3   Duration of step 3 in minutes (default: 30)
+  time1   Duration of step 1 in minutes (default: 25)
+  time2   Duration of step 2 in minutes (default: 25)
+  time3   Duration of step 3 in minutes (default: 25)
 
 Options:
   --ntfy          Send ntfy notification when cycle finishes
@@ -27,9 +27,9 @@ Description:
   specified, also sends an ntfy notification.
 
 Examples:
-  pomodoro-cycle            # 3 steps of 30 minutes each
-  pomodoro-cycle 2          # 2 steps of 30 minutes each
-  pomodoro-cycle 3 25 25 25 # 3 steps of 25 minutes each
+  pomodoro-cycle            # 3 steps of 25 minutes each
+  pomodoro-cycle 2          # 2 steps of 25 minutes each
+  pomodoro-cycle 3 30 30 30 # 3 steps of 30 minutes each
   pomodoro-cycle 2 45 30    # step 1: 45 min, step 2: 30 min
   pomodoro-cycle --ntfy     # 3 steps, with ntfy notification at the end
 EOF
@@ -51,7 +51,7 @@ set -- "${args[@]}"
 
 function pomodoro-start () {
   local time is_last_step
-  time=${1:-30}
+  time=${1:-25}
   is_last_step=${2:-false}
 
   pomodoro-timer "$time"
@@ -70,7 +70,7 @@ function pomodoro-start () {
 }
 
 steps_in_cycle=${1:-3}
-time_in_step=("${2:-30}" "${3:-30}" "${4:-30}")
+time_in_step=("${2:-25}" "${3:-25}" "${4:-25}")
 
 echo "Start pomodoro cycle: $steps_in_cycle steps with [${time_in_step[*]}] minutes in each step"
 pomodoro-timer --clean
