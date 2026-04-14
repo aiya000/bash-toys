@@ -175,6 +175,14 @@ teardown() {
   expects "$output" to_contain 'Job ID:'
 }
 
+@test '`notify-at` should accept tomorrow HH:MM format' {
+  skip_unless_real_jobs_enabled
+  run notify-at 'tomorrow 09:00' 'Test Title' 'Test Message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+  expects "$output" to_contain 'Job ID:'
+}
+
 @test '`notify-at` should reject MM-DD HH:MM format for past dates' {
   run notify-at '01-01 10:00' 'Test Title' 'Test Message'
   expects "$status" to_be 1
@@ -191,21 +199,21 @@ teardown() {
   run notify-at '01-15-09:00' 'Test Title' 'Test Message'
   expects "$status" to_be 1
   expects "$output" to_contain 'Error: Invalid time format: 01-15-09:00'
-  expects "$output" to_contain 'Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
+  expects "$output" to_contain 'Use HH:MM, tomorrow HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
 }
 
 @test '`notify-at` should reject invalid hyphen-separated format YYYY-MM-DD-HH:MM' {
   run notify-at '2027-01-15-09:00' 'Test Title' 'Test Message'
   expects "$status" to_be 1
   expects "$output" to_contain 'Error: Invalid time format: 2027-01-15-09:00'
-  expects "$output" to_contain 'Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
+  expects "$output" to_contain 'Use HH:MM, tomorrow HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
 }
 
 @test '`notify-at` should reject completely invalid format' {
   run notify-at 'invalid-time' 'Test Title' 'Test Message'
   expects "$status" to_be 1
   expects "$output" to_contain 'Error: Invalid time format: invalid-time'
-  expects "$output" to_contain 'Use HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
+  expects "$output" to_contain 'Use HH:MM, tomorrow HH:MM, MM-DD HH:MM, or YYYY-MM-DD HH:MM'
 }
 
 @test '`notify-at` should reject malformed time format' {

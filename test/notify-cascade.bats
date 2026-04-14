@@ -97,6 +97,7 @@ setup() {
   expects "$output" to_contain 'TIME formats (See also'
   expects "$output" to_contain 'Timing formats:'
   expects "$output" to_contain 'now                  Send notification immediately'
+  expects "$output" to_contain 'tomorrow HH:MM'
 }
 
 @test '`notify-cascade -h` should show help message' {
@@ -121,6 +122,15 @@ setup() {
   run notify-cascade 'invalid-time' 'Title' 'Message'
   expects "$status" to_be 1
   expects "$output" to_contain 'Error: Invalid time format'
+}
+
+@test '`notify-cascade` should accept tomorrow HH:MM format as target time' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-cascade 'tomorrow 23:59' 'Tomorrow Test' 'Message' 1h --local
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Cascade notifications scheduled for: tomorrow 23:59'
 }
 
 @test '`notify-cascade` should reject past dates for MM-DD HH:MM format' {

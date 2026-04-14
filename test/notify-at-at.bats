@@ -73,3 +73,14 @@ teardown() {
 # - Verify at job scheduling with at command
 # - Test job listing with atq
 # - Test job cancellation with atrm
+
+@test '`notify-at` should accept tomorrow HH:MM format (at implementation)' {
+  skip_unless_real_jobs_enabled
+  skip_if_macos
+  cleanup_at_jobs
+
+  run notify-at 'tomorrow 23:59' 'Tomorrow Test' 'Test message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+  expects "$output" to_contain 'Job ID:'
+}

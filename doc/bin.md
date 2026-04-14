@@ -37,6 +37,7 @@ notify-at (-c | --cancel) JOB_ID
 
 **TIME formats**:
 - `HH:MM` - Time today (if past, then tomorrow)
+- `tomorrow HH:MM` - Time tomorrow
 - `MM-DD HH:MM` - Month-day-time
 - `YYYY-MM-DD HH:MM` - Full date-time
 
@@ -55,10 +56,15 @@ $ notify-at 15:00 'Meeting' 'Team standup'
 Scheduled: title=Meeting, message=Team standup
 Job ID: 42
 
+# Schedule for tomorrow
+$ notify-at 'tomorrow 09:00' 'Morning' 'Daily standup'
+Notification scheduled: tomorrow 09:00 (8 hours 30 minutes later)
+Job ID: 43
+
 # Schedule with specific date
 $ notify-at '01-15 09:00' 'Event' 'New year kickoff'
 Scheduled: title=Event, message=New year kickoff
-Job ID: 43
+Job ID: 44
 
 # List scheduled notifications
 $ notify-at --list
@@ -78,7 +84,14 @@ Schedules cascade of notifications at specified intervals before target time.
 notify-cascade [options] TIME title message [timing1] [timing2] ... [sound]
 ```
 
-**Timing formats**: `now`, `4h`, `30m`, `45s`, `HH:MM`, `MM-DD HH:MM`
+**TIME formats** (target time):
+- `HH:MM` - Time today (if past, then tomorrow)
+- `tomorrow HH:MM` - Time tomorrow
+- `MM-DD HH:MM` - Month-day-time
+- `YYYY-MM-DD HH:MM` - Full date-time
+
+**Timing formats** (intervals before target):
+`now`, `4h`, `30m`, `45s`, `HH:MM`, `MM-DD HH:MM`
 
 **Options**:
 - `--ntfy` - Send notification via ntfy.sh (disables local notification unless `--local` is also specified)
@@ -111,6 +124,9 @@ Process IDs: 12345 12346 12347 12348
 $ notify-cascade 15:00 'Meeting' 'Team meeting' now 1h 30m
 Sending immediate notification...
 ...
+
+# Schedule for tomorrow
+$ notify-cascade 'tomorrow 17:00' 'Review' 'Weekly review' 09:00 3h 1h 30m 15m 5m 1m
 
 # Send to ntfy.sh only
 $ notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --ntfy

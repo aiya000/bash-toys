@@ -296,6 +296,24 @@ teardown() {
   rm -rf "$mock_bin_dir"
 }
 
+@test '`notify-at` should accept tomorrow HH:MM format (launchd implementation)' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+  cleanup_launchd_jobs
+
+  run notify-at 'tomorrow 23:59' 'Tomorrow Test' 'Test message'
+  expects "$status" to_be 0
+  expects "$output" to_contain 'Notification scheduled:'
+  expects "$output" to_contain 'Job ID:'
+
+  local job_id
+  job_id=$(echo "$output" | grep 'Job ID:' | awk '{print $3}')
+  expects "$job_id" to_be_defined
+
+  run notify-at -c "$job_id"
+  expects "$status" to_be 0
+}
+
 @test '`notify-at-launchd` script should cleanup when year does not match' {
   skip_unless_real_jobs_enabled
   skip_unless_macos
