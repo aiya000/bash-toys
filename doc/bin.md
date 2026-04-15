@@ -368,6 +368,25 @@ If you have files in the `YYYY-MM-DD-HH/` directory format (added in PR-52, supe
 bash /path/to/bash-toys/migration/rm-dust-PR-59.sh
 ```
 
+### which-path
+
+Finds the path of a command in PATH, ignoring aliases and functions.
+
+```bash
+which-path COMMAND
+```
+
+**Examples**:
+```bash
+$ which-path bash
+/bin/bash
+
+# Command not found (error)
+$ which-path nonexistent-command
+Command not found: nonexistent-command
+# Exit status: 1
+```
+
 ### cat-which
 
 Displays contents of executable files in PATH.

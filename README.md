@@ -103,6 +103,7 @@ These dependencies are documented at the beginning of the script.
 | [`vim-configure`](./bin/vim-configure) | Executes `./configure` for Vim source with modern flags | `$ vim-configure # run ./configure` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`vim-configure-debug`](./bin/vim-configure-debug) | Execute Vim source configure script with debug flags | `$ vim-configure-debug # with debug` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`vim-configure-macos`](./bin/vim-configure-macos) | Execute Vim source configure script with modern macOS flags | `$ vim-configure-macos # for macOS` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`which-path`](./bin/which-path) | Find the real path of a command in PATH, ignoring aliases and functions | `$ which-path ls # => /bin/ls` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-which-path.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-which-path.yml) |
 
 ### :small_blue_diamond: Sources ([./sources](https://github.com/aiya000/bash-toys/tree/main/sources))
 
