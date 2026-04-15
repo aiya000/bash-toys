@@ -32,6 +32,8 @@ Schedules notification at specified time with flexible date formats.
 ```bash
 notify-at [options] TIME title message [sound]
 notify-at (-l | --list)
+notify-at --list-day-titles [DATE]
+notify-at --list-all-titles
 notify-at (-c | --cancel) JOB_ID
 ```
 
@@ -44,6 +46,8 @@ notify-at (-c | --cancel) JOB_ID
 **Options**:
 - `--ntfy` - Send notification via ntfy.sh
 - `--local` - Send to local desktop (default)
+- `--list-day-titles [DATE]` - List notification titles for `DATE` (default: today). Output format: `* {title}'{HH:MM}'`
+- `--list-all-titles` - List notification titles for all scheduled dates, grouped by date
 
 **Environment Variables**:
 - `BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND` - Default sound file path (default: `notification-1.mp3` from assets)
@@ -70,6 +74,22 @@ Job ID: 44
 $ notify-at --list
 42    2026-02-03 15:00    Meeting - Team standup
 43    2026-01-15 09:00    Event - New year kickoff
+
+# List today's notification titles
+$ notify-at --list-day-titles
+* Team standup'15:00'
+
+# List titles for a specific date
+$ notify-at --list-day-titles 2027-01-15
+* New year kickoff'09:00'
+
+# List all scheduled titles grouped by date
+$ notify-at --list-all-titles
+2026-02-03
+* Team standup'15:00'
+
+2027-01-15
+* New year kickoff'09:00'
 
 # Cancel a scheduled notification
 $ notify-at --cancel 42

@@ -15,6 +15,8 @@ notify-at - Sends notification at specified time using launchd (macOS version)
 Usage:
   notify-at [options] TIME title message [sound]
   notify-at -l | --list
+  notify-at --list-day-titles [DATE]
+  notify-at --list-all-titles
   notify-at -c JOB_ID [-c JOB_ID ...] | --cancel JOB_ID [--cancel JOB_ID ...]
   notify-at --help
 
@@ -24,13 +26,16 @@ Arguments:
   message   Notification message
   sound     Optional sound file (default: configured sound, only for --local)
   JOB_ID    Job ID of scheduled job to cancel (from 'notify-at -l')
+  DATE      Date in YYYY-MM-DD format (default: today)
 
 Options:
-  --ntfy                Send notification via ntfy.sh
-  --local               Send notification to local desktop (default if no options specified)
-  -l, --list            List all scheduled jobs
-  -c, --cancel JOB_ID   Cancel scheduled job by Job ID
-  -h, --help            Show this help message
+  --ntfy                         Send notification via ntfy.sh
+  --local                        Send notification to local desktop (default if no options specified)
+  -l, --list                     List all scheduled jobs
+  --list-day-titles [DATE]       List notification titles for DATE (default: today)
+  --list-all-titles              List notification titles for all scheduled dates
+  -c, --cancel JOB_ID            Cancel scheduled job by Job ID
+  -h, --help                     Show this help message
 
 Note: If --ntfy is specified without --local, only ntfy.sh notification is sent.
       If neither is specified, --local is assumed.
@@ -361,11 +366,94 @@ function cancel_job() {
   echo "Job $target_job_id cancelled successfully"
 }
 
+function list_day_titles() {
+  local day="${1:-$(date +%Y-%m-%d)}"
+  local entries=()
+
+  if [[ -d "$LAUNCHD_DIR" ]] ; then
+    for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
+      [[ -f "$plist" ]] || continue
+
+      local target_timestamp
+      target_timestamp=$(xattr -p "$LAUNCHD_PREFIX.target" "$plist" 2>/dev/null || echo "0")
+      [[ "$target_timestamp" == "0" ]] && continue
+
+      local time_str
+      time_str=$(date -r "$target_timestamp" +"%Y-%m-%d %H:%M" 2>/dev/null || echo "")
+      [[ "$time_str" != "$day "* ]] && continue
+
+      local title
+      title=$(xattr -p "$LAUNCHD_PREFIX.title" "$plist" 2>/dev/null || echo "N/A")
+
+      local hhmm="${time_str#* }"
+      entries+=("$hhmm $title")
+    done
+  fi
+
+  if [[ ${#entries[@]} -eq 0 ]] ; then
+    echo "No notification at $day"
+    return 0
+  fi
+
+  printf '%s\n' "${entries[@]}" | sort | while IFS= read -r line ; do
+    local hhmm="${line%% *}"
+    local title="${line#* }"
+    echo "* ${title}'${hhmm}'"
+  done
+}
+
+function list_all_titles() {
+  if [[ ! -d "$LAUNCHD_DIR" ]] ; then
+    echo "No notification scheduled."
+    return 0
+  fi
+
+  local dates=()
+
+  for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
+    [[ -f "$plist" ]] || continue
+
+    local target_timestamp
+    target_timestamp=$(xattr -p "$LAUNCHD_PREFIX.target" "$plist" 2>/dev/null || echo "0")
+    [[ "$target_timestamp" == "0" ]] && continue
+
+    local date_str
+    date_str=$(date -r "$target_timestamp" +"%Y-%m-%d" 2>/dev/null || echo "")
+    [[ -n "$date_str" ]] && dates+=("$date_str")
+  done
+
+  if [[ ${#dates[@]} -eq 0 ]] ; then
+    echo "No notification scheduled."
+    return 0
+  fi
+
+  local unique_dates
+  unique_dates=$(printf '%s\n' "${dates[@]}" | sort -u)
+
+  local first=1
+  while IFS= read -r date ; do
+    [[ $first -eq 0 ]] && echo
+    first=0
+    echo "$date"
+    list_day_titles "$date"
+  done <<< "$unique_dates"
+}
+
 # Option parsing
 [[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
 if [[ $1 == "-l" || $1 == "--list" ]] ; then
   list_jobs
+  exit 0
+fi
+
+if [[ $1 == "--list-day-titles" ]] ; then
+  list_day_titles "${2:-}"
+  exit 0
+fi
+
+if [[ $1 == "--list-all-titles" ]] ; then
+  list_all_titles
   exit 0
 fi
 

@@ -338,6 +338,63 @@ teardown() {
   expects "${lines[0]}" not to_contain '1 day'
 }
 
+@test '`notify-at --list-day-titles` should show no notification for date with no scheduled jobs' {
+  # Use a far future date guaranteed to have no jobs
+  run notify-at --list-day-titles 2099-12-31
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No notification at 2099-12-31'
+}
+
+@test '`notify-at --list-all-titles` should show no notification when no jobs exist' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-at --list-all-titles
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No notification scheduled.'
+}
+
+@test '`notify-at --list-day-titles DATE` should list titles for jobs on that date' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-at '2027-06-15 14:30' 'Meeting' 'Team standup'
+  expects "$status" to_be 0
+
+  run notify-at --list-day-titles 2027-06-15
+  expects "$status" to_be 0
+  expects "$output" to_contain "* Meeting'14:30'"
+}
+
+@test '`notify-at --list-day-titles` without argument should default to today' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-at 23:59 'Today Test' 'Today message'
+  expects "$status" to_be 0
+
+  run notify-at --list-day-titles
+  expects "$status" to_be 0
+  expects "$output" to_contain "* Today Test'23:59'"
+}
+
+@test '`notify-at --list-all-titles` should list titles grouped by date' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-at '2027-06-15 10:00' 'Morning Meeting' 'Stand up'
+  expects "$status" to_be 0
+  run notify-at '2027-06-16 14:30' 'Afternoon Review' 'Code review'
+  expects "$status" to_be 0
+
+  run notify-at --list-all-titles
+  expects "$status" to_be 0
+  expects "$output" to_contain '2027-06-15'
+  expects "$output" to_contain "* Morning Meeting'10:00'"
+  expects "$output" to_contain '2027-06-16'
+  expects "$output" to_contain "* Afternoon Review'14:30'"
+}
+
 @test '`notify-at -l` should display TIME in YYYY-MM-DD HH:MM format' {
   skip_unless_real_jobs_enabled
   # Clean up any existing jobs first

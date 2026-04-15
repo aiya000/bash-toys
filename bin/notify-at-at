@@ -11,6 +11,8 @@ notify-at - Sends notification at specified time with flexible date formats
 Usage:
   notify-at [options] TIME title message [sound]
   notify-at -l | --list
+  notify-at --list-day-titles [DATE]
+  notify-at --list-all-titles
   notify-at -c JOB_ID [-c JOB_ID ...] | --cancel JOB_ID [--cancel JOB_ID ...]
   notify-at --help
 
@@ -20,13 +22,16 @@ Arguments:
   message   Notification message
   sound     Optional sound file (default: configured sound, only for --local)
   JOB_ID    Job ID of scheduled job to cancel (from 'notify-at -l')
+  DATE      Date in YYYY-MM-DD format (default: today)
 
 Options:
-  --ntfy                Send notification via ntfy.sh
-  --local               Send notification to local desktop (default if no options specified)
-  -l, --list            List all scheduled jobs
-  -c, --cancel JOB_ID   Cancel scheduled job by Job ID
-  -h, --help            Show this help message
+  --ntfy                         Send notification via ntfy.sh
+  --local                        Send notification to local desktop (default if no options specified)
+  -l, --list                     List all scheduled jobs
+  --list-day-titles [DATE]       List notification titles for DATE (default: today)
+  --list-all-titles              List notification titles for all scheduled dates
+  -c, --cancel JOB_ID            Cancel scheduled job by Job ID
+  -h, --help                     Show this help message
 
 Note: If --ntfy is specified without --local, only ntfy.sh notification is sent.
       If neither is specified, --local is assumed.
@@ -217,6 +222,116 @@ function list_jobs() {
   printf '%s\n' "${job_entries[@]}" | sort -t'|' -k1 -n | cut -d'|' -f2-
 }
 
+# Parse atq date line into YYYY-MM-DD format
+# Works with both GNU date (Linux) and BSD date (macOS)
+# atq format: "5  Wed Jan 15 12:00:00 2025"
+function _atq_line_to_date() {
+  local line="$1"
+  # awk extracts month(3), day(4), year(6) and converts month name to number
+  echo "$line" | awk '{
+    months = "JanFebMarAprMayJunJulAugSepOctNovDec"
+    month = int((index(months, $3) + 2) / 3)
+    printf "%s-%02d-%02d\n", $6, month, $4
+  }'
+}
+
+# Parse atq date line into HH:MM format
+function _atq_line_to_hhmm() {
+  local line="$1"
+  echo "$line" | awk '{print $5}' | cut -d: -f1,2
+}
+
+function list_day_titles() {
+  local day="${1:-$(date +%Y-%m-%d)}"
+  local at_jobs
+  at_jobs=$(atq 2>/dev/null || true)
+
+  if [[ -z "$at_jobs" ]] ; then
+    echo "No notification at $day"
+    return 0
+  fi
+
+  local entries=()
+
+  while IFS= read -r line ; do
+    [[ -z "$line" ]] && continue
+
+    local job_id
+    job_id=$(echo "$line" | awk '{print $1}')
+
+    local job_content
+    job_content=$(at -c "$job_id" 2>/dev/null || true)
+    echo "$job_content" | grep -q "NOTIFY_AT_JOB" || continue
+
+    local date_str
+    date_str=$(_atq_line_to_date "$line")
+    [[ "$date_str" != "$day" ]] && continue
+
+    local tag_line title
+    tag_line=$(echo "$job_content" | grep "NOTIFY_AT_JOB")
+    title="${tag_line#*title=\'}"
+    title="${title%%\'*}"
+
+    local hhmm
+    hhmm=$(_atq_line_to_hhmm "$line")
+    entries+=("$hhmm $title")
+  done <<< "$at_jobs"
+
+  if [[ ${#entries[@]} -eq 0 ]] ; then
+    echo "No notification at $day"
+    return 0
+  fi
+
+  printf '%s\n' "${entries[@]}" | sort | while IFS= read -r entry ; do
+    local hhmm="${entry%% *}"
+    local title="${entry#* }"
+    echo "* ${title}'${hhmm}'"
+  done
+}
+
+function list_all_titles() {
+  local at_jobs
+  at_jobs=$(atq 2>/dev/null || true)
+
+  if [[ -z "$at_jobs" ]] ; then
+    echo "No notification scheduled."
+    return 0
+  fi
+
+  local dates=()
+
+  while IFS= read -r line ; do
+    [[ -z "$line" ]] && continue
+
+    local job_id
+    job_id=$(echo "$line" | awk '{print $1}')
+
+    local job_content
+    job_content=$(at -c "$job_id" 2>/dev/null || true)
+    echo "$job_content" | grep -q "NOTIFY_AT_JOB" || continue
+
+    local date_str
+    date_str=$(_atq_line_to_date "$line")
+    [[ -n "$date_str" ]] && dates+=("$date_str")
+  done <<< "$at_jobs"
+
+  if [[ ${#dates[@]} -eq 0 ]] ; then
+    echo "No notification scheduled."
+    return 0
+  fi
+
+  local unique_dates
+  unique_dates=$(printf '%s\n' "${dates[@]}" | sort -u)
+
+  local first=1
+  while IFS= read -r date ; do
+    [[ $first -eq 0 ]] && echo
+    first=0
+    echo "$date"
+    list_day_titles "$date"
+  done <<< "$unique_dates"
+}
+
 function cancel_job() {
   local target_job_id="$1"
 
@@ -259,6 +374,16 @@ check_at_available
 
 if [[ $1 == "-l" || $1 == "--list" ]] ; then
   list_jobs
+  exit 0
+fi
+
+if [[ $1 == "--list-day-titles" ]] ; then
+  list_day_titles "${2:-}"
+  exit 0
+fi
+
+if [[ $1 == "--list-all-titles" ]] ; then
+  list_all_titles
   exit 0
 fi
 

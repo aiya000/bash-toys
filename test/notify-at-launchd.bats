@@ -314,6 +314,71 @@ teardown() {
   expects "$status" to_be 0
 }
 
+@test '`notify-at-launchd --list-day-titles` should show no notification for date with no jobs' {
+  skip_unless_macos
+
+  run notify-at-launchd --list-day-titles 2099-12-31
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No notification at 2099-12-31'
+}
+
+@test '`notify-at-launchd --list-all-titles` should show no notification when no jobs exist' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+  cleanup_launchd_jobs
+
+  run notify-at-launchd --list-all-titles
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No notification scheduled.'
+}
+
+@test '`notify-at-launchd --list-day-titles DATE` should list titles for jobs on that date' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+  cleanup_launchd_jobs
+
+  run notify-at-launchd '2027-06-15 14:30' 'Meeting' 'Team standup'
+  expects "$status" to_be 0
+
+  run notify-at-launchd --list-day-titles 2027-06-15
+  expects "$status" to_be 0
+  expects "$output" to_contain "* Meeting'14:30'"
+}
+
+@test '`notify-at-launchd --list-day-titles DATE` should sort multiple titles by time' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+  cleanup_launchd_jobs
+
+  run notify-at-launchd '2027-06-15 14:30' 'Afternoon' 'pm'
+  expects "$status" to_be 0
+  run notify-at-launchd '2027-06-15 09:00' 'Morning' 'am'
+  expects "$status" to_be 0
+
+  run notify-at-launchd --list-day-titles 2027-06-15
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal "* Morning'09:00'"
+  expects "${lines[1]}" to_equal "* Afternoon'14:30'"
+}
+
+@test '`notify-at-launchd --list-all-titles` should list titles grouped by date' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+  cleanup_launchd_jobs
+
+  run notify-at-launchd '2027-06-15 10:00' 'Morning Meeting' 'Stand up'
+  expects "$status" to_be 0
+  run notify-at-launchd '2027-06-16 14:30' 'Afternoon Review' 'Code review'
+  expects "$status" to_be 0
+
+  run notify-at-launchd --list-all-titles
+  expects "$status" to_be 0
+  expects "$output" to_contain '2027-06-15'
+  expects "$output" to_contain "* Morning Meeting'10:00'"
+  expects "$output" to_contain '2027-06-16'
+  expects "$output" to_contain "* Afternoon Review'14:30'"
+}
+
 @test '`notify-at-launchd` script should cleanup when year does not match' {
   skip_unless_real_jobs_enabled
   skip_unless_macos
