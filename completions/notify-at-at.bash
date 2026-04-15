@@ -8,13 +8,19 @@ _notify_at_at_completion() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   if [[ $cur == -* ]] ; then
-    COMPREPLY=($(compgen -W '--help -h --ntfy --local -l --list -c --cancel' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -h --ntfy --local -l --list --list-day-titles --list-all-titles -c --cancel' -- "$cur"))
     return
   fi
 
   # After --cancel/-c, no file completion (expects a job ID)
   if [[ $prev == '--cancel' || $prev == '-c' ]] ; then
     COMPREPLY=()
+    return
+  fi
+
+  # After --list-day-titles, complete with YYYY-MM-DD dates
+  if [[ $prev == '--list-day-titles' ]] ; then
+    COMPREPLY=($(compgen -W "$(date +%Y-%m-%d)" -- "$cur"))
     return
   fi
 }
