@@ -109,6 +109,24 @@ if [[ condition ]] ; then
 fi
 ```
 
+## Checklist When Modifying bin/ Commands
+
+When adding or changing options/behavior of a command in `bin/`, update **all** of the following that exist for that command:
+
+- **`bin/`** — The command itself
+- **`completions/`** — Bash/Zsh completion files (add new options to the completion word list)
+- **`test/`** — Bats test files (add tests for new behavior; no-argument/empty-state tests can run without `BASH_TOYS_TEST_REAL_JOBS=1`)
+- **`doc/bin.md`** — Usage description, options list, and examples
+
+## Checklist When Modifying sources/ Functions
+
+When adding or changing a function in `sources/`, update the following:
+
+- **`sources/`** — The function file itself
+- **`doc/sources.md`** — Always update alongside the implementation
+- **`completions/`** — Update the corresponding `.bash` file if one exists for that function (not all sources have completions)
+- **`test/`** — Update the corresponding `.bats` file if one exists for that function (not all sources have tests)
+
 ## Option Implementation Guidelines
 
 ### Position-Independent Options
