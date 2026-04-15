@@ -34,6 +34,7 @@ notify-at [options] TIME title message [sound]
 notify-at (-l | --list)
 notify-at --list-day-titles [DATE]
 notify-at --list-all-titles
+notify-at --cancel-all
 notify-at (-c | --cancel) JOB_ID
 ```
 
@@ -48,6 +49,7 @@ notify-at (-c | --cancel) JOB_ID
 - `--local` - Send to local desktop (default)
 - `--list-day-titles [DATE]` - List notification titles for `DATE` (default: today). Output format: `* {title}'{HH:MM}'`
 - `--list-all-titles` - List notification titles for all scheduled dates, grouped by date
+- `--cancel-all` - Cancel all scheduled jobs (lists before and after cancellation)
 
 **Environment Variables**:
 - `BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND` - Default sound file path (default: `notification-1.mp3` from assets)
@@ -94,6 +96,16 @@ $ notify-at --list-all-titles
 # Cancel a scheduled notification
 $ notify-at --cancel 42
 Cancelled job 42
+
+# Cancel all scheduled notifications
+$ notify-at --cancel-all
+JOB_ID     DATETIME           TARGET         TITLE           MESSAGE
+--------   ----------------   ------         -----           -------
+abc123ef   2026-02-03 15:00   local          Meeting         Team standup
+
+Job abc123ef cancelled successfully
+
+No scheduled jobs found.
 ```
 
 ### notify-cascade

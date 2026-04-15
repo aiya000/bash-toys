@@ -395,6 +395,33 @@ teardown() {
   expects "$output" to_contain "* Afternoon Review'14:30'"
 }
 
+@test '`notify-at --cancel-all` should show no jobs when none exist' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-at --cancel-all
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No scheduled jobs found.'
+}
+
+@test '`notify-at --cancel-all` should cancel all scheduled jobs' {
+  skip_unless_real_jobs_enabled
+  cleanup_test_jobs
+
+  run notify-at '2027-06-15 10:00' 'Job A' 'message a'
+  expects "$status" to_be 0
+  run notify-at '2027-06-16 14:30' 'Job B' 'message b'
+  expects "$status" to_be 0
+
+  run notify-at --cancel-all
+  expects "$status" to_be 0
+  expects "$output" to_contain 'cancelled successfully'
+
+  run notify-at -l
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No scheduled jobs found.'
+}
+
 @test '`notify-at -l` should display TIME in YYYY-MM-DD HH:MM format' {
   skip_unless_real_jobs_enabled
   # Clean up any existing jobs first

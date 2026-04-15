@@ -8,7 +8,7 @@ _notify_at_at_completion() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   if [[ $cur == -* ]] ; then
-    COMPREPLY=($(compgen -W '--help -h --ntfy --local -l --list --list-day-titles --list-all-titles -c --cancel' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -h --ntfy --local -l --list --list-day-titles --list-all-titles --cancel-all -c --cancel' -- "$cur"))
     return
   fi
 

@@ -17,6 +17,7 @@ Usage:
   notify-at -l | --list
   notify-at --list-day-titles [DATE]
   notify-at --list-all-titles
+  notify-at --cancel-all
   notify-at -c JOB_ID [-c JOB_ID ...] | --cancel JOB_ID [--cancel JOB_ID ...]
   notify-at --help
 
@@ -34,6 +35,7 @@ Options:
   -l, --list                     List all scheduled jobs
   --list-day-titles [DATE]       List notification titles for DATE (default: today)
   --list-all-titles              List notification titles for all scheduled dates
+  --cancel-all                   Cancel all scheduled jobs
   -c, --cancel JOB_ID            Cancel scheduled job by Job ID
   -h, --help                     Show this help message
 
@@ -366,6 +368,42 @@ function cancel_job() {
   echo "Job $target_job_id cancelled successfully"
 }
 
+function cancel_all_jobs() {
+  if [[ ! -d "$LAUNCHD_DIR" ]] ; then
+    echo "No scheduled jobs found."
+    return 0
+  fi
+
+  local job_ids=()
+  for plist in "$LAUNCHD_DIR/$LAUNCHD_PREFIX."*.plist ; do
+    [[ -f "$plist" ]] || continue
+    local filename
+    filename=$(basename "$plist")
+    local job_id="${filename#$LAUNCHD_PREFIX.}"
+    job_id="${job_id%.plist}"
+    job_ids+=("$job_id")
+  done
+
+  if [[ ${#job_ids[@]} -eq 0 ]] ; then
+    echo "No scheduled jobs found."
+    return 0
+  fi
+
+  list_jobs
+  echo
+
+  local exit_code=0
+  for job_id in "${job_ids[@]}" ; do
+    if ! cancel_job "$job_id" ; then
+      exit_code=1
+    fi
+  done
+
+  echo
+  list_jobs
+  return $exit_code
+}
+
 function list_day_titles() {
   local day="${1:-$(date +%Y-%m-%d)}"
   local entries=()
@@ -455,6 +493,11 @@ fi
 if [[ $1 == "--list-all-titles" ]] ; then
   list_all_titles
   exit 0
+fi
+
+if [[ $1 == "--cancel-all" ]] ; then
+  cancel_all_jobs
+  exit $?
 fi
 
 # Handle multiple -c/--cancel options

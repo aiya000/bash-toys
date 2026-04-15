@@ -13,6 +13,7 @@ Usage:
   notify-at -l | --list
   notify-at --list-day-titles [DATE]
   notify-at --list-all-titles
+  notify-at --cancel-all
   notify-at -c JOB_ID [-c JOB_ID ...] | --cancel JOB_ID [--cancel JOB_ID ...]
   notify-at --help
 
@@ -30,6 +31,7 @@ Options:
   -l, --list                     List all scheduled jobs
   --list-day-titles [DATE]       List notification titles for DATE (default: today)
   --list-all-titles              List notification titles for all scheduled dates
+  --cancel-all                   Cancel all scheduled jobs
   -c, --cancel JOB_ID            Cancel scheduled job by Job ID
   -h, --help                     Show this help message
 
@@ -366,6 +368,46 @@ function cancel_job() {
   fi
 }
 
+function cancel_all_jobs() {
+  local at_jobs
+  at_jobs=$(atq 2>/dev/null || true)
+
+  if [[ -z "$at_jobs" ]] ; then
+    echo "No scheduled jobs found."
+    return 0
+  fi
+
+  local job_ids=()
+  while IFS= read -r line ; do
+    [[ -z "$line" ]] && continue
+    local job_id
+    job_id=$(echo "$line" | awk '{print $1}')
+    local job_content
+    job_content=$(at -c "$job_id" 2>/dev/null || true)
+    echo "$job_content" | grep -q "NOTIFY_AT_JOB" || continue
+    job_ids+=("$job_id")
+  done <<< "$at_jobs"
+
+  if [[ ${#job_ids[@]} -eq 0 ]] ; then
+    echo "No scheduled jobs found."
+    return 0
+  fi
+
+  list_jobs
+  echo
+
+  local exit_code=0
+  for job_id in "${job_ids[@]}" ; do
+    if ! cancel_job "$job_id" ; then
+      exit_code=1
+    fi
+  done
+
+  echo
+  list_jobs
+  return $exit_code
+}
+
 # Option parsing
 [[ $1 == --help || $1 == -h ]] && show_help && exit 0
 
@@ -385,6 +427,11 @@ fi
 if [[ $1 == "--list-all-titles" ]] ; then
   list_all_titles
   exit 0
+fi
+
+if [[ $1 == "--cancel-all" ]] ; then
+  cancel_all_jobs
+  exit $?
 fi
 
 # Handle multiple -c/--cancel options

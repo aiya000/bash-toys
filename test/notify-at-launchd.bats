@@ -379,6 +379,35 @@ teardown() {
   expects "$output" to_contain "* Afternoon Review'14:30'"
 }
 
+@test '`notify-at-launchd --cancel-all` should show no jobs when none exist' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+  cleanup_launchd_jobs
+
+  run notify-at-launchd --cancel-all
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No scheduled jobs found.'
+}
+
+@test '`notify-at-launchd --cancel-all` should cancel all scheduled jobs' {
+  skip_unless_real_jobs_enabled
+  skip_unless_macos
+  cleanup_launchd_jobs
+
+  run notify-at-launchd '2027-06-15 10:00' 'Job A' 'message a'
+  expects "$status" to_be 0
+  run notify-at-launchd '2027-06-16 14:30' 'Job B' 'message b'
+  expects "$status" to_be 0
+
+  run notify-at-launchd --cancel-all
+  expects "$status" to_be 0
+  expects "$output" to_contain 'cancelled successfully'
+
+  run notify-at-launchd -l
+  expects "$status" to_be 0
+  expects "$output" to_equal 'No scheduled jobs found.'
+}
+
 @test '`notify-at-launchd` script should cleanup when year does not match' {
   skip_unless_real_jobs_enabled
   skip_unless_macos
