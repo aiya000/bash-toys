@@ -8,6 +8,13 @@ LAUNCHD_PREFIX="com.bash-toys.notify-at"
 LAUNCHD_DIR="$HOME/Library/LaunchAgents"
 NOTIFY_AT_DATA_DIR="$HOME/.local/share/notify-at"
 
+# Portable in-place sed: BSD sed requires `sed -i ''`, GNU sed requires `sed -i`
+if sed --version 2>/dev/null | grep -q 'GNU' ; then
+  sed_inplace() { sed -i "$@"; }
+else
+  sed_inplace() { sed -i '' "$@"; }
+fi
+
 function show_help() {
   cat << 'EOF'
 notify-at - Sends notification at specified time using launchd (macOS version)
@@ -181,11 +188,11 @@ fi
 SCRIPT_HEADER
 
   # Replace placeholders
-  sed -i '' "s|TARGET_YEAR_PLACEHOLDER|$target_year|g" "$script_path"
-  sed -i '' "s|TARGET_TIMESTAMP_PLACEHOLDER|$target_timestamp|g" "$script_path"
-  sed -i '' "s|PLIST_PATH_PLACEHOLDER|$plist_path|g" "$script_path"
-  sed -i '' "s|LABEL_PLACEHOLDER|$label|g" "$script_path"
-  sed -i '' "s|SCRIPT_PATH_PLACEHOLDER|$script_path|g" "$script_path"
+  sed_inplace "s|TARGET_YEAR_PLACEHOLDER|$target_year|g" "$script_path"
+  sed_inplace "s|TARGET_TIMESTAMP_PLACEHOLDER|$target_timestamp|g" "$script_path"
+  sed_inplace "s|PLIST_PATH_PLACEHOLDER|$plist_path|g" "$script_path"
+  sed_inplace "s|LABEL_PLACEHOLDER|$label|g" "$script_path"
+  sed_inplace "s|SCRIPT_PATH_PLACEHOLDER|$script_path|g" "$script_path"
 
   # Add local notification if requested
   if [[ "$local_mode" == true ]] ; then
