@@ -109,6 +109,27 @@ if [[ condition ]] ; then
 fi
 ```
 
+## Test Injection via DEBUG_BASHTOYS_*
+
+Scripts may support `DEBUG_BASHTOYS_*` environment variables to enable test-friendly behavior without modifying core logic.
+
+### DEBUG_BASHTOYS_PARSE_ONLY
+
+When a script sets `DEBUG_BASHTOYS_PARSE_ONLY=1`, it outputs parsed configuration values and exits before performing any side effects (e.g., running Docker, making network requests).
+
+Use this in tests to verify argument/env-var parsing in isolation:
+
+```bash
+run env DEBUG_BASHTOYS_PARSE_ONLY=1 some-command --host 192.168.1.10
+expects "$output" to_match 'host=192.168.1.10'
+```
+
+To unset an env var for a specific test run, use `env -u VAR`:
+
+```bash
+run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 some-command
+```
+
 ## Running Tests
 
 Use the project-local bats binary to run tests:
