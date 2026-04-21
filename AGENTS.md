@@ -109,6 +109,14 @@ if [[ condition ]] ; then
 fi
 ```
 
+## Running Tests
+
+Use the project-local bats binary to run tests:
+
+```bash
+lib/bats/bin/bats test/<name>.bats
+```
+
 ## Checklist When Modifying bin/ Commands
 
 When adding or changing options/behavior of a command in `bin/`, update **all** of the following that exist for that command:
