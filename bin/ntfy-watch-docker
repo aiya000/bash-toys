@@ -1,0 +1,208 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+FILTERED_EVENTS=('keepalive')
+ATTACHMENTS_SIZE_LIMIT=100M
+
+container_id=
+curl_pid=
+
+function show_help() {
+  cat << EOF
+Usage: ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT]
+       ntfy-watch-docker (-h | --help)
+
+Start a self-hosted ntfy server in Docker and subscribe to its default topic.
+
+Options:
+  --protocol PROTOCOL    Protocol to use (default: http, or parsed from BASH_TOYS_NTFY_SERVING_URL)
+  --host HOST            Hostname or IP address (default: localhost, or parsed from BASH_TOYS_NTFY_SERVING_URL)
+  --port PORT            Port number (default: 80, or parsed from BASH_TOYS_NTFY_SERVING_URL)
+
+Environment Variables:
+  BASH_TOYS_NTFY_SERVING_URL    Full base URL like http://192.168.1.10:18432
+  BASH_TOYS_TMP_BASE_DIR        Base directory for attachment cache
+
+Examples:
+  ntfy-watch-docker
+  ntfy-watch-docker --host 192.168.1.10 --port 18432
+  ntfy-watch-docker --protocol https --host 192.168.1.10 --port 18432
+  BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch-docker
+
+EOF
+}
+
+opt_protocol=
+opt_host=
+opt_port=
+
+while [[ $# -gt 0 ]] ; do
+  case "$1" in
+    --protocol)
+      opt_protocol="$2"
+      shift 2
+      ;;
+    --host)
+      opt_host="$2"
+      shift 2
+      ;;
+    --port)
+      opt_port="$2"
+      shift 2
+      ;;
+    -h | --help)
+      show_help
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      show_help >&2
+      exit 1
+      ;;
+  esac
+done
+
+function parse_protocol() {
+  if [[ $opt_protocol != '' ]] ; then
+    echo "$opt_protocol"
+    return
+  fi
+  if [[ $BASH_TOYS_NTFY_SERVING_URL != '' ]] ; then
+    local parsed="${BASH_TOYS_NTFY_SERVING_URL%%://*}"
+    if [[ $parsed != '' && $parsed != $BASH_TOYS_NTFY_SERVING_URL ]] ; then
+      echo "$parsed"
+      return
+    fi
+  fi
+  echo 'Could not determine protocol. Falling back to http.' >&2
+  echo 'http'
+}
+protocol=$(parse_protocol)
+
+function parse_host() {
+  if [[ $opt_host != '' ]] ; then
+    echo "$opt_host"
+    return
+  fi
+  if [[ $BASH_TOYS_NTFY_SERVING_URL != '' ]] ; then
+    local temp="${BASH_TOYS_NTFY_SERVING_URL#*://}"
+    local parsed="${temp%%:*}"
+    if [[ $parsed != '' ]] ; then
+      echo "$parsed"
+      return
+    fi
+  fi
+  echo 'Could not determine host. Falling back to localhost.' >&2
+  echo 'localhost'
+}
+host=$(parse_host)
+
+function parse_port() {
+  if [[ $opt_port != '' ]] ; then
+    echo "$opt_port"
+    return
+  fi
+  if [[ $BASH_TOYS_NTFY_SERVING_URL != '' ]] ; then
+    local parsed="${BASH_TOYS_NTFY_SERVING_URL##*:}"
+    if [[ $parsed =~ ^[0-9]+$ ]] ; then
+      echo "$parsed"
+      return
+    fi
+  fi
+  echo 'Could not determine port. Falling back to 80.' >&2
+  echo '80'
+}
+port=$(parse_port)
+
+if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+  echo "protocol=$protocol"
+  echo "host=$host"
+  echo "port=$port"
+  exit 0
+fi
+
+base_url="$protocol://$host:$port"
+authority="$host:$port"
+
+function find_attachement_dir() {
+  if [[ $BASH_TOYS_TMP_BASE_DIR != '' ]] ; then
+    echo "$BASH_TOYS_TMP_BASE_DIR/ntfy-watch"
+    return
+  fi
+
+  echo "Coudn't find a directory for attachment files. Fallback to /tmp" >&2
+}
+attachments_store_dir=$(find_attachement_dir)
+
+function filter_events() {
+  while IFS= read -r line ; do
+    for event in "${FILTERED_EVENTS[@]}" ; do
+      [[ "$line" == *"\"event\":\"$event\""* ]] && continue 2
+    done
+    echo "$line"
+  done
+}
+
+function cleanup() {
+  if [[ $curl_pid != '' ]] ; then
+    kill "$curl_pid" 2>/dev/null
+  fi
+  if [[ $container_id != '' ]] ; then
+    docker stop "$container_id" 2>/dev/null
+  fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+if [[ ! -d $attachments_store_dir ]] ; then
+  mkdir -p "$attachments_store_dir"
+fi
+
+container_id=$( \
+  docker run -d \
+  -p "$port:80" \
+  -v $attachments_store_dir:/attachments \
+  binwiederhier/ntfy serve \
+  --attachment-cache-dir /attachments \
+  --attachment-file-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
+  --attachment-total-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
+  --base-url "$base_url" \
+)
+
+echo "ntfy container: $container_id"
+
+# Wait for server ready
+until curl -sf "$base_url/v1/health" > /dev/null 2>&1 ; do
+  sleep 0.3
+done
+
+curl -sN "$authority/default/json" | filter_events &
+curl_pid=$!
+
+wait "$curl_pid"
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.

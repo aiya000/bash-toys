@@ -193,6 +193,44 @@ Error: BASH_TOYS_NTFY_TOPIC environment variable is required
 # Exit status: 1
 ```
 
+### ntfy-watch-docker
+
+Start a self-hosted ntfy server in Docker and subscribe to its default topic.
+Automatically starts and stops the Docker container on exit (including Ctrl+C).
+
+```bash
+ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT]
+ntfy-watch-docker (-h | --help)
+```
+
+**Options**:
+- `--protocol PROTOCOL` - Protocol to use (default: `http`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
+- `--host HOST` - Hostname or IP address (default: `localhost`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
+- `--port PORT` - Port number (default: `80`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
+
+**Environment Variables**:
+- `BASH_TOYS_NTFY_SERVING_URL` - Full base URL like `http://192.168.1.10:18432`. Used when options are not provided
+- `BASH_TOYS_TMP_BASE_DIR` - Base directory for attachment cache (uses `$BASH_TOYS_TMP_BASE_DIR/ntfy-watch`)
+
+**Examples**:
+```bash
+# Start with defaults (localhost:80)
+$ ntfy-watch-docker
+ntfy container: abc123def456
+
+# Specify host and port only (no need to specify protocol)
+$ ntfy-watch-docker --host 192.168.1.10 --port 18432
+ntfy container: abc123def456
+
+# Specify all options
+$ ntfy-watch-docker --protocol https --host 192.168.1.10 --port 18432
+ntfy container: abc123def456
+
+# Start via environment variable
+$ BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch-docker
+ntfy container: abc123def456
+```
+
 ## File Operations
 
 ### bak
