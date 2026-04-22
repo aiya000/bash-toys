@@ -9,7 +9,8 @@ Usage: notify-ntfy <title> <message>
 Send a notification to mobile devices via ntfy.sh.
 
 Environment Variables:
-  BASH_TOYS_NTFY_TOPIC    Required. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_TOPIC            Required. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_SERVER_BASE_URL  Base URL of the ntfy server. (default: https://ntfy.sh)
 
 Examples:
   notify-ntfy 'Task Complete' 'Your build has finished'
@@ -25,18 +26,25 @@ if [[ $# -lt 2 ]] ; then
   exit 1
 fi
 
-if [[ -z "${BASH_TOYS_NTFY_TOPIC:-}" ]] ; then
+if [[ $BASH_TOYS_NTFY_TOPIC == '' ]] ; then
   echo "Error: BASH_TOYS_NTFY_TOPIC environment variable is required" >&2
   exit 1
 fi
 
 title="$1"
 message="$2"
+server_base_url="${BASH_TOYS_NTFY_SERVER_BASE_URL:-https://ntfy.sh}"
+
+if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+  echo "server_base_url=$server_base_url"
+  echo "topic=$BASH_TOYS_NTFY_TOPIC"
+  exit 0
+fi
 
 if ! curl -s \
   -H "Title: $title" \
   -d "$message" \
-  "https://ntfy.sh/$BASH_TOYS_NTFY_TOPIC" > /dev/null ; then
+  "$server_base_url/$BASH_TOYS_NTFY_TOPIC" > /dev/null ; then
   echo "Error: Failed to send notification to ntfy.sh" >&2
   exit 1
 fi

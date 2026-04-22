@@ -39,7 +39,8 @@ Note: If --ntfy is specified without --local, only ntfy.sh notification is sent.
       If neither is specified, --local is assumed.
 
 Environment Variables:
-  BASH_TOYS_NTFY_TOPIC    Required when using --ntfy. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_TOPIC            Required when using --ntfy. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_SERVER_BASE_URL  Base URL of the ntfy server. (default: https://ntfy.sh)
 
 TIME formats:
   HH:MM                - Time today (if past, then tomorrow)
@@ -119,7 +120,7 @@ function schedule_at_job() {
     commands="\"$notify_cmd\" '$title' '$message' '$sound'"
   fi
   if [[ "$mobile_mode" == true ]] ; then
-    local ntfy_command="export BASH_TOYS_NTFY_TOPIC='$BASH_TOYS_NTFY_TOPIC'; \"$notify_ntfy_cmd\" '$title' '$message'"
+    local ntfy_command="export BASH_TOYS_NTFY_TOPIC='$BASH_TOYS_NTFY_TOPIC' ; export BASH_TOYS_NTFY_SERVER_BASE_URL='$BASH_TOYS_NTFY_SERVER_BASE_URL' ; \"$notify_ntfy_cmd\" '$title' '$message'"
     if [[ -n "$commands" ]] ; then
       commands="$commands
 $ntfy_command"

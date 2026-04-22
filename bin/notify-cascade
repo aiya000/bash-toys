@@ -44,7 +44,8 @@ Timing formats:
   YYYY-MM-DD HH:MM     Absolute date and time with year
 
 Environment Variables:
-  BASH_TOYS_NTFY_TOPIC    Required when using --ntfy. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_TOPIC            Required when using --ntfy. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_SERVER_BASE_URL  Base URL of the ntfy server. (default: https://ntfy.sh)
 
 Examples:
   notify-cascade 15:00 'Meeting' 'Team meeting starts' 1h 30m 10m 5m

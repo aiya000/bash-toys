@@ -50,7 +50,8 @@ Note: If --ntfy is specified without --local, only ntfy.sh notification is sent.
       If neither is specified, --local is assumed.
 
 Environment Variables:
-  BASH_TOYS_NTFY_TOPIC    Required when using --ntfy. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_TOPIC            Required when using --ntfy. Your ntfy.sh topic name.
+  BASH_TOYS_NTFY_SERVER_BASE_URL  Base URL of the ntfy server. (default: https://ntfy.sh)
 
 TIME formats:
   HH:MM                - Time today (if past, then tomorrow)
@@ -217,6 +218,7 @@ EOF
     cat >> "$script_path" << EOF
 # Send mobile notification
 export BASH_TOYS_NTFY_TOPIC='$BASH_TOYS_NTFY_TOPIC'
+export BASH_TOYS_NTFY_SERVER_BASE_URL='$BASH_TOYS_NTFY_SERVER_BASE_URL'
 '$notify_ntfy_cmd' '$ntfy_escaped_title' '$ntfy_escaped_message'
 EOF
   fi

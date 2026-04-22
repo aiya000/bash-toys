@@ -54,6 +54,7 @@ notify-at (-c | --cancel) JOB_ID
 **Environment Variables**:
 - `BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND` - Default sound file path (default: `notification-1.mp3` from assets)
 - `BASH_TOYS_NTFY_TOPIC` - Your ntfy.sh topic name (required when using `--ntfy`)
+- `BASH_TOYS_NTFY_SERVER_BASE_URL` - Base URL of the ntfy server (default: fallback to `https://ntfy.sh`)
 
 **Examples**:
 ```bash
@@ -132,6 +133,7 @@ notify-cascade [options] TIME title message [timing1] [timing2] ... [sound]
 **Environment Variables**:
 - `BASH_TOYS_NOTIFY_AT_DEFAULT_SOUND` - Default sound file path (default: `notification-1.mp3` from assets)
 - `BASH_TOYS_NTFY_TOPIC` - Your ntfy.sh topic name (required when using `--ntfy`)
+- `BASH_TOYS_NTFY_SERVER_BASE_URL` - Base URL of the ntfy server (default: `https://ntfy.sh`)
 
 **Note**: To receive notifications on both ntfy.sh and desktop, either:
 - Specify both `--ntfy` and `--local` options
@@ -178,6 +180,7 @@ notify-ntfy <title> <message>
 
 **Environment Variables**:
 - `BASH_TOYS_NTFY_TOPIC` - Your ntfy.sh topic name (required)
+- `BASH_TOYS_NTFY_SERVER_BASE_URL` - Base URL of the ntfy server (default: `https://ntfy.sh`)
 
 **Examples**:
 ```bash
@@ -185,6 +188,10 @@ notify-ntfy <title> <message>
 $ export BASH_TOYS_NTFY_TOPIC=my-topic
 $ notify-ntfy 'Build Complete' 'Your CI build finished successfully'
 # (Notification appears on your device)
+
+# Send notification to self-hosted server
+$ export BASH_TOYS_NTFY_SERVER_BASE_URL=http://192.168.1.10:18432
+$ notify-ntfy 'Build Complete' 'Your CI build finished successfully'
 
 # Missing topic (error)
 $ unset BASH_TOYS_NTFY_TOPIC
