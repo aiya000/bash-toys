@@ -183,3 +183,34 @@ for arg in "$@"; do
 done
 set -- "${args[@]}"
 ```
+
+### Unknown Option Rejection
+
+All scripts must reject unrecognized options (arguments starting with `-`) with an error message and exit status 1.
+This prevents silent misuse such as passing `--ntfy` to a script that does not support it.
+
+Implementation pattern (extend the position-independent loop above):
+
+```bash
+args=()
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+    --known-option)
+      known_flag=true
+      ;;
+    -*)
+      echo "Error: Unknown option: $arg" >&2
+      show_help >&2
+      exit 1
+      ;;
+    *)
+      args+=("$arg")
+      ;;
+  esac
+done
+set -- "${args[@]}"
+```
