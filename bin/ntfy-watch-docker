@@ -10,7 +10,7 @@ curl_pid=
 
 function show_help() {
   cat << EOF
-Usage: ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT]
+Usage: ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT] [--topic TOPIC]
        ntfy-watch-docker (-h | --help)
 
 Start a self-hosted ntfy server in Docker and subscribe to its default topic.
@@ -19,6 +19,7 @@ Options:
   --protocol PROTOCOL    Protocol to use (default: http, or parsed from BASH_TOYS_NTFY_SERVING_URL)
   --host HOST            Hostname or IP address (default: localhost, or parsed from BASH_TOYS_NTFY_SERVING_URL)
   --port PORT            Port number (default: 80, or parsed from BASH_TOYS_NTFY_SERVING_URL)
+  --topic TOPIC          Topic name to subscribe (default: default)
 
 Environment Variables:
   BASH_TOYS_NTFY_SERVING_URL    Full base URL like http://192.168.1.10:18432
@@ -36,6 +37,7 @@ EOF
 opt_protocol=
 opt_host=
 opt_port=
+opt_topic=
 
 while [[ $# -gt 0 ]] ; do
   case "$1" in
@@ -49,6 +51,10 @@ while [[ $# -gt 0 ]] ; do
       ;;
     --port)
       opt_port="$2"
+      shift 2
+      ;;
+    --topic)
+      opt_topic="$2"
       shift 2
       ;;
     -h | --help)
@@ -115,15 +121,19 @@ function parse_port() {
 }
 port=$(parse_port)
 
+topic="${opt_topic:-default}"
+
+base_url="$protocol://$host:$port"
+authority="$host:$port"
+
 if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "protocol=$protocol"
   echo "host=$host"
   echo "port=$port"
+  echo "topic=$topic"
+  echo "base_url=$base_url"
   exit 0
 fi
-
-base_url="$protocol://$host:$port"
-authority="$host:$port"
 
 function find_attachement_dir() {
   if [[ $BASH_TOYS_TMP_BASE_DIR != '' ]] ; then
@@ -172,13 +182,15 @@ container_id=$( \
 )
 
 echo "ntfy container: $container_id"
+echo "Base URL: $base_url"
+echo "Topic: $topic"
 
 # Wait for server ready
 until curl -sf "$base_url/v1/health" > /dev/null 2>&1 ; do
   sleep 0.3
 done
 
-curl -sN "$authority/default/json" | filter_events &
+curl -sN "$authority/$topic/json" | filter_events &
 curl_pid=$!
 
 wait "$curl_pid"

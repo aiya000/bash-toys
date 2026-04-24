@@ -206,7 +206,7 @@ Start a self-hosted ntfy server in Docker and subscribe to its default topic.
 Automatically starts and stops the Docker container on exit (including Ctrl+C).
 
 ```bash
-ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT]
+ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT] [--topic TOPIC]
 ntfy-watch-docker (-h | --help)
 ```
 
@@ -214,6 +214,7 @@ ntfy-watch-docker (-h | --help)
 - `--protocol PROTOCOL` - Protocol to use (default: `http`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
 - `--host HOST` - Hostname or IP address (default: `localhost`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
 - `--port PORT` - Port number (default: `80`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
+- `--topic TOPIC` - Topic name to subscribe (default: `default`)
 
 **Environment Variables**:
 - `BASH_TOYS_NTFY_SERVING_URL` - Full base URL like `http://192.168.1.10:18432`. Used when options are not provided
@@ -221,7 +222,7 @@ ntfy-watch-docker (-h | --help)
 
 **Examples**:
 ```bash
-# Start with defaults (localhost:80)
+# Start with defaults (localhost:80, topic: default)
 $ ntfy-watch-docker
 ntfy container: abc123def456
 
@@ -231,6 +232,10 @@ ntfy container: abc123def456
 
 # Specify all options
 $ ntfy-watch-docker --protocol https --host 192.168.1.10 --port 18432
+ntfy container: abc123def456
+
+# Subscribe to a specific topic
+$ ntfy-watch-docker --topic alerts
 ntfy container: abc123def456
 
 # Start via environment variable

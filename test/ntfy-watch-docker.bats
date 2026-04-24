@@ -96,10 +96,55 @@ setup() {
   expects "$output" to_match 'port=80'
 }
 
+@test 'parse_topic: --topic arg is used' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --topic my-topic
+  expects "$status" to_be 0
+  expects "$output" to_match 'topic=my-topic'
+}
+
+@test 'parse_topic: falls back to default when no arg' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  expects "$status" to_be 0
+  expects "$output" to_match 'topic=default'
+}
+
+@test 'startup output: Base URL is composed from protocol, host, and port' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --protocol https --host 192.168.1.10 --port 18432
+  expects "$status" to_be 0
+  expects "$output" to_match 'base_url=https://192.168.1.10:18432'
+}
+
+@test 'startup output: Base URL uses defaults when no args given' {
+  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  expects "$status" to_be 0
+  expects "$output" to_match 'base_url=http://localhost:80'
+}
+
+@test 'startup output: Topic is shown' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --topic alerts
+  expects "$status" to_be 0
+  expects "$output" to_match 'topic=alerts'
+}
+
+@test 'startup output: Topic defaults to default' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  expects "$status" to_be 0
+  expects "$output" to_match 'topic=default'
+}
+
 @test 'options work regardless of order' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --port 18432 --host 192.168.1.10 --protocol https
   expects "$status" to_be 0
   expects "$output" to_match 'protocol=https'
   expects "$output" to_match 'host=192.168.1.10'
   expects "$output" to_match 'port=18432'
+}
+
+@test 'options work regardless of order (with --topic)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --topic alerts --port 18432 --host 192.168.1.10 --protocol https
+  expects "$status" to_be 0
+  expects "$output" to_match 'protocol=https'
+  expects "$output" to_match 'host=192.168.1.10'
+  expects "$output" to_match 'port=18432'
+  expects "$output" to_match 'topic=alerts'
 }

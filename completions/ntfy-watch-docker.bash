@@ -12,14 +12,14 @@ _ntfy_watch_docker_completion() {
       COMPREPLY=($(compgen -W 'http https' -- "$cur"))
       return
       ;;
-    --host | --port)
+    --host | --port | --topic)
       COMPREPLY=()
       return
       ;;
   esac
 
   if [[ $cur == -* ]] ; then
-    COMPREPLY=($(compgen -W '--help -h --protocol --host --port' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -h --protocol --host --port --topic' -- "$cur"))
     return
   fi
 }
