@@ -56,10 +56,26 @@ sound="${3:-}"
 # WSL
 if command -v notifu.exe >/dev/null 2>&1 ; then
   if [[ $sound != '' ]] ; then
-    echo "Error: Sorry, this feature is not implemented yet for your environment." 2>&1
-    exit 1
+    win_sound=$(wslpath -w "$sound")
+    powershell.exe -NoProfile -c "
+      Add-Type -AssemblyName presentationCore
+      \$mp = New-Object System.Windows.Media.MediaPlayer
+      \$mp.Open([uri]'${win_sound}')
+      \$mp.Play()
+      \$t = 0
+      while (\$mp.NaturalDuration.HasTimeSpan -eq \$false -and \$t -lt 50) {
+        Start-Sleep -Milliseconds 100
+        \$t++
+      }
+      if (\$mp.NaturalDuration.HasTimeSpan) {
+        Start-Sleep -Milliseconds ([int](\$mp.NaturalDuration.TimeSpan.TotalMilliseconds + 500))
+      } else {
+        Start-Sleep -Seconds 5
+      }
+      \$mp.Close()
+    " &>/dev/null &
   fi
-  notifu.exe /p "$title" /m "$message" &> /dev/null
+  notifu.exe /p "$title" /m "$message" /q &> /dev/null
   exit
 fi
 
