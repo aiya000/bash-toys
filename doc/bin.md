@@ -1514,6 +1514,23 @@ $ if is-in-wsl ; then
 > fi
 ```
 
+### realpath-wslpath-w
+
+Converts a Unix path to an absolute Windows path in WSL.
+
+```bash
+realpath-wslpath-w <path>
+```
+
+**Examples**:
+```bash
+$ realpath-wslpath-w ~/Downloads
+C:\Users\user\Downloads
+
+$ realpath-wslpath-w .
+C:\Users\user\current-dir
+```
+
 ### list-dpkg-executables
 
 Lists executable files from a dpkg package.
