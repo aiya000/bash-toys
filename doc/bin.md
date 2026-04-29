@@ -1514,6 +1514,35 @@ $ if is-in-wsl ; then
 > fi
 ```
 
+### mklink-wsl
+
+Create a Windows symlink from WSL via cmd.exe.
+
+```bash
+mklink-wsl [--type TYPE] LINK TARGET
+```
+
+**Options**:
+- `--type TYPE`, `-t TYPE` — Link type: `J` (junction, default), `D` (directory symlink), `H` (hard link), `F` (file symlink)
+
+**Link types**:
+- `J` — Directory junction; no admin rights required (default)
+- `D` — Directory symbolic link; may require admin or Developer Mode
+- `H` — Hard link for files; no admin rights required
+- `F` — File symbolic link; may require admin or Developer Mode
+
+**Examples**:
+```bash
+# Create a directory junction (default)
+$ mklink-wsl MyLink 'C:\Target\Dir'
+
+# Create a directory symbolic link
+$ mklink-wsl --type D MyDirLink 'C:\Target\Dir'
+
+# Create a hard link
+$ mklink-wsl -t H MyHardLink 'C:\Target\File.txt'
+```
+
 ### realpath-wslpath-w
 
 Converts a Unix path to an absolute Windows path in WSL.

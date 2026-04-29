@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << 'EOF'
+mklink-wsl - Create a Windows symlink from WSL via cmd.exe
+
+Usage:
+  mklink-wsl [--type TYPE] LINK TARGET
+  mklink-wsl -h | --help
+
+Arguments:
+  LINK          Path of the link to create
+  TARGET        Path the link points to
+
+Options:
+  -t, --type TYPE   Link type: J (junction), D (directory symlink), H (hard link),
+                    or F (file symlink). Default: J
+  -h, --help        Show this help message
+
+Description:
+  Wraps cmd.exe's mklink command for use in WSL.
+  Requires WSL environment with cmd.exe accessible.
+
+  Link types:
+    J   Directory junction (default) — no admin required
+    D   Directory symbolic link       — may require admin or Developer Mode
+    H   Hard link                     — file only, no admin required
+    F   File symbolic link            — may require admin or Developer Mode
+
+Examples:
+  $ mklink-wsl MyLink C:\Target\Dir
+  $ mklink-wsl --type D MyDirLink C:\Target\Dir
+  $ mklink-wsl -t H MyHardLink C:\Target\File.txt
+  $ mklink-wsl -t F MyFileLink C:\Target\File.txt
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
+link_type='J'
+positional_args=()
+
+while [[ $# -gt 0 ]] ; do
+  case "$1" in
+    -t|--type)
+      link_type="$2"
+      shift 2
+      ;;
+    *)
+      positional_args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#positional_args[@]} -lt 2 ]] ; then
+  echo 'Usage: mklink-wsl [--type TYPE] LINK TARGET' >&2
+  exit 1
+fi
+
+link="${positional_args[0]}"
+target="${positional_args[1]}"
+
+case "$link_type" in
+  J) type_flag='/J' ;;
+  D) type_flag='/D' ;;
+  H) type_flag='/H' ;;
+  F) type_flag=''   ;;
+  *)
+    echo "Unknown link type: $link_type (valid: J, D, H, F)" >&2
+    exit 1
+    ;;
+esac
+
+cmd.exe /c mklink $type_flag "$link" "$target"
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
