@@ -147,6 +147,7 @@ When adding or changing options/behavior of a command in `bin/`, update **all** 
 - **`test/`** — Bats test files (add tests for new behavior; no-argument/empty-state tests can run without `BASH_TOYS_TEST_REAL_JOBS=1`)
 - **`doc/bin.md`** — Usage description, options list, and examples
 - **`README.md`** — Add a row to the Executables table; add an entry to the Recommended Scripts section if the command is noteworthy
+- **`.github/workflows/`** — Add a `test-<command>.yml` workflow file if the script has tests
 
 ## Checklist When Modifying sources/ Functions
 
