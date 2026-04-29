@@ -64,7 +64,9 @@ function nvim-parent-edit() {
   local result_code=0
   case $open_method in
     tabnew)
-      nvim --server "$NVIM_PARENT_ADDRESS" --remote-tab "$filepath" 2>/dev/null
+      local vim_command
+      vim_command=$(printf "execute('tabnew ' .. fnameescape('%s'))" "$filepath")
+      nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
       result_code=$?
       ;;
     split)
