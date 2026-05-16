@@ -66,19 +66,19 @@ function nvim-parent-edit() {
     tabnew)
       local vim_command
       vim_command=$(printf "execute('tabnew ' .. fnameescape('%s'))" "$filepath")
-      nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
+      command nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
       result_code=$?
       ;;
     split)
       local vim_command
       vim_command=$(printf "execute('split ' .. fnameescape('%s'))" "$filepath")
-      nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
+      command nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
       result_code=$?
       ;;
     vsplit)
       local vim_command
       vim_command=$(printf "execute('vsplit ' .. fnameescape('%s'))" "$filepath")
-      nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
+      command nvim --server "$NVIM_PARENT_ADDRESS" --remote-expr "$vim_command" 2>/dev/null
       result_code=$?
       ;;
     *)
