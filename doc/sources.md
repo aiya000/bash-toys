@@ -298,6 +298,9 @@ $ nvim-parent-vsplit utils.lua
 $ nvim-parent-edit tabnew /path/to/file.txt
 ```
 
+Non-existent files are supported — a buffer is opened for the given path without creating the file on disk (same as `:edit` behavior).
+Relative paths are resolved to absolute paths automatically.
+
 **Requirements**: `NVIM_PARENT_ADDRESS` environment variable (set by parent Neovim)
 
 **Setup** (in parent Neovim):

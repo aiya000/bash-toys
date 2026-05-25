@@ -54,10 +54,22 @@ function nvim-parent-edit() {
     return 1
   fi
 
-  # Get the absolute file path
+  # realpath fails for non-existent files on macOS; resolve manually as fallback
   local filepath="$2"
   if [[ "$filepath" != /* ]] ; then
-    filepath="$(realpath "$filepath")"
+    local resolved
+    resolved="$(realpath "$filepath" 2>/dev/null)"
+    if [[ -n "$resolved" ]] ; then
+      filepath="$resolved"
+    else
+      local abs_parent
+      abs_parent="$(cd "$(dirname "$filepath")" 2>/dev/null && pwd)"
+      if [[ -n "$abs_parent" ]] ; then
+        filepath="$abs_parent/$(basename "$filepath")"
+      else
+        filepath="$PWD/$filepath"
+      fi
+    fi
   fi
 
   # Open file in parent Neovim

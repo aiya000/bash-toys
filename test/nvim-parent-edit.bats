@@ -74,6 +74,18 @@ teardown() {
   expects "$output" to_contain '✓ Opened'
 }
 
+@test '`nvim-parent-edit tabnew` with relative path to non-existent file should resolve to absolute path' {
+  run nvim-parent-edit tabnew nvim-parent-edit-nonexistent-bats.txt
+  expects "$status" to_be 0
+  expects "$output" to_match "^✓ Opened '/.*nvim-parent-edit-nonexistent-bats.txt"
+}
+
+@test '`nvim-parent-edit tabnew` with parent-relative path to non-existent file should resolve to absolute path' {
+  run nvim-parent-edit tabnew ../nvim-parent-edit-nonexistent-bats.txt
+  expects "$status" to_be 0
+  expects "$output" to_match "^✓ Opened '/.*nvim-parent-edit-nonexistent-bats.txt"
+}
+
 @test '`nvim-parent-edit split` with existing file should exit 0' {
   local tmpfile
   tmpfile=$(mktemp)
