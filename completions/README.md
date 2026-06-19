@@ -46,6 +46,7 @@ source /path/to/bash-toys/completions/rm-dust.bash
 | Command | Options | Argument completion |
 |---|---|---|
 | `cat-which` | `--help`, `-h`, `--no-bat` | command names |
+| `docker-fix` | `--help`, `-h` | subcommands (`teardown-compose`, `clean-containers`, …) |
 | `expects` | `--help`, `-h` | matchers (`to_be`, `to_equal`, `not`, …) |
 | `fast-sync` | `--help`, `-h`, `--init` | directories |
 | `gh-run-view-latest` | `--help`, `-h`, `--log`, `--web`, `--json` | — |

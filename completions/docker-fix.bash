@@ -1,37 +1,24 @@
 #!/bin/bash
 
-function show_help() {
-  cat << 'EOF'
-docker-clean-all - Remove all Docker containers and volumes
+# Bash completion for docker-fix command
 
-Usage:
-  docker-clean-all
-  docker-clean-all -h | --help
+_docker_fix_completion() {
+  local cur
+  cur="${COMP_WORDS[COMP_CWORD]}"
 
-Options:
-  -h, --help    Show this help message
+  local subcommands='teardown-compose clean-containers clean-volumes remove-volumes remove-all'
 
-Description:
-  Removes all Docker containers and volumes by running:
-    docker compose down -v --remove-orphans
-    docker container prune -f
-    docker volume prune -f
-    docker volume rm $(docker volume ls -q)
-EOF
+  if [[ ${COMP_CWORD} == 1 ]] ; then
+    if [[ $cur == -* ]] ; then
+      COMPREPLY=($(compgen -W '--help -h' -- "$cur"))
+    else
+      COMPREPLY=($(compgen -W "$subcommands" -- "$cur"))
+    fi
+    return
+  fi
 }
 
-[[ $1 == --help || $1 == -h ]] && show_help && exit 0
-
-function run-with-echo() {
-  echo "$*"
-  eval "$*"
-  echo
-}
-
-run-with-echo 'docker compose down -v --remove-orphans'
-run-with-echo 'docker container prune -f'
-run-with-echo 'docker volume prune -f'
-run-with-echo "docker volume rm '$(docker volume ls -q)'"
+complete -F _docker_fix_completion docker-fix
 
 # https://github.com/aiya000/bash-toys
 #

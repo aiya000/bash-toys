@@ -1,0 +1,98 @@
+#!/bin/bash
+
+function show_help() {
+  cat << 'EOF'
+docker-fix - Docker maintenance utilities
+
+Usage:
+  docker-fix <subcommand>
+  docker-fix -h | --help
+
+Subcommands:
+  teardown-compose  Run: docker compose down -v --remove-orphans
+  clean-containers  Run: docker container prune -f
+  clean-volumes     Run: docker volume prune -f
+  remove-volumes    Run: docker volume rm $(docker volume ls -q)
+  remove-all        Run all of the above subcommands in order
+
+Options:
+  -h, --help    Show this help message
+EOF
+}
+
+function run-with-echo() {
+  echo "$*"
+  eval "$*"
+  echo
+}
+
+function cmd-teardown-compose() {
+  run-with-echo 'docker compose down -v --remove-orphans'
+}
+
+function cmd-clean-containers() {
+  run-with-echo 'docker container prune -f'
+}
+
+function cmd-clean-volumes() {
+  run-with-echo 'docker volume prune -f'
+}
+
+function cmd-remove-volumes() {
+  run-with-echo "docker volume rm $(docker volume ls -q)"
+}
+
+function cmd-remove-all() {
+  cmd-teardown-compose
+  cmd-clean-containers
+  cmd-clean-volumes
+  cmd-remove-volumes
+}
+
+case "$1" in
+  --help|-h)
+    show_help
+    exit 0
+    ;;
+  teardown-compose)  cmd-teardown-compose ;;
+  clean-containers)  cmd-clean-containers ;;
+  clean-volumes)     cmd-clean-volumes ;;
+  remove-volumes)    cmd-remove-volumes ;;
+  remove-all)        cmd-remove-all ;;
+  -*)
+    echo "Error: Unknown option: $1" >&2
+    echo >&2
+    show_help >&2
+    exit 1
+    ;;
+  *)
+    echo "Error: unknown subcommand '$1'" >&2
+    echo >&2
+    show_help >&2
+    exit 1
+    ;;
+esac
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.

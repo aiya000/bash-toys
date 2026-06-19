@@ -944,18 +944,29 @@ $ docker-attach-menu
 # (Select a container to attach)
 ```
 
-### docker-clean-all
+### docker-fix
 
-Removes all Docker containers and volumes at once.
+Docker maintenance utilities with subcommands for cleaning up containers and volumes.
 
 ```bash
-docker-clean-all
+docker-fix <subcommand>
 ```
+
+**Subcommands**:
+- `teardown-compose` - Run: `docker compose down -v --remove-orphans`
+- `clean-containers` - Run: `docker container prune -f`
+- `clean-volumes` - Run: `docker volume prune -f`
+- `remove-volumes` - Run: `docker volume rm $(docker volume ls -q)`
+- `remove-all` - Run all of the above subcommands in order
 
 **Examples**:
 ```bash
-# Remove all containers and volumes
-$ docker-clean-all
+# Tear down compose stack with volumes
+$ docker-fix teardown-compose
+docker compose down -v --remove-orphans
+
+# Remove all containers and volumes at once
+$ docker-fix remove-all
 docker compose down -v --remove-orphans
 docker container prune -f
 docker volume prune -f
