@@ -928,7 +928,7 @@ $ pathshorten ~/Documents
 Docker utilities with subcommands for managing and cleaning up containers and volumes.
 
 ```bash
-docker-tool <subcommand>
+docker-tool [run] <subcommand> [<subcommand>...]
 ```
 
 **Subcommands**:
@@ -937,8 +937,9 @@ docker-tool <subcommand>
 - `teardown-compose` - Run: `docker compose down -v --remove-orphans`
 - `clean-containers` - Run: `docker container prune -f`
 - `clean-volumes` - Run: `docker volume prune -f`
+- `clean-build-cache` - Run: `docker builder prune -af`
+- `clean-builder` - Alias for `clean-build-cache`
 - `remove-volumes` - Run: `docker volume rm $(docker volume ls -q)`
-- `remove-all` - Run teardown-compose, clean-containers, clean-volumes, and remove-volumes
 
 **Environment Variables**:
 - `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for `attach-menu` / `kill-menu` (default: `peco`)
@@ -964,11 +965,13 @@ a1b2c3d4e5f6
 $ docker-tool teardown-compose
 docker compose down -v --remove-orphans
 
-# Remove all containers and volumes at once
-$ docker-tool remove-all
+# Run multiple subcommands at once (with or without `run`)
+$ docker-tool teardown-compose clean-containers clean-volumes clean-build-cache remove-volumes
+$ docker-tool run teardown-compose clean-containers clean-volumes clean-build-cache remove-volumes
 docker compose down -v --remove-orphans
 docker container prune -f
 docker volume prune -f
+docker builder prune -af
 docker volume rm ...
 ```
 

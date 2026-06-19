@@ -6,7 +6,8 @@ _docker_tool_completion() {
   local cur
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  local subcommands='attach-menu kill-menu teardown-compose clean-containers clean-volumes remove-volumes remove-all'
+  local subcommands='attach-menu kill-menu teardown-compose clean-containers clean-volumes clean-build-cache clean-builder remove-volumes run'
+  local run_subcommands='attach-menu kill-menu teardown-compose clean-containers clean-volumes clean-build-cache clean-builder remove-volumes'
 
   if [[ ${COMP_CWORD} == 1 ]] ; then
     if [[ $cur == -* ]] ; then
@@ -16,6 +17,9 @@ _docker_tool_completion() {
     fi
     return
   fi
+
+  # After `run` or directly chaining subcommands, complete subcommand names
+  COMPREPLY=($(compgen -W "$run_subcommands" -- "$cur"))
 }
 
 complete -F _docker_tool_completion docker-tool

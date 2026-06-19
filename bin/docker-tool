@@ -5,7 +5,7 @@ function show_help() {
 docker-tool - Docker utilities
 
 Usage:
-  docker-tool <subcommand>
+  docker-tool [run] <subcommand> [<subcommand>...]
   docker-tool -h | --help
 
 Subcommands:
@@ -14,8 +14,9 @@ Subcommands:
   teardown-compose  Run: docker compose down -v --remove-orphans
   clean-containers  Run: docker container prune -f
   clean-volumes     Run: docker volume prune -f
+  clean-build-cache Run: docker builder prune -af
+  clean-builder     Alias for clean-build-cache
   remove-volumes    Run: docker volume rm $(docker volume ls -q)
-  remove-all        Run teardown-compose, clean-containers, clean-volumes, and remove-volumes
 
 Options:
   -h, --help    Show this help message
@@ -59,15 +60,41 @@ function cmd-clean-volumes() {
   run-with-echo 'docker volume prune -f'
 }
 
+function cmd-clean-build-cache() {
+  run-with-echo 'docker builder prune -af'
+}
+
 function cmd-remove-volumes() {
   run-with-echo "docker volume rm $(docker volume ls -q)"
 }
 
-function cmd-remove-all() {
-  cmd-teardown-compose
-  cmd-clean-containers
-  cmd-clean-volumes
-  cmd-remove-volumes
+function dispatch() {
+  case "$1" in
+    attach-menu)       cmd-attach-menu ;;
+    kill-menu)         cmd-kill-menu ;;
+    teardown-compose)  cmd-teardown-compose ;;
+    clean-containers)  cmd-clean-containers ;;
+    clean-volumes)     cmd-clean-volumes ;;
+    clean-build-cache) cmd-clean-build-cache ;;
+    clean-builder)     cmd-clean-build-cache ;;
+    remove-volumes)    cmd-remove-volumes ;;
+    *)
+      echo "Error: unknown subcommand '$1'" >&2
+      exit 1
+      ;;
+  esac
+}
+
+function cmd-run() {
+  if [[ $# == 0 ]] ; then
+    echo "Error: at least one subcommand is required" >&2
+    echo >&2
+    show_help >&2
+    exit 1
+  fi
+  for subcmd in "$@" ; do
+    dispatch "$subcmd"
+  done
 }
 
 case "$1" in
@@ -75,24 +102,24 @@ case "$1" in
     show_help
     exit 0
     ;;
-  attach-menu)       cmd-attach-menu ;;
-  kill-menu)         cmd-kill-menu ;;
-  teardown-compose)  cmd-teardown-compose ;;
-  clean-containers)  cmd-clean-containers ;;
-  clean-volumes)     cmd-clean-volumes ;;
-  remove-volumes)    cmd-remove-volumes ;;
-  remove-all)        cmd-remove-all ;;
+  run)
+    shift
+    cmd-run "$@"
+    ;;
   -*)
     echo "Error: Unknown option: $1" >&2
     echo >&2
     show_help >&2
     exit 1
     ;;
-  *)
-    echo "Error: unknown subcommand '$1'" >&2
+  '')
+    echo "Error: at least one subcommand is required" >&2
     echo >&2
     show_help >&2
     exit 1
+    ;;
+  *)
+    cmd-run "$@"
     ;;
 esac
 
