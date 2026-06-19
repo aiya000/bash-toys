@@ -2,21 +2,26 @@
 
 function show_help() {
   cat << 'EOF'
-docker-fix - Docker maintenance utilities
+docker-tool - Docker utilities
 
 Usage:
-  docker-fix <subcommand>
-  docker-fix -h | --help
+  docker-tool <subcommand>
+  docker-tool -h | --help
 
 Subcommands:
+  attach-menu       Interactively select and attach to a running container
+  kill-menu         Interactively select and kill a running container
   teardown-compose  Run: docker compose down -v --remove-orphans
   clean-containers  Run: docker container prune -f
   clean-volumes     Run: docker volume prune -f
   remove-volumes    Run: docker volume rm $(docker volume ls -q)
-  remove-all        Run all of the above subcommands in order
+  remove-all        Run teardown-compose, clean-containers, clean-volumes, and remove-volumes
 
 Options:
   -h, --help    Show this help message
+
+Environment:
+  BASH_TOYS_INTERACTIVE_FILTER    Filter command for attach-menu / kill-menu (e.g., fzf, peco)
 EOF
 }
 
@@ -24,6 +29,22 @@ function run-with-echo() {
   echo "$*"
   eval "$*"
   echo
+}
+
+function cmd-attach-menu() {
+  local dir
+  dir=$(dirname "$0")
+  # shellcheck disable=SC1091
+  source "$dir/../define-options.sh"
+  docker attach "$(docker ps | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')"
+}
+
+function cmd-kill-menu() {
+  local dir
+  dir=$(dirname "$0")
+  # shellcheck disable=SC1091
+  source "$dir/../define-options.sh"
+  docker kill "$(docker ps | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')"
 }
 
 function cmd-teardown-compose() {
@@ -54,6 +75,8 @@ case "$1" in
     show_help
     exit 0
     ;;
+  attach-menu)       cmd-attach-menu ;;
+  kill-menu)         cmd-kill-menu ;;
   teardown-compose)  cmd-teardown-compose ;;
   clean-containers)  cmd-clean-containers ;;
   clean-volumes)     cmd-clean-volumes ;;

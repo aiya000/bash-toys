@@ -923,76 +923,53 @@ $ pathshorten ~/Documents
 
 ## Docker
 
-### docker-attach-menu
+### docker-tool
 
-Interactively selects and attaches to a running Docker container.
-
-```bash
-docker-attach-menu
-```
-
-**Environment Variables**:
-- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for container selection (default: `peco`)
-
-**Examples**:
-```bash
-# Select and attach to a running container
-$ docker-attach-menu
-# (Interactive filter shows running containers)
-# CONTAINER ID   IMAGE          COMMAND       CREATED        STATUS
-# a1b2c3d4e5f6   ubuntu:latest  "/bin/bash"   2 hours ago    Up 2 hours
-# (Select a container to attach)
-```
-
-### docker-fix
-
-Docker maintenance utilities with subcommands for cleaning up containers and volumes.
+Docker utilities with subcommands for managing and cleaning up containers and volumes.
 
 ```bash
-docker-fix <subcommand>
+docker-tool <subcommand>
 ```
 
 **Subcommands**:
+- `attach-menu` - Interactively select and attach to a running container
+- `kill-menu` - Interactively select and kill a running container
 - `teardown-compose` - Run: `docker compose down -v --remove-orphans`
 - `clean-containers` - Run: `docker container prune -f`
 - `clean-volumes` - Run: `docker volume prune -f`
 - `remove-volumes` - Run: `docker volume rm $(docker volume ls -q)`
-- `remove-all` - Run all of the above subcommands in order
-
-**Examples**:
-```bash
-# Tear down compose stack with volumes
-$ docker-fix teardown-compose
-docker compose down -v --remove-orphans
-
-# Remove all containers and volumes at once
-$ docker-fix remove-all
-docker compose down -v --remove-orphans
-docker container prune -f
-docker volume prune -f
-docker volume rm ...
-```
-
-### docker-kill-menu
-
-Interactively selects and kills a running Docker container.
-
-```bash
-docker-kill-menu
-```
+- `remove-all` - Run teardown-compose, clean-containers, clean-volumes, and remove-volumes
 
 **Environment Variables**:
-- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for container selection (default: `peco`)
+- `BASH_TOYS_INTERACTIVE_FILTER` - Interactive filter command for `attach-menu` / `kill-menu` (default: `peco`)
 
 **Examples**:
 ```bash
+# Select and attach to a running container
+$ docker-tool attach-menu
+# (Interactive filter shows running containers)
+# CONTAINER ID   IMAGE          COMMAND       CREATED        STATUS
+# a1b2c3d4e5f6   ubuntu:latest  "/bin/bash"   2 hours ago    Up 2 hours
+# (Select a container to attach)
+
 # Select and kill a running container
-$ docker-kill-menu
+$ docker-tool kill-menu
 # (Interactive filter shows running containers)
 # CONTAINER ID   IMAGE          COMMAND       CREATED        STATUS
 # a1b2c3d4e5f6   ubuntu:latest  "/bin/bash"   2 hours ago    Up 2 hours
 # (Select a container to kill)
 a1b2c3d4e5f6
+
+# Tear down compose stack with volumes
+$ docker-tool teardown-compose
+docker compose down -v --remove-orphans
+
+# Remove all containers and volumes at once
+$ docker-tool remove-all
+docker compose down -v --remove-orphans
+docker container prune -f
+docker volume prune -f
+docker volume rm ...
 ```
 
 ## GitHub

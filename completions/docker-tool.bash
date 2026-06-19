@@ -1,33 +1,24 @@
 #!/bin/bash
 
-function show_help() {
-  cat << 'EOF'
-docker-kill-menu - Interactively select and kill a running Docker container
+# Bash completion for docker-tool command
 
-Usage:
-  docker-kill-menu
-  docker-kill-menu -h | --help
+_docker_tool_completion() {
+  local cur
+  cur="${COMP_WORDS[COMP_CWORD]}"
 
-Options:
-  -h, --help    Show this help message
+  local subcommands='attach-menu kill-menu teardown-compose clean-containers clean-volumes remove-volumes remove-all'
 
-Description:
-  Lists running Docker containers using the configured interactive filter
-  (BASH_TOYS_INTERACTIVE_FILTER) and kills the selected container.
-
-Environment:
-  BASH_TOYS_INTERACTIVE_FILTER    Filter command (e.g., fzf, peco)
-EOF
+  if [[ ${COMP_CWORD} == 1 ]] ; then
+    if [[ $cur == -* ]] ; then
+      COMPREPLY=($(compgen -W '--help -h' -- "$cur"))
+    else
+      COMPREPLY=($(compgen -W "$subcommands" -- "$cur"))
+    fi
+    return
+  fi
 }
 
-[[ $1 == --help || $1 == -h ]] && show_help && exit 0
-
-dir=$(dirname "$0")
-
-# shellcheck disable=SC1091
-source "$dir/../define-options.sh"
-
-docker kill "$(docker ps | "$BASH_TOYS_INTERACTIVE_FILTER" | awk '{print $1}')"
+complete -F _docker_tool_completion docker-tool
 
 # https://github.com/aiya000/bash-toys
 #
