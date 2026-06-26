@@ -29,8 +29,8 @@ function showHelp() {
   console.log(`calc-japanese-remaining-working-hours - Calculate required daily working hours
 
 Usage:
-  calc-japanese-remaining-working-hours HOURS:MINUTES
-  calc-japanese-remaining-working-hours HOURS時間[MINUTES分]
+  calc-japanese-remaining-working-hours HOURS:MINUTES [--subtract HOURS:MINUTES]
+  calc-japanese-remaining-working-hours HOURS時間[MINUTES分] [--subtract HOURS時間[MINUTES分]]
   calc-japanese-remaining-working-hours -h | --help
 
 Arguments:
@@ -38,7 +38,10 @@ Arguments:
   HOURS時間[MINUTES分]  Remaining working hours in Japanese format (e.g., 108時間37分)
 
 Options:
-  -h, --help      Show this help message
+  -h, --help            Show this help message
+  --subtract DURATION   Subtract DURATION from the remaining hours before calculating
+                        (e.g., hours already scheduled for today)
+                        DURATION accepts the same formats as the main argument
 
 Description:
   Calculates required daily working hours for remaining business days
@@ -49,16 +52,66 @@ Examples:
   calc-japanese-remaining-working-hours 80:00
   calc-japanese-remaining-working-hours 108時間37分
   calc-japanese-remaining-working-hours 51時間
-  calc-japanese-remaining-working-hours 51時間30分`);
+  calc-japanese-remaining-working-hours 51時間30分
+  calc-japanese-remaining-working-hours 23時間27分 --subtract 8:00
+  calc-japanese-remaining-working-hours 23:27 --subtract 8時間
+  calc-japanese-remaining-working-hours 23時間27分 --subtract 8時間30分`);
+}
+
+function parseDuration(input: string): { hours: number; minutes: number } | null {
+  const japaneseMatch = input.match(/^(\d+)時間(?:(\d+)分)?$/);
+  const colonMatch = input.match(/^(\d+):(\d+)$/);
+
+  if (japaneseMatch) {
+    return {
+      hours: parseInt(japaneseMatch[1], 10),
+      minutes: japaneseMatch[2] !== undefined ? parseInt(japaneseMatch[2], 10) : 0,
+    };
+  } else if (colonMatch) {
+    return {
+      hours: parseInt(colonMatch[1], 10),
+      minutes: parseInt(colonMatch[2], 10),
+    };
+  }
+  return null;
 }
 
 async function main() {
-  if (Deno.args.length === 1 && (Deno.args[0] === "--help" || Deno.args[0] === "-h")) {
+  const args = Deno.args.slice();
+
+  if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
     showHelp();
     Deno.exit(0);
   }
 
-  if (Deno.args.length !== 1) {
+  // Parse --subtract option (position-independent)
+  let subtractMinutes = 0;
+  const positionalArgs: string[] = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--subtract") {
+      if (i + 1 >= args.length) {
+        console.error("Error: --subtract requires a duration argument");
+        console.error("Use -h or --help for more information.");
+        Deno.exit(1);
+      }
+      const parsed = parseDuration(args[i + 1]);
+      if (!parsed) {
+        console.error(`Error: Invalid format for --subtract: ${args[i + 1]}`);
+        console.error("Use -h or --help for more information.");
+        Deno.exit(1);
+      }
+      subtractMinutes = parsed.hours * 60 + parsed.minutes;
+      i++;
+    } else if (args[i].startsWith("-")) {
+      console.error(`Error: Unknown option: ${args[i]}`);
+      console.error("Use -h or --help for more information.");
+      Deno.exit(1);
+    } else {
+      positionalArgs.push(args[i]);
+    }
+  }
+
+  if (positionalArgs.length !== 1) {
     console.error("Usage: calc-japanese-remaining-working-hours HOURS:MINUTES");
     console.error("       calc-japanese-remaining-working-hours HOURS時間[MINUTES分]");
     console.error("Example: calc-japanese-remaining-working-hours 108:37");
@@ -67,26 +120,20 @@ async function main() {
     Deno.exit(1);
   }
 
-  // Parse input
+  // Parse main input
   let hours: number;
   let minutes: number;
 
-  const input = Deno.args[0];
-  const japaneseMatch = input.match(/^(\d+)時間(?:(\d+)分)?$/);
-  const colonMatch = input.match(/^(\d+):(\d+)$/);
-
-  if (japaneseMatch) {
-    hours = parseInt(japaneseMatch[1], 10);
-    minutes = japaneseMatch[2] !== undefined ? parseInt(japaneseMatch[2], 10) : 0;
-  } else if (colonMatch) {
-    hours = parseInt(colonMatch[1], 10);
-    minutes = parseInt(colonMatch[2], 10);
+  const parsed = parseDuration(positionalArgs[0]);
+  if (parsed) {
+    hours = parsed.hours;
+    minutes = parsed.minutes;
   } else {
     console.error("Error: Invalid format. Use HOURS:MINUTES (e.g., 108:37) or HOURS時間MINUTES分 (e.g., 108時間37分)");
     Deno.exit(1);
   }
 
-  const totalMinutes = hours * 60 + minutes;
+  const totalMinutes = hours * 60 + minutes - subtractMinutes;
 
   // Calculate remaining business days
   const now = new Date();
@@ -118,8 +165,17 @@ async function main() {
   const hoursInt = Math.floor(hoursPerDay);
   const minutesInt = Math.floor((hoursPerDay % 1) * 60);
 
+  const effectiveHours = Math.floor(totalMinutes / 60);
+  const effectiveMinutes = totalMinutes % 60;
+
   console.log(`今月の残り営業日数: ${remainingDays}日`);
-  console.log(`残り勤務時間: ${hours}時間${minutes}分 = ${totalMinutes}分`);
+  if (subtractMinutes > 0) {
+    const subH = Math.floor(subtractMinutes / 60);
+    const subM = subtractMinutes % 60;
+    console.log(`残り勤務時間: ${hours}時間${minutes}分 - ${subH}時間${subM}分 = ${effectiveHours}時間${effectiveMinutes}分 (${totalMinutes}分)`);
+  } else {
+    console.log(`残り勤務時間: ${hours}時間${minutes}分 = ${totalMinutes}分`);
+  }
   console.log(`1日あたりの必要勤務時間: ${hoursPerDay.toFixed(2)}時間`);
   console.log(`  = ${hoursInt}時間${minutesInt}分`);
 }

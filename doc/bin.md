@@ -1414,22 +1414,26 @@ $ bookmark-open
 Calculate required daily working hours for remaining business days.
 
 ```bash
-calc-japanese-remaining-working-hours HOURS:MINUTES
+calc-japanese-remaining-working-hours HOURS:MINUTES [--subtract HOURS:MINUTES]
+calc-japanese-remaining-working-hours HOURS時間[MINUTES分] [--subtract HOURS時間[MINUTES分]]
 ```
+
+**Options**:
+
+- `--subtract DURATION` — Subtract DURATION from the remaining hours before calculating (e.g., hours already scheduled for today). Accepts the same formats as the main argument
 
 **Examples**:
 ```bash
 # Calculate daily hours needed for 108h 37m remaining
 $ calc-japanese-remaining-working-hours 108:37
-Remaining working hours: 108:37
-Remaining business days: 15
-Required daily hours: 7:14
 
-# Another example
-$ calc-japanese-remaining-working-hours 80:00
-Remaining working hours: 80:00
-Remaining business days: 15
-Required daily hours: 5:20
+# Japanese format
+$ calc-japanese-remaining-working-hours 108時間37分
+
+# Subtract today's already-scheduled hours
+$ calc-japanese-remaining-working-hours 23時間27分 --subtract 8:00
+$ calc-japanese-remaining-working-hours 23:27 --subtract 8時間
+$ calc-japanese-remaining-working-hours 23時間27分 --subtract 8時間30分
 ```
 
 Automatically fetches Japanese holidays from public API.

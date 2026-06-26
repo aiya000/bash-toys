@@ -69,3 +69,39 @@ setup() {
     expects "$output" to_match '残り勤務時間: 120時間0分'
   fi
 }
+
+@test '`calc-japanese-remaining-working-hours --subtract 8:00` should subtract hours in HOURS:MINUTES format' {
+  run calc-japanese-remaining-working-hours '23時間27分' --subtract '8:00'
+  expects "$status" to_be 0
+  if echo "$output" | grep -q '残り勤務時間'; then
+    expects "$output" to_match '23時間27分 - 8時間0分 = 15時間27分'
+  fi
+}
+
+@test '`calc-japanese-remaining-working-hours --subtract 8時間` should subtract hours in Japanese format' {
+  run calc-japanese-remaining-working-hours '23時間27分' --subtract '8時間'
+  expects "$status" to_be 0
+  if echo "$output" | grep -q '残り勤務時間'; then
+    expects "$output" to_match '23時間27分 - 8時間0分 = 15時間27分'
+  fi
+}
+
+@test '`calc-japanese-remaining-working-hours --subtract` before main argument should also work' {
+  run calc-japanese-remaining-working-hours --subtract '8時間' '23時間27分'
+  expects "$status" to_be 0
+  if echo "$output" | grep -q '残り勤務時間'; then
+    expects "$output" to_match '23時間27分 - 8時間0分 = 15時間27分'
+  fi
+}
+
+@test '`calc-japanese-remaining-working-hours --subtract` without value should show error' {
+  run calc-japanese-remaining-working-hours '23時間27分' --subtract
+  expects "$status" to_be 1
+  expects "$output" to_match 'Error:'
+}
+
+@test '`calc-japanese-remaining-working-hours --subtract invalid` should show error' {
+  run calc-japanese-remaining-working-hours '23時間27分' --subtract 'invalid'
+  expects "$status" to_be 1
+  expects "$output" to_match 'Error: Invalid format for --subtract'
+}
