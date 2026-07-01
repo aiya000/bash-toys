@@ -70,6 +70,7 @@ EOF
 # Both are reset on keymap change away from vicmd and at the start of each new command line.
 _bash_toys_flash_find_last=''
 _bash_toys_flash_find_dir=''
+_bash_toys_flash_find_hooks_registered=''
 
 function _bash_toys_flash_find_reset () {
   _bash_toys_flash_find_last=''
@@ -148,9 +149,12 @@ function zsh-vi-flash-find-setup () {
   bindkey -M vicmd 't' bash-toys::flash-find::t
   bindkey -M vicmd 'T' bash-toys::flash-find::T
 
-  autoload -Uz add-zle-hook-widget
-add-zle-hook-widget -n keymap-select _bash_toys_flash_find_keymap_select
-add-zle-hook-widget -n line-init     _bash_toys_flash_find_line_init
+  if [[ -z $_bash_toys_flash_find_hooks_registered ]] ; then
+    autoload -Uz add-zle-hook-widget
+    add-zle-hook-widget keymap-select _bash_toys_flash_find_keymap_select
+    add-zle-hook-widget line-init     _bash_toys_flash_find_line_init
+    _bash_toys_flash_find_hooks_registered=1
+  fi
 }
 
 # https://github.com/aiya000/bash-toys
