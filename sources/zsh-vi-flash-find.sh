@@ -149,8 +149,8 @@ function zsh-vi-flash-find-setup () {
   bindkey -M vicmd 'T' bash-toys::flash-find::T
 
   autoload -Uz add-zle-hook-widget
-  add-zle-hook-widget keymap-select _bash_toys_flash_find_keymap_select
-  add-zle-hook-widget line-init     _bash_toys_flash_find_line_init
+add-zle-hook-widget -n keymap-select _bash_toys_flash_find_keymap_select
+add-zle-hook-widget -n line-init     _bash_toys_flash_find_line_init
 }
 
 # https://github.com/aiya000/bash-toys
