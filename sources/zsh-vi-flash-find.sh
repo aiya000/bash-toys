@@ -3,7 +3,7 @@
 # See ../doc/sources.md for description
 
 # ZSH only — skip silently in bash
-if [[ -z $ZSH_VERSION ]] ; then
+if [[ $ZSH_VERSION == '' ]] ; then
   return 0
 fi
 
