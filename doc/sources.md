@@ -266,6 +266,33 @@ load-my-env docker    # Sets up docker aliases
 load-my-env nvm       # Loads nvm
 ```
 
+## ZSH Vi-Mode
+
+### zsh-vi-flash-find
+
+Enables flash.nvim-compatible `f`/`F`/`t`/`T` repeat in zsh vi-mode.
+
+```bash
+zsh-vi-flash-find-setup
+```
+
+After setup, pressing the same motion key consecutively repeats the find motion,
+matching the behavior of [flash.nvim](https://github.com/folke/flash.nvim).
+
+**Usage**:
+- `fafff` → find `a`, then repeat twice (equivalent to `fa;;`)
+- `FaFFF` → find `a` backwards, then repeat twice
+- `tabt`  → move before `b`, then repeat
+
+**Setup** (in `.zshrc`, after `bindkey -v`):
+```bash
+bindkey -v
+source /path/to/bash-toys/source-all.sh
+zsh-vi-flash-find-setup
+```
+
+**Note**: zsh only. The file is sourced safely in bash (no-op).
+
 ## Neovim Integration
 
 ### nvim-parent-edit
