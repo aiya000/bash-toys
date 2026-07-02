@@ -72,10 +72,10 @@ teardown() {
 
 # --- Output header ---
 
-@test '`pomodoro-cycle` should show 3 steps with 30 min each by default' {
+@test '`pomodoro-cycle` should show 3 steps with 25 min each by default' {
   run pomodoro-cycle
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'Start pomodoro cycle: 3 steps with \[30 30 30\] minutes in each step'
+  expects "${lines[0]}" to_match 'Start pomodoro cycle: 3 steps with \[25 25 25\] minutes in each step'
 }
 
 @test '`pomodoro-cycle` should show custom step count in header' {
