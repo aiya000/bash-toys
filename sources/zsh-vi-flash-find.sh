@@ -117,11 +117,12 @@ function _bash_toys_flash_find_next_motion () {
   local last_widget="$5"
 
   local _is_our_widget=''
-  if [[ "$last_widget" =~ '^bash-toys::flash-find::(f|F|t|T)$' ]] ; then
+  if [[ $last_widget =~ '^bash-toys::flash-find::(f|F|t|T)$' ]] ; then
     _is_our_widget=1
   fi
 
-  if [[ -n $_is_our_widget ]] && \
+  if [[ $_is_our_widget != '' ]] && 
+
      [[ $_bash_toys_flash_find_last == "$widget_name" || $_bash_toys_flash_find_last == "$counterpart" ]] ; then
     if [[ $_bash_toys_flash_find_dir == "$native_dir" ]] ; then
       _bash_toys_flash_find_computed_motion='vi-repeat-find'
