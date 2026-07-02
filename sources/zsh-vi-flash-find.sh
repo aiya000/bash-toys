@@ -34,6 +34,7 @@ Description:
   Subsequent consecutive keypresses of the same key repeat the find.
   The counterpart key reverses direction.
   State resets when entering insert mode or starting a new command line.
+  Any non-f/F/t/T keypress in between also resets (starts a new search).
 
   Keys bound:
     f   vi-find-next-char      (repeat forward with f; reverse with F)
@@ -60,16 +61,19 @@ Examples:
   # fafff  =>  moves to next 'a', then repeats twice (like fa;;)
   # tbtb   =>  moves before next 'b', then repeats (like tbt;)
   # fafFF  =>  fa forward, f forward, FF backward twice
+  # faf0f  =>  fa forward, repeat once, 0 resets sequence, next f starts fresh search
 EOF
 }
 
-# _bash_toys_flash_find_last: widget name of the last f/F/t/T press; '' = no active search
-# _bash_toys_flash_find_dir:  direction ZLE internally stored at the last new search
+# _bash_toys_flash_find_last:            widget name of the last f/F/t/T press; '' = no active search
+# _bash_toys_flash_find_dir:             direction stored at the last new search
 #   'forward'  -- vi-repeat-find goes forward  (after vi-find-next-char / vi-find-next-char-skip)
 #   'backward' -- vi-repeat-find goes backward (after vi-find-prev-char / vi-find-prev-char-skip)
-# Both are reset on keymap change away from vicmd and at the start of each new command line.
+# _bash_toys_flash_find_computed_motion: output of _bash_toys_flash_find_next_motion; the ZLE motion to call
+# Both _last and _dir are reset on keymap change away from vicmd and at the start of each new command line.
 _bash_toys_flash_find_last=''
 _bash_toys_flash_find_dir=''
+_bash_toys_flash_find_computed_motion=''
 _bash_toys_flash_find_hooks_registered=''
 
 function _bash_toys_flash_find_reset () {
@@ -87,34 +91,55 @@ function _bash_toys_flash_find_line_init () {
   _bash_toys_flash_find_reset
 }
 
+# Pure state-transition function (no ZLE calls). Testable without an interactive ZLE session.
+# Sets _bash_toys_flash_find_computed_motion to the ZLE motion that should be invoked.
+# Updates _bash_toys_flash_find_last and _bash_toys_flash_find_dir as side effects.
+#
 # $1: widget_name -- this widget's id,      e.g. 'bash-toys::flash-find::f'
 # $2: zle_motion  -- new-search motion,     e.g. 'vi-find-next-char'
 # $3: native_dir  -- 'forward' or 'backward' (the direction this key represents)
 # $4: counterpart -- the paired widget,     e.g. 'bash-toys::flash-find::F'
+# $5: last_widget -- the ZLE widget executed immediately before this one
+#                    (pass $LASTWIDGET in ZLE context; pass '' or a non-ours value in tests)
 #
 # Repeat/reverse logic:
-#   same key or counterpart key pressed -> choose vi-repeat-find vs vi-rev-repeat-find
-#   based on whether ZLE's stored direction (_bash_toys_flash_find_dir) matches native_dir.
-#   If they match  -> vi-repeat-find    (ZLE goes the same way as this key's native direction)
-#   If they differ -> vi-rev-repeat-find (ZLE goes the opposite way)
-function _bash_toys_flash_find_widget () {
+#   If $5 (last_widget) is one of our f/F/t/T widgets AND _last matches this widget or its
+#   counterpart, we are in a repeat/reverse sequence:
+#     _dir == native_dir  -> vi-repeat-find    (same direction as this key)
+#     _dir != native_dir  -> vi-rev-repeat-find (opposite direction)
+#   If last_widget is NOT one of ours (e.g. '0' was pressed), treat as a new search
+#   regardless of _last, so that non-f/F/t/T keys interrupt the sequence.
+function _bash_toys_flash_find_next_motion () {
   local widget_name="$1"
   local zle_motion="$2"
   local native_dir="$3"
   local counterpart="$4"
+  local last_widget="$5"
 
-  if [[ $_bash_toys_flash_find_last == "$widget_name" || $_bash_toys_flash_find_last == "$counterpart" ]] ; then
+  local _is_our_widget=''
+  if [[ "$last_widget" =~ '^bash-toys::flash-find::(f|F|t|T)$' ]] ; then
+    _is_our_widget=1
+  fi
+
+  if [[ -n $_is_our_widget ]] && \
+     [[ $_bash_toys_flash_find_last == "$widget_name" || $_bash_toys_flash_find_last == "$counterpart" ]] ; then
     if [[ $_bash_toys_flash_find_dir == "$native_dir" ]] ; then
-      zle vi-repeat-find
+      _bash_toys_flash_find_computed_motion='vi-repeat-find'
     else
-      zle vi-rev-repeat-find
+      _bash_toys_flash_find_computed_motion='vi-rev-repeat-find'
     fi
   else
-    zle "$zle_motion"
+    _bash_toys_flash_find_computed_motion="$zle_motion"
     _bash_toys_flash_find_dir="$native_dir"
   fi
 
   _bash_toys_flash_find_last="$widget_name"
+}
+
+# ZLE widget wrapper: calls the pure logic function then invokes the computed ZLE motion.
+function _bash_toys_flash_find_widget () {
+  _bash_toys_flash_find_next_motion "$1" "$2" "$3" "$4" "$LASTWIDGET"
+  zle "$_bash_toys_flash_find_computed_motion"
 }
 
 function _bash_toys_flash_find_f () {
