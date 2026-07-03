@@ -256,7 +256,7 @@ $ pomodoro-timer --from 09:30 60   # Resume timer that started at 09:30 for 60 m
 **[`pomodoro-cycle`](./bin/pomodoro-cycle)** - Run a full multi-step Pomodoro cycle with breaks between sessions.
 
 ```bash
-$ pomodoro-cycle              # 3 steps × 30 min (default)
+$ pomodoro-cycle              # 3 steps × 25 min (default)
 $ pomodoro-cycle 3 25 25 25   # Classic 3 × 25 min pomodoro
 $ pomodoro-cycle 2 45 30      # step 1: 45 min, step 2: 30 min
 ```
