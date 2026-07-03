@@ -1093,7 +1093,7 @@ pomodoro-cycle [--ntfy] [steps [time1 [time2 [time3]]]]
 
 **Arguments**:
 - `steps` - Number of work steps in the cycle (default: `3`)
-- `time1`, `time2`, `time3` - Duration of each step in minutes (default: `30`)
+- `time1`, `time2`, `time3` - Duration of each step in minutes (default: `25`)
 
 **Options**:
 - `--ntfy` - Send ntfy notification when cycle finishes (in addition to desktop notification)
@@ -1104,9 +1104,9 @@ Runs a sequence of pomodoro work sessions. Between each step (except the last), 
 
 **Examples**:
 ```bash
-# Run 3 steps of 30 minutes each (default)
+# Run 3 steps of 25 minutes each (default)
 $ pomodoro-cycle
-Start pomodoro cycle: 3 steps with [30 30 30] minutes in each step
+Start pomodoro cycle: 3 steps with [25 25 25] minutes in each step
 
 > Starting 1-th work time
 > 1 minutes / 30
