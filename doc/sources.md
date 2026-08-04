@@ -197,6 +197,40 @@ fi
 
 ## Command Helpers
 
+### rg-skip-self
+
+Runs `rg` and excludes its own process line from the output.
+
+```bash
+... | rg-skip-self [RG_OPTIONS] PATTERN
+```
+
+Intended for piped use such as `ps aux | rg-skip-self nginx`.
+Without a pipe, behaves exactly like `rg`.
+
+**Examples**:
+```bash
+ps aux | rg-skip-self nginx
+ps aux | rg-skip-self -i NGINX
+```
+
+### grep-skip-self
+
+Runs `grep` and excludes its own process line from the output.
+
+```bash
+... | grep-skip-self [GREP_OPTIONS] PATTERN
+```
+
+Intended for piped use such as `ps aux | grep-skip-self nginx`.
+Without a pipe, behaves exactly like `grep`.
+
+**Examples**:
+```bash
+ps aux | grep-skip-self nginx
+ps aux | grep-skip-self -i NGINX
+```
+
 ### alias-of
 
 Creates alias if command exists.

@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# See ../doc/sources.md for description
+
+function bash-toys::help::grep-skip-self () {
+  cat << 'EOF'
+grep-skip-self - Run grep and exclude its own process line from results
+
+Usage:
+  ... | grep-skip-self [GREP_OPTIONS] PATTERN
+  grep-skip-self -h | --help
+
+Arguments:
+  GREP_OPTIONS  Options passed directly to grep
+  PATTERN       Pattern passed directly to grep
+
+Notes:
+  Intended for piped use (e.g. `ps aux | grep-skip-self nginx`).
+  Without a pipe, behaves exactly like grep.
+  Excludes the line matching `grep-skip-self <args>` from results.
+
+Examples:
+  ps aux | grep-skip-self nginx
+  ps aux | grep-skip-self -i NGINX
+EOF
+}
+
+function grep-skip-self () {
+  if [[ $1 == -h || $1 == --help ]] ; then
+    bash-toys::help::grep-skip-self
+    return 0
+  fi
+
+  if [[ -p /dev/stdin ]] ; then
+    command grep "$@" | command grep -v -e "grep-skip-self $*" -e "grep $*"
+  else
+    command grep "$@"
+  fi
+}
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
