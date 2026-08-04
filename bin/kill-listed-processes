@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << EOF
+kill-listed-processes - Kill processes and macOS apps listed in environment variables
+
+Usage: kill-listed-processes
+       kill-listed-processes (-h | --help)
+
+Options:
+  -h, --help    Show this help message
+
+Environment Variables:
+  BASH_TOYS_KILL_LISTED_PROCESS_NAMES    Space-separated list of process names to kill
+                                         (default: nvim claude java npm node deno)
+  BASH_TOYS_KILL_LISTED_APPS             Space-separated list of macOS app names to quit
+                                         (default: OpenDeck)
+
+Examples:
+  kill-listed-processes
+  BASH_TOYS_KILL_LISTED_PROCESS_NAMES="nvim node" kill-listed-processes
+
+EOF
+}
+
+for arg in "$@" ; do
+  case "$arg" in
+    -h | --help)
+      show_help
+      exit 0
+      ;;
+    -*)
+      echo "Error: Unknown option: $arg" >&2
+      show_help >&2
+      exit 1
+      ;;
+  esac
+done
+
+IFS=' ' read -ra process_names <<< "${BASH_TOYS_KILL_LISTED_PROCESS_NAMES:-nvim claude java npm node deno}"
+IFS=' ' read -ra apps <<< "${BASH_TOYS_KILL_LISTED_APPS:-OpenDeck}"
+
+if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+  echo "process_names=${process_names[*]}"
+  echo "apps=${apps[*]}"
+  exit 0
+fi
+
+# Simple processes
+
+for process_name in "${process_names[@]}" ; do
+  if ! (killall "$process_name" > /dev/null 2>&1 && echo "Killed $process_name") ; then
+    killall -9 "$process_name" > /dev/null 2>&1 &&
+      echo "Force killed $process_name" ||
+      echo "No process named $process_name found"
+  fi
+done
+
+# macOS Apps
+
+for app in "${apps[@]}" ; do
+  osascript -e "tell application \"$app\" to quit" > /dev/null 2>&1 &&
+    echo "Quit $app" ||
+    echo "No app named $app found"
+done

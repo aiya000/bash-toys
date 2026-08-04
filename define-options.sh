@@ -22,6 +22,8 @@ dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd || exit 1)"
 [[ -z $BASH_TOYS_TMP_BASE_DIR ]] && export BASH_TOYS_TMP_BASE_DIR= # A base directory for temporary directories. (e.g., `$HOME/tmp/store`). possible to use large files (because, maybe, should not be `/tmp`)
 [[ -z $BASH_TOYS_NTFY_SERVER_BASE_URL ]] && export BASH_TOYS_NTFY_SERVER_BASE_URL= # Base URL of the ntfy server (e.g., `http://192.168.1.10:18432` for self-hosted)
 [[ -z $BASH_TOYS_NTFY_SERVING_URL ]] && export BASH_TOYS_NTFY_SERVING_URL= # e.g., 'http://192.168.1.10:18432'
+[[ -z $BASH_TOYS_KILL_LISTED_PROCESS_NAMES ]] && export BASH_TOYS_KILL_LISTED_PROCESS_NAMES='nvim claude java npm node deno'
+[[ -z $BASH_TOYS_KILL_LISTED_APPS ]] && export BASH_TOYS_KILL_LISTED_APPS='OpenDeck'
 
 # Specify your ntfy.sh topic
 # export BASH_TOYS_NTFY_TOPIC=''

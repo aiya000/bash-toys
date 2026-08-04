@@ -712,6 +712,32 @@ Succeed
 $ kill-list -TERM
 ```
 
+### kill-listed-processes
+
+Kills processes and macOS apps defined by environment variables.
+
+```bash
+kill-listed-processes
+```
+
+**Environment Variables**:
+- `BASH_TOYS_KILL_LISTED_PROCESS_NAMES` - Space-separated list of process names to kill (default: `nvim claude java npm node deno`)
+- `BASH_TOYS_KILL_LISTED_APPS` - Space-separated list of macOS app names to quit (default: `OpenDeck`)
+
+**Examples**:
+```bash
+# Kill default processes and apps
+$ kill-listed-processes
+Killed nvim
+No process named claude found
+Quit OpenDeck
+
+# Override process list via environment variable
+$ BASH_TOYS_KILL_LISTED_PROCESS_NAMES="nvim node" kill-listed-processes
+Killed nvim
+Killed node
+```
+
 ### kill-latest-started
 
 Kills the most recently started process by name.
