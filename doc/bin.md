@@ -169,6 +169,33 @@ $ notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --ntfy
 $ notify-cascade 15:00 'Meeting' 'Team meeting' 1h 30m --ntfy --local
 ```
 
+### notify-task-result
+
+Sends a notification based on the exit status of the previous command.
+Use at the end of a pipeline or after a command with `;` to notify success or failure.
+
+```bash
+notify-task-result
+```
+
+**Environment Variables**:
+- `BASH_TOYS_NOTIFY_TASK_RESULT_SUCCEED_SOUND` - Sound file for success (default: `notification-3.mp3` from assets)
+- `BASH_TOYS_NOTIFY_TASK_RESULT_FAILED_SOUND` - Sound file for failure (default: `notification-2.mp3` from assets)
+
+**Examples**:
+```bash
+# Notify after make (success or failure)
+$ make && notify-task-result
+
+# Always notify regardless of exit status
+$ long-task; notify-task-result
+
+# Custom sounds
+$ export BASH_TOYS_NOTIFY_TASK_RESULT_SUCCEED_SOUND=/path/to/success.mp3
+$ export BASH_TOYS_NOTIFY_TASK_RESULT_FAILED_SOUND=/path/to/failure.mp3
+$ make; notify-task-result
+```
+
 ### notify-ntfy
 
 A CLI frontend for ntfy.sh.

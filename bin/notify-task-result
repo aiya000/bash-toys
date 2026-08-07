@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+result=$?
+
+function show_help() {
+  cat << 'EOF'
+notify-task-result - Send notification based on exit status of previous command
+
+Usage:
+  notify-task-result
+  notify-task-result --help
+
+Must be used at the end of a pipeline or with a preceding command's exit status.
+
+Environment Variables:
+  BASH_TOYS_NOTIFY_TASK_RESULT_SUCCEED_SOUND  Sound file for success (default: notification-3.mp3 from assets)
+  BASH_TOYS_NOTIFY_TASK_RESULT_FAILED_SOUND   Sound file for failure (default: notification-2.mp3 from assets)
+
+Examples:
+  $ make && notify-task-result
+  $ long-task; notify-task-result
+EOF
+}
+
+for arg in "$@" ; do
+  case "$arg" in
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+    -*)
+      echo "Error: Unknown option: $arg" >&2
+      show_help >&2
+      exit 1
+      ;;
+  esac
+done
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE:-$0}")" && pwd)"
+
+default_succeed_sound="$script_dir/../assets/notification-3.mp3"
+default_failed_sound="$script_dir/../assets/notification-2.mp3"
+
+succeed_sound="${BASH_TOYS_NOTIFY_TASK_RESULT_SUCCEED_SOUND:-$default_succeed_sound}"
+failed_sound="${BASH_TOYS_NOTIFY_TASK_RESULT_FAILED_SOUND:-$default_failed_sound}"
+
+if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+  echo "succeed_sound=$succeed_sound"
+  echo "failed_sound=$failed_sound"
+  exit 0
+fi
+
+if [[ $result -eq 0 ]] ; then
+  notify 'Result' 'task succeed' "$succeed_sound"
+else
+  notify 'Result' 'task failed' "$failed_sound"
+fi
