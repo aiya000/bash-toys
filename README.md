@@ -24,6 +24,8 @@
 
 ## :bookmark_tabs: Quick Start
 
+### :small_blue_diamond: Install all tools
+
 ```bash
 git clone --depth 1 https://github.com/aiya000/bash-toys.git /path/to/bash-toys
 ```
@@ -37,6 +39,14 @@ If using zsh:
 ```bash
 echo 'source /path/to/bash-toys/source-all.sh' >> ~/.zshrc
 ```
+
+For full details, see [Installation: Install all tools](#small_blue_diamond-install-all-tools-1)
+
+### :small_blue_diamond: Install each of the tools
+
+You can install individual tools without cloning the entire repository.
+
+For full details, see [Installation: Install each of the tools](#small_blue_diamond-install-each-of-the-tools-1)
 
 ## :bookmark_tabs: Documentation
 
