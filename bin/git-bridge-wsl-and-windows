@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << 'EOF'
+git-bridge-wsl-and-windows - Bridge between WSL2 git and Windows git.exe
+
+Usage:
+  git-bridge-wsl-and-windows <git-args...>
+  git-bridge-wsl-and-windows -h | --help
+
+Options:
+  -h, --help    Show this help message
+
+Description:
+  A workaround for WSL2 git being much slower than git.exe (Git for Windows)
+  when operating on a Windows-mounted filesystem (NTFS via /mnt/*, etc).
+
+  By default, runs WSL2 git. When the current directory is on a Windows-mounted
+  path (as detected by `is-in-windows-path`), transparently delegates to
+  git.exe instead, translating any absolute Unix path arguments to Windows
+  paths along the way.
+
+Environment Variables:
+  DEBUG
+      Set to 1 to print debug info to stdout. Default: 0
+  GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WSL2
+      Path to the WSL2 git binary. Default: /usr/bin/git
+  GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WINDOWS
+      Path to the Windows git binary. Default: git.exe
+  GIT_BRIDGE_WSL2_AND_WINDOWS_DIRECT
+      Set to 1 to pass arguments to git.exe without Unix->Windows path
+      translation. Default: 0
+  GIT_BRIDGE_WSL2_AND_WINDOWS_USE_WSL2
+      Set to 1 to force using WSL2 git regardless of the current directory.
+  GIT_BRIDGE_WSL2_AND_WINDOWS_USE_WINDOWS
+      Set to 1 to force using git.exe regardless of the current directory.
+
+Examples:
+  git-bridge-wsl-and-windows status
+  DEBUG=1 git-bridge-wsl-and-windows status
+EOF
+}
+
+[[ $1 == --help || $1 == -h ]] && show_help && exit 0
+
+# Environment variables
+
+if [[ -z $DEBUG ]] ; then
+  DEBUG=0
+fi
+
+if [[ -z $GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WSL2 ]] ; then
+  GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WSL2=/usr/bin/git
+fi
+
+if [[ -z $GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WINDOWS ]] ; then
+  GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WINDOWS=git.exe
+fi
+
+if [[ -z $GIT_BRIDGE_WSL2_AND_WINDOWS_DIRECT ]] ; then
+  GIT_BRIDGE_WSL2_AND_WINDOWS_DIRECT=0
+fi
+
+# Shorten name
+git_wsl2=$GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WSL2
+git_windows=$GIT_BRIDGE_WSL2_AND_WINDOWS_GIT_WINDOWS
+
+# Functions
+
+function main () {
+  if [[ $GIT_BRIDGE_WSL2_AND_WINDOWS_USE_WSL2 -ne 0 ]]  ; then
+    exec_git_wsl2 "$@"
+  elif [[ $GIT_BRIDGE_WSL2_AND_WINDOWS_USE_WINDOWS -ne 0 ]] || is-in-windows-path ; then
+    exec_git_windows "$@"
+  else
+    # By default
+    exec_git_wsl2 "$@"
+  fi
+}
+
+function exec_git_wsl2 () {
+  echo_debug 'Using WSL2 git'
+  echo_debug "is-in-windows-path: $(is-in-windows-path && echo true || echo false)"
+  echo_debug "/usr/bin/git $*"
+
+  $git_wsl2 "$@"
+}
+
+function exec_git_windows () {
+  echo_debug 'Using Windows git'
+  echo_debug "direct: $GIT_BRIDGE_WSL2_AND_WINDOWS_DIRECT"
+  echo_debug "is-in-windows-path: $(is-in-windows-path && echo true || echo false)"
+  echo_debug "specified: $git_windows $*"
+
+  if [[ $GIT_BRIDGE_WSL2_AND_WINDOWS_DIRECT -ne 0 ]] ; then
+    $git_windows "$@"
+    return $?
+  fi
+  local args=()
+
+  for x in "$@"; do
+    echo_debug "arg: $x"
+    if [[ $x =~ ^/ ]] ; then
+      args+=("$(wslpath -w "$x" | sed -r 's/\\/\\\\/g')")
+      continue
+    fi
+
+    args+=("$x")
+  done
+
+  echo_debug "will: $git_windows ${args[*]}"
+  $git_windows "${args[@]}"
+}
+
+function echo_debug () {
+  if [[ $DEBUG -eq 1 ]] ; then
+    echo "git_bridge_wsl2_and_windows: $*"
+  fi
+}
+
+main "$@"
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.

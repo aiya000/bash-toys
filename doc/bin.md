@@ -951,6 +951,42 @@ username=aiya000
 password=<token>
 ```
 
+### git-bridge-wsl-and-windows
+
+Bridges WSL2 git and Windows git.exe, since WSL2 git is much slower than git.exe
+when working on a Windows-mounted filesystem (NTFS via `/mnt/*`, etc).
+
+```bash
+git-bridge-wsl-and-windows <git-args...>
+```
+
+**Description**:
+
+- Runs WSL2 git by default
+- Delegates to `git.exe` instead when the current directory is on a Windows-mounted
+  path (detected via [`is-in-windows-path`](#is-in-windows-path)), translating
+  absolute Unix path arguments to Windows paths along the way
+- Requires [Git for Windows](https://gitforwindows.org) to be installed and on `$PATH`
+
+**Examples**:
+```bash
+# On a native WSL path: behaves like plain git
+$ cd ~/.dotfiles
+$ git-bridge-wsl-and-windows status
+
+# On a Windows-mounted path: transparently bridges to git.exe
+$ cd /mnt/c/Users/aiya0/repo
+$ git-bridge-wsl-and-windows status
+
+# Debug which git binary is being used
+$ DEBUG=1 git-bridge-wsl-and-windows status
+git_bridge_wsl2_and_windows: Using WSL2 git
+git_bridge_wsl2_and_windows: is-in-windows-path: false
+git_bridge_wsl2_and_windows: /usr/bin/git status
+## main...origin/main
+...
+```
+
 ### pathshorten
 
 Abbreviates path like Vim's pathshorten().
