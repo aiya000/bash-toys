@@ -1562,6 +1562,34 @@ $ if is-in-wsl ; then
 > fi
 ```
 
+### is-in-windows-path
+
+Check if the current directory is on a Windows-mounted path bridged into WSL.
+
+```bash
+is-in-windows-path
+```
+
+**Examples**:
+```bash
+# On a Windows-mounted path
+$ cd /mnt/c/Users/aiya0
+$ is-in-windows-path && echo 'Windows path' || echo 'Not a Windows path'
+Windows path
+# Exit status: 0
+
+# On a native WSL path
+$ cd ~/.dotfiles
+$ is-in-windows-path && echo 'Windows path' || echo 'Not a Windows path'
+Not a Windows path
+# Exit status: 1
+
+# Use in scripts
+$ if is-in-windows-path ; then
+>   echo "Bridge to a Windows tool instead"
+> fi
+```
+
 ### mklink-wsl
 
 Create a Windows symlink from WSL via cmd.exe.
