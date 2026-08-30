@@ -809,6 +809,41 @@ $ run-wait-output 500 "tsc --watch" "npm test"
 $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 ```
 
+### ps-mem
+
+Displays per-process memory usage in a readable table by wrapping [`smem`](https://www.selenic.com/smem/).
+
+```bash
+ps-mem [--swap] [--rss] [--uss] [--pss]
+```
+
+Always shows `PID`, `USER`, and `COMMAND`. Memory columns are selected via
+`--swap`, `--rss`, `--uss`, `--pss`; multiple options can be given, and
+columns appear in the order the options were passed. If no memory option is
+given, `RSS` is shown by default. Values are converted to MiB. Sort order
+always follows RSS ascending (smem's default `-s rss`), regardless of which
+columns are displayed.
+
+**Dependencies**: [`smem`](https://www.selenic.com/smem/)
+
+**Examples**:
+```bash
+# Default: PID, USER, COMMAND, RSS
+$ ps-mem
+PID      USER       COMMAND                              RSS
+1234     aiya000    /usr/bin/some-daemon              12.3MiB
+
+# Show SWAP before RSS
+$ ps-mem --swap --rss
+PID      USER       COMMAND                             SWAP          RSS
+1234     aiya000    /usr/bin/some-daemon              0.0MiB      12.3MiB
+
+# Show RSS before SWAP (column order follows option order)
+$ ps-mem --rss --swap
+PID      USER       COMMAND                              RSS         SWAP
+1234     aiya000    /usr/bin/some-daemon              12.3MiB       0.0MiB
+```
+
 ## Navigation & Git
 
 ### git-root

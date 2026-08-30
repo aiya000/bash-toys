@@ -1,0 +1,135 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << 'EOF'
+ps-mem - Display per-process memory usage in a readable table (wraps smem)
+
+Usage:
+  ps-mem [--swap] [--rss] [--uss] [--pss]
+  ps-mem -h | --help
+
+Options:
+  --swap        Include the SWAP column
+  --rss         Include the RSS column
+  --uss         Include the USS column
+  --pss         Include the PSS column
+  -h, --help    Show this help message
+
+Description:
+  Always shows PID, USER, and COMMAND. Memory columns are selected via
+  --swap, --rss, --uss, --pss. Multiple options can be given, and the
+  columns are shown in the order the options were passed. If no memory
+  option is given, RSS is shown by default.
+
+  Values are converted to MiB. Sort order always follows RSS ascending
+  (smem's default `-s rss`), regardless of which columns are displayed.
+
+Examples:
+  ps-mem
+  ps-mem --swap --rss
+  ps-mem --rss --swap
+  ps-mem --uss --pss --rss --swap
+EOF
+}
+
+columns=()
+
+while [[ $# -gt 0 ]] ; do
+  case "$1" in
+    --swap)
+      columns+=('SWAP')
+      shift
+      ;;
+    --rss)
+      columns+=('RSS')
+      shift
+      ;;
+    --uss)
+      columns+=('USS')
+      shift
+      ;;
+    --pss)
+      columns+=('PSS')
+      shift
+      ;;
+    -h | --help)
+      show_help
+      exit 0
+      ;;
+    *)
+      echo "Error: Unknown option: $1" >&2
+      show_help >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ ${#columns[@]} -eq 0 ]] ; then
+  columns=('RSS')
+fi
+
+columns_csv=$(IFS=,; echo "${columns[*]}")
+
+if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+  echo "columns=$columns_csv"
+  exit 0
+fi
+
+if ! command -v smem > /dev/null 2>&1 ; then
+  echo 'Error: smem is not installed' >&2
+  exit 1
+fi
+
+smem -c 'pid user command swap uss pss rss' -H -s rss | awk -v columns="$columns_csv" '
+BEGIN {
+  n_cols = split(columns, col_list, ",")
+  header = sprintf("%-8s %-10s %-30s", "PID", "USER", "COMMAND")
+  for (i = 1; i <= n_cols; i++) {
+    header = header sprintf(" %12s", col_list[i])
+  }
+  print header
+}
+{
+  n = NF
+  swap = $(n-3); uss = $(n-2); pss = $(n-1); rss = $n
+  cmd = ""
+  for (i = 3; i <= n - 4; i++) cmd = cmd (cmd == "" ? "" : " ") $i
+  if (length(cmd) > 30) cmd = substr(cmd, 1, 27) "..."
+
+  row = sprintf("%-8s %-10s %-30s", $1, $2, cmd)
+  for (i = 1; i <= n_cols; i++) {
+    name = col_list[i]
+    if (name == "SWAP") value = swap
+    else if (name == "USS") value = uss
+    else if (name == "PSS") value = pss
+    else value = rss
+    row = row sprintf(" %12s", sprintf("%.1fMiB", value / 1024))
+  }
+  print row
+}'
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
