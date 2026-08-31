@@ -6,7 +6,7 @@ _load_my_env_completion() {
   local cur
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  local envs='cabal cargo ccache conda docker drawio gcloud gradlew idris linuxbrew mise nvm pkgsrc rbenv stack travis virtualenv'
+  local envs='cabal cargo ccache conda docker drawio gcloud gradlew idris linuxbrew mise nvm pkgsrc pnpm rbenv stack travis virtualenv'
 
   if [[ $cur == -* ]] ; then
     COMPREPLY=($(compgen -W '--help -h' -- "$cur"))

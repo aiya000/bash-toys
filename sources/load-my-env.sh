@@ -15,7 +15,7 @@ Arguments:
 
 Available environments:
   cargo, ccache, conda, docker, drawio, gcloud, gradlew,
-  idris, linuxbrew, mise, nvm, pkgsrc, rbenv, cabal, stack, ghcup, travis, virtualenv
+  idris, linuxbrew, mise, nvm, pkgsrc, pnpm, rbenv, cabal, stack, ghcup, travis, virtualenv
 
 Examples:
   load-my-env docker
@@ -260,6 +260,10 @@ function load-my-env () {
       fi
       # shellcheck disable=SC1090
       eval "$(~/.local/bin/mise activate zsh)"
+      ;;
+
+    pnpm)
+      eval "$(pnpm completion zsh)"
       ;;
 
     *)
