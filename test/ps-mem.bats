@@ -68,6 +68,9 @@ setup() {
 }
 
 @test 'header always shows PID, USER, COMMAND plus selected columns in order' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
   if ! command -v smem &> /dev/null ; then
     skip 'smem is not installed'
   fi
@@ -77,6 +80,9 @@ setup() {
 }
 
 @test 'header column order follows --rss --swap' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
   if ! command -v smem &> /dev/null ; then
     skip 'smem is not installed'
   fi
@@ -86,6 +92,9 @@ setup() {
 }
 
 @test 'default run shows RSS column with MiB values for at least one process' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
   if ! command -v smem &> /dev/null ; then
     skip 'smem is not installed'
   fi
@@ -96,10 +105,88 @@ setup() {
 }
 
 @test 'errors clearly when smem is not installed' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'macOS uses the ps backend, so smem is not required'
+  fi
   if command -v smem &> /dev/null ; then
     skip 'smem is installed; cannot test the not-installed path'
   fi
   run ps-mem
   expects "$status" to_be 1
   expects "$output" to_contain 'Error: smem is not installed'
+}
+
+@test 'macOS: default run shows RSS column with MiB values without smem' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
+  expects "$output" to_match '[0-9]+\.[0-9]MiB'
+}
+
+@test 'macOS: --rss is supported' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
+}
+
+@test 'macOS: RSS is sorted ascending' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem
+  expects "$status" to_be 0
+
+  local previous=-1
+  local current
+  local line
+  for line in "${lines[@]:1}" ; do
+    current=$(echo "$line" | grep -oE '[0-9]+\.[0-9]MiB$' | tr -d 'MiB')
+    if [[ $current == '' ]] ; then
+      continue
+    fi
+    expects "$(awk -v a="$previous" -v b="$current" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_be yes
+    previous=$current
+  done
+}
+
+@test 'macOS: --uss is rejected' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --uss
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --uss is not supported on macOS'
+}
+
+@test 'macOS: --pss is rejected' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --pss
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --pss is not supported on macOS'
+}
+
+@test 'macOS: --swap is rejected' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --swap
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --swap is not supported on macOS'
+}
+
+@test 'macOS: unsupported column is rejected even when combined with --rss' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss --uss
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --uss is not supported on macOS'
 }

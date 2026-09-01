@@ -811,7 +811,7 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 
 ### ps-mem
 
-Displays per-process memory usage in a readable table by wrapping [`smem`](https://www.selenic.com/smem/).
+Displays per-process memory usage in a readable table by wrapping [`smem`](https://www.selenic.com/smem/) on Linux, or `ps` on macOS.
 
 ```bash
 ps-mem [--swap] [--rss] [--uss] [--pss]
@@ -824,7 +824,18 @@ given, `RSS` is shown by default. Values are converted to MiB. Sort order
 always follows RSS ascending (smem's default `-s rss`), regardless of which
 columns are displayed.
 
-**Dependencies**: [`smem`](https://www.selenic.com/smem/)
+**Backends**:
+
+| OS | Backend | Available columns |
+| --- | --- | --- |
+| Linux | [`smem`](https://www.selenic.com/smem/) | `SWAP`, `RSS`, `USS`, `PSS` |
+| macOS | `ps -axo pid,user,rss,comm` | `RSS` only |
+
+`smem` reads `/proc/smaps`, which macOS does not have, so macOS falls back to
+`ps`. Since `ps` exposes no equivalent of SWAP / USS / PSS, requesting those
+columns on macOS exits with an error.
+
+**Dependencies**: [`smem`](https://www.selenic.com/smem/) (Linux only; macOS uses the built-in `ps`)
 
 **Examples**:
 ```bash
@@ -833,15 +844,19 @@ $ ps-mem
 PID      USER       COMMAND                              RSS
 1234     aiya000    /usr/bin/some-daemon              12.3MiB
 
-# Show SWAP before RSS
+# Show SWAP before RSS (Linux only)
 $ ps-mem --swap --rss
 PID      USER       COMMAND                             SWAP          RSS
 1234     aiya000    /usr/bin/some-daemon              0.0MiB      12.3MiB
 
-# Show RSS before SWAP (column order follows option order)
+# Show RSS before SWAP (column order follows option order, Linux only)
 $ ps-mem --rss --swap
 PID      USER       COMMAND                              RSS         SWAP
 1234     aiya000    /usr/bin/some-daemon              12.3MiB       0.0MiB
+
+# On macOS, SWAP / USS / PSS are unavailable
+$ ps-mem --uss
+Error: --uss is not supported on macOS
 ```
 
 ## Navigation & Git

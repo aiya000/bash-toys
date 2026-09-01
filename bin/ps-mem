@@ -4,17 +4,17 @@
 
 function show_help() {
   cat << 'EOF'
-ps-mem - Display per-process memory usage in a readable table (wraps smem)
+ps-mem - Display per-process memory usage in a readable table (wraps smem or ps)
 
 Usage:
   ps-mem [--swap] [--rss] [--uss] [--pss]
   ps-mem -h | --help
 
 Options:
-  --swap        Include the SWAP column
+  --swap        Include the SWAP column (Linux only)
   --rss         Include the RSS column
-  --uss         Include the USS column
-  --pss         Include the PSS column
+  --uss         Include the USS column (Linux only)
+  --pss         Include the PSS column (Linux only)
   -h, --help    Show this help message
 
 Description:
@@ -26,6 +26,11 @@ Description:
   Values are converted to MiB. Sort order always follows RSS ascending
   (smem's default `-s rss`), regardless of which columns are displayed.
 
+  Backends:
+    Linux: smem
+    macOS: ps (only RSS is available; --swap, --uss, and --pss exit with
+           an error because macOS has no equivalent of them)
+
 Examples:
   ps-mem
   ps-mem --swap --rss
@@ -35,6 +40,9 @@ EOF
 }
 
 columns=()
+
+# Max width of the COMMAND column; longer names are truncated with '...'
+cmd_max=30
 
 while [[ $# -gt 0 ]] ; do
   case "$1" in
@@ -77,37 +85,105 @@ if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   exit 0
 fi
 
+if [[ $(uname -s) == 'Darwin' ]] ; then
+  # macOS has no /proc/smaps, so smem cannot work here. `ps` provides RSS only.
+  for column in "${columns[@]}" ; do
+    case "$column" in
+      SWAP)
+        echo 'Error: --swap is not supported on macOS' >&2
+        exit 1
+        ;;
+      USS)
+        echo 'Error: --uss is not supported on macOS' >&2
+        exit 1
+        ;;
+      PSS)
+        echo 'Error: --pss is not supported on macOS' >&2
+        exit 1
+        ;;
+    esac
+  done
+
+  ps -axo pid,user,rss,comm | tail -n +2 | sort -k3 -n | awk -v cmd_max="$cmd_max" '
+  BEGIN {
+    pid_w = 8; user_w = 10; cmd_w = 30; rss_w = 12
+  }
+  {
+    cmd = ""
+    for (i = 4; i <= NF; i++) cmd = cmd (cmd == "" ? "" : " ") $i
+    if (length(cmd) > cmd_max) cmd = substr(cmd, 1, cmd_max - 3) "..."
+
+    rows++
+    r_pid[rows] = $1
+    r_user[rows] = $2
+    r_cmd[rows] = cmd
+    r_rss[rows] = sprintf("%.1fMiB", $3 / 1024)
+
+    if (length(r_pid[rows]) > pid_w) pid_w = length(r_pid[rows])
+    if (length(r_user[rows]) > user_w) user_w = length(r_user[rows])
+    if (length(r_cmd[rows]) > cmd_w) cmd_w = length(r_cmd[rows])
+    if (length(r_rss[rows]) > rss_w) rss_w = length(r_rss[rows])
+  }
+  END {
+    printf("%-*s %-*s %-*s %*s\n", pid_w, "PID", user_w, "USER", cmd_w, "COMMAND", rss_w, "RSS")
+    for (j = 1; j <= rows; j++) {
+      printf("%-*s %-*s %-*s %*s\n", pid_w, r_pid[j], user_w, r_user[j], cmd_w, r_cmd[j], rss_w, r_rss[j])
+    }
+  }'
+  exit $?
+fi
+
 if ! command -v smem > /dev/null 2>&1 ; then
   echo 'Error: smem is not installed' >&2
   exit 1
 fi
 
-smem -c 'pid user command swap uss pss rss' -H -s rss | awk -v columns="$columns_csv" '
+smem -c 'pid user command swap uss pss rss' -H -s rss | awk -v columns="$columns_csv" -v cmd_max="$cmd_max" '
 BEGIN {
   n_cols = split(columns, col_list, ",")
-  header = sprintf("%-8s %-10s %-30s", "PID", "USER", "COMMAND")
-  for (i = 1; i <= n_cols; i++) {
-    header = header sprintf(" %12s", col_list[i])
-  }
-  print header
+  pid_w = 8; user_w = 10; cmd_w = 30
+  for (i = 1; i <= n_cols; i++) col_w[i] = 12
 }
 {
   n = NF
   swap = $(n-3); uss = $(n-2); pss = $(n-1); rss = $n
   cmd = ""
   for (i = 3; i <= n - 4; i++) cmd = cmd (cmd == "" ? "" : " ") $i
-  if (length(cmd) > 30) cmd = substr(cmd, 1, 27) "..."
+  if (length(cmd) > cmd_max) cmd = substr(cmd, 1, cmd_max - 3) "..."
 
-  row = sprintf("%-8s %-10s %-30s", $1, $2, cmd)
+  rows++
+  r_pid[rows] = $1
+  r_user[rows] = $2
+  r_cmd[rows] = cmd
+
+  if (length(r_pid[rows]) > pid_w) pid_w = length(r_pid[rows])
+  if (length(r_user[rows]) > user_w) user_w = length(r_user[rows])
+  if (length(r_cmd[rows]) > cmd_w) cmd_w = length(r_cmd[rows])
+
   for (i = 1; i <= n_cols; i++) {
     name = col_list[i]
     if (name == "SWAP") value = swap
     else if (name == "USS") value = uss
     else if (name == "PSS") value = pss
     else value = rss
-    row = row sprintf(" %12s", sprintf("%.1fMiB", value / 1024))
+    r_val[rows, i] = sprintf("%.1fMiB", value / 1024)
+    if (length(r_val[rows, i]) > col_w[i]) col_w[i] = length(r_val[rows, i])
   }
-  print row
+}
+END {
+  header = sprintf("%-*s %-*s %-*s", pid_w, "PID", user_w, "USER", cmd_w, "COMMAND")
+  for (i = 1; i <= n_cols; i++) {
+    header = header sprintf(" %*s", col_w[i], col_list[i])
+  }
+  print header
+
+  for (j = 1; j <= rows; j++) {
+    row = sprintf("%-*s %-*s %-*s", pid_w, r_pid[j], user_w, r_user[j], cmd_w, r_cmd[j])
+    for (i = 1; i <= n_cols; i++) {
+      row = row sprintf(" %*s", col_w[i], r_val[j, i])
+    }
+    print row
+  }
 }'
 
 # https://github.com/aiya000/bash-toys

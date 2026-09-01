@@ -30,3 +30,14 @@ jobs:
         run: |
           source ./source-all.sh
           ./lib/bats/bin/bats ./test/ps-mem.bats
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+      - name: Run test
+        run: |
+          source ./source-all.sh
+          ./lib/bats/bin/bats ./test/ps-mem.bats
