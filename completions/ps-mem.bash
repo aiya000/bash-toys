@@ -6,7 +6,7 @@ _ps_mem_completion() {
   local cur
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  COMPREPLY=($(compgen -W '--help -h --swap --rss --uss --pss' -- "$cur"))
+  COMPREPLY=($(compgen -W '--help -h --swap --rss --uss --pss --process-name-max-length -c' -- "$cur"))
 }
 
 complete -F _ps_mem_completion ps-mem

@@ -814,7 +814,7 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 Displays per-process memory usage in a readable table by wrapping [`smem`](https://www.selenic.com/smem/) on Linux, or `ps` on macOS.
 
 ```bash
-ps-mem [--swap] [--rss] [--uss] [--pss]
+ps-mem [--swap] [--rss] [--uss] [--pss] [--process-name-max-length N]
 ```
 
 Always shows `PID`, `USER`, and `COMMAND`. Memory columns are selected via
@@ -823,6 +823,13 @@ columns appear in the order the options were passed. If no memory option is
 given, `RSS` is shown by default. Values are converted to MiB. Sort order
 always follows RSS ascending (smem's default `-s rss`), regardless of which
 columns are displayed.
+
+Command names are truncated with `...` when they exceed the `COMMAND` column
+width (30 characters by default). Use `-c N` / `--process-name-max-length N`
+to widen (or narrow, minimum 4) that column, e.g. to see the full path of a
+long command. All columns stay aligned regardless of the width chosen, since
+each column is sized to the widest value actually printed. If `-c` /
+`--process-name-max-length` is given more than once, the last one wins.
 
 **Backends**:
 
@@ -857,6 +864,14 @@ PID      USER       COMMAND                              RSS         SWAP
 # On macOS, SWAP / USS / PSS are unavailable
 $ ps-mem --uss
 Error: --uss is not supported on macOS
+
+# Show longer command names instead of truncating at 30 characters
+$ ps-mem -c 60
+PID      USER       COMMAND                                                      RSS
+1234     aiya000    /usr/bin/some-very-long-daemon-path-that-would-be-cut      12.3MiB
+
+# When given multiple times, the last -c / --process-name-max-length wins (90 here)
+$ ps-mem -c 10 -c 90
 ```
 
 ## Navigation & Git

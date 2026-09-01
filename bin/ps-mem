@@ -7,21 +7,25 @@ function show_help() {
 ps-mem - Display per-process memory usage in a readable table (wraps smem or ps)
 
 Usage:
-  ps-mem [--swap] [--rss] [--uss] [--pss]
+  ps-mem [--swap] [--rss] [--uss] [--pss] [--process-name-max-length N]
   ps-mem -h | --help
 
 Options:
-  --swap        Include the SWAP column (Linux only)
-  --rss         Include the RSS column
-  --uss         Include the USS column (Linux only)
-  --pss         Include the PSS column (Linux only)
-  -h, --help    Show this help message
+  --swap                          Include the SWAP column (Linux only)
+  --rss                           Include the RSS column
+  --uss                           Include the USS column (Linux only)
+  --pss                           Include the PSS column (Linux only)
+  -c, --process-name-max-length N Max width of the COMMAND column (default: 30)
+  -h, --help                      Show this help message
 
 Description:
   Always shows PID, USER, and COMMAND. Memory columns are selected via
   --swap, --rss, --uss, --pss. Multiple options can be given, and the
   columns are shown in the order the options were passed. If no memory
   option is given, RSS is shown by default.
+
+  Command names longer than the COMMAND column width are truncated with
+  '...'. Use --process-name-max-length to widen (or narrow) that column.
 
   Values are converted to MiB. Sort order always follows RSS ascending
   (smem's default `-s rss`), regardless of which columns are displayed.
@@ -36,6 +40,8 @@ Examples:
   ps-mem --swap --rss
   ps-mem --rss --swap
   ps-mem --uss --pss --rss --swap
+  ps-mem --process-name-max-length 60
+  ps-mem -c 60
 EOF
 }
 
@@ -62,6 +68,22 @@ while [[ $# -gt 0 ]] ; do
       columns+=('PSS')
       shift
       ;;
+    -c | --process-name-max-length)
+      if [[ $2 == '' ]] ; then
+        echo 'Error: --process-name-max-length requires a number' >&2
+        exit 1
+      fi
+      if ! [[ $2 =~ ^[0-9]+$ ]] ; then
+        echo "Error: --process-name-max-length requires a number, got: $2" >&2
+        exit 1
+      fi
+      if [[ $2 -lt 4 ]] ; then
+        echo 'Error: --process-name-max-length must be 4 or greater' >&2
+        exit 1
+      fi
+      cmd_max=$2
+      shift 2
+      ;;
     -h | --help)
       show_help
       exit 0
@@ -82,6 +104,7 @@ columns_csv=$(IFS=,; echo "${columns[*]}")
 
 if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "columns=$columns_csv"
+  echo "cmd_max=$cmd_max"
   exit 0
 fi
 

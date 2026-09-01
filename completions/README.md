@@ -56,7 +56,7 @@ source /path/to/bash-toys/completions/rm-dust.bash
 | `notify-at-launchd` | `--help`, `-h`, `--ntfy`, `--local`, `-l`, `--list`, `-c`, `--cancel` | — |
 | `notify-cascade` | `--help`, `-h`, `--ntfy`, `--local` | — |
 | `pomodoro-timer` | `--help`, `-h`, `--rest`, `--from`, `--set-count`, `--get-count`, `--clean` | — |
-| `ps-mem` | `--help`, `-h`, `--swap`, `--rss`, `--uss`, `--pss` | — |
+| `ps-mem` | `--help`, `-h`, `--swap`, `--rss`, `--uss`, `--pss`, `--process-name-max-length`, `-c` | — |
 | `rm-dust` | `--help`, `-h`, `--restore`, `--keep` | files / dustbox entries |
 | `start` | `--help`, `-h` | command names |
 

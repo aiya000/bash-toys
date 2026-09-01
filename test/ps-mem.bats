@@ -28,43 +28,104 @@ setup() {
 @test 'default columns is RSS only' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
   expects "$status" to_be 0
-  expects "$output" to_equal 'columns=RSS'
+  expects "${lines[0]}" to_equal 'columns=RSS'
 }
 
 @test '--swap selects SWAP only' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap
   expects "$status" to_be 0
-  expects "$output" to_equal 'columns=SWAP'
+  expects "${lines[0]}" to_equal 'columns=SWAP'
 }
 
 @test '--uss selects USS only' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --uss
   expects "$status" to_be 0
-  expects "$output" to_equal 'columns=USS'
+  expects "${lines[0]}" to_equal 'columns=USS'
 }
 
 @test '--pss selects PSS only' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --pss
   expects "$status" to_be 0
-  expects "$output" to_equal 'columns=PSS'
+  expects "${lines[0]}" to_equal 'columns=PSS'
 }
 
 @test '--swap --rss keeps given order (SWAP before RSS)' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap --rss
   expects "$status" to_be 0
-  expects "$output" to_equal 'columns=SWAP,RSS'
+  expects "${lines[0]}" to_equal 'columns=SWAP,RSS'
 }
 
 @test '--rss --swap keeps given order (RSS before SWAP)' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --swap
   expects "$status" to_be 0
-  expects "$output" to_equal 'columns=RSS,SWAP'
+  expects "${lines[0]}" to_equal 'columns=RSS,SWAP'
 }
 
 @test '--uss --pss --rss --swap keeps given order' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --uss --pss --rss --swap
   expects "$status" to_be 0
-  expects "$output" to_equal 'columns=USS,PSS,RSS,SWAP'
+  expects "${lines[0]}" to_equal 'columns=USS,PSS,RSS,SWAP'
+}
+
+@test 'default cmd_max is 30' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_equal 'cmd_max=30'
+}
+
+@test '--process-name-max-length overrides cmd_max' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --process-name-max-length 60
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_equal 'cmd_max=60'
+}
+
+@test '--process-name-max-length works regardless of position' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --process-name-max-length 60 --swap
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS,SWAP'
+  expects "${lines[1]}" to_equal 'cmd_max=60'
+}
+
+@test '--process-name-max-length errors when value is missing' {
+  run ps-mem --process-name-max-length
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --process-name-max-length requires a number'
+}
+
+@test '--process-name-max-length errors when value is not a number' {
+  run ps-mem --process-name-max-length abc
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --process-name-max-length requires a number, got: abc'
+}
+
+@test '--process-name-max-length errors when value is below the minimum' {
+  run ps-mem --process-name-max-length 3
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --process-name-max-length must be 4 or greater'
+}
+
+@test '-c is a shorthand for --process-name-max-length' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem -c 60
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_equal 'cmd_max=60'
+}
+
+@test '-c errors when value is missing' {
+  run ps-mem -c
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --process-name-max-length requires a number'
+}
+
+@test 'later -c wins when given multiple times' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem -c 10 -c 90
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_equal 'cmd_max=90'
+}
+
+@test 'later --process-name-max-length wins over an earlier -c' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem -c 90 --process-name-max-length 10
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_equal 'cmd_max=10'
 }
 
 @test 'header always shows PID, USER, COMMAND plus selected columns in order' {
@@ -189,4 +250,27 @@ setup() {
   run ps-mem --rss --uss
   expects "$status" to_be 1
   expects "$output" to_contain 'Error: --uss is not supported on macOS'
+}
+
+@test 'macOS: --process-name-max-length widens the COMMAND column' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --process-name-max-length 60
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
+}
+
+@test 'macOS: all data rows have the same line length as the header' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem
+  expects "$status" to_be 0
+
+  local header_length=${#lines[0]}
+  local line
+  for line in "${lines[@]:1}" ; do
+    expects "${#line}" to_be "$header_length"
+  done
 }
