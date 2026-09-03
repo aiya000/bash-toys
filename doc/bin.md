@@ -826,7 +826,9 @@ which columns are displayed.
 
 `--total` appends a horizontal rule and a `TOTAL` row that sums each memory
 column. The rule is as wide as the table, so it stays aligned whatever columns
-and widths you chose. See
+and widths you chose. A total of 10000.0MiB or more is printed in GiB instead,
+because five digit MiB values are hard to read at a glance; per-process rows
+stay in MiB, since only the sum realistically gets that large. See
 [Reading the numbers](#ps-mem-reading-the-numbers) before trusting that sum.
 
 `COMMAND` sits right after `USER` by default. Pass `--pname` (long form:
@@ -919,11 +921,12 @@ PID      USER       COMMAND                              RSS    FOOTPRINT
 96372    aiya000    /Applications/Xcode.app/...       71.0MiB    4376.0MiB
 
 # Sum the displayed memory columns
+# (10000.0MiB and above is shown in GiB)
 $ ps-mem --rss --footprint --total
 PID      USER       COMMAND                              RSS    FOOTPRINT
 ...
 --------------------------------------------------------------------------
-TOTAL    -          617 processes                  14700.5MiB   26872.0MiB
+TOTAL    -          617 processes                     14.4GiB      26.2GiB
 
 # On macOS, SWAP / USS / PSS are unavailable
 $ ps-mem --uss

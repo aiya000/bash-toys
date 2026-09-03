@@ -275,7 +275,7 @@ setup() {
 
   # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
   local last=$(( ${#lines[@]} - 1 ))
-  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9]MiB$'
+  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9](MiB|GiB)$'
 
   local rule=$(( last - 1 ))
   expects "${lines[$rule]}" to_match '^-+$'
@@ -454,9 +454,10 @@ setup() {
   local total_line=${lines[$last]}
   expects "$total_line" to_match '^TOTAL +-'
 
+  # The TOTAL row switches to GiB from 10000.0MiB up, so normalize to MiB
   local rss footprint
-  rss=$(echo "$total_line" | awk '{ v = $(NF - 1); sub(/MiB$/, "", v); print v }')
-  footprint=$(echo "$total_line" | awk '{ v = $NF; sub(/MiB$/, "", v); print v }')
+  rss=$(echo "$total_line" | awk '{ v = $(NF - 1); if (sub(/GiB$/, "", v)) v = v * 1024; else sub(/MiB$/, "", v); print v }')
+  footprint=$(echo "$total_line" | awk '{ v = $NF; if (sub(/GiB$/, "", v)) v = v * 1024; else sub(/MiB$/, "", v); print v }')
   expects "$(awk -v a="$rss" -v b="$footprint" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_be yes
 }
 
@@ -468,7 +469,7 @@ setup() {
   expects "$status" to_be 0
 
   local last=$(( ${#lines[@]} - 1 ))
-  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9]MiB$'
+  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9](MiB|GiB)$'
 }
 
 @test 'macOS: --total draws a horizontal rule right above the TOTAL row' {
@@ -521,8 +522,36 @@ setup() {
   expects "$status" to_be 0
 
   local last=$(( ${#lines[@]} - 1 ))
-  local reported summed
-  reported=$(echo "${lines[$last]}" | awk '{ v = $NF; sub(/MiB$/, "", v); print v }')
+  local reported summed tolerance
+  # The TOTAL row switches to GiB from 10000.0MiB up, where one displayed digit
+  # is worth 102.4MiB, so the tolerance has to follow the unit actually printed
+  reported=$(echo "${lines[$last]}" | awk '{ v = $NF; if (sub(/GiB$/, "", v)) v = v * 1024; else sub(/MiB$/, "", v); print v }')
   summed=$(printf '%s\n' "${lines[@]:1}" | awk '!/^TOTAL /  { v = $NF; sub(/MiB$/, "", v); s += v } END { printf "%.1f", s }')
-  expects "$(awk -v a="$reported" -v b="$summed" 'BEGIN { print ((a - b) < 1 && (b - a) < 1) ? "yes" : "no" }')" to_be yes
+
+  if [[ ${lines[$last]} == *GiB ]] ; then
+    tolerance=103
+  else
+    tolerance=1
+  fi
+  expects "$(awk -v a="$reported" -v b="$summed" -v t="$tolerance" 'BEGIN { print ((a - b) < t && (b - a) < t) ? "yes" : "no" }')" to_be yes
+}
+
+@test '--total shows the TOTAL row in GiB from 10000.0MiB up, in MiB below it' {
+  if [[ $(uname -s) != 'Darwin' ]] && ! command -v smem &> /dev/null ; then
+    skip 'smem is not installed'
+  fi
+  run ps-mem --total
+  expects "$status" to_be 0
+
+  # The per-process rows are always MiB, so summing them tells which unit the
+  # TOTAL row is expected to use
+  local last=$(( ${#lines[@]} - 1 ))
+  local summed
+  summed=$(printf '%s\n' "${lines[@]:1}" | awk '!/^TOTAL /  { v = $NF; sub(/MiB$/, "", v); s += v } END { printf "%.1f", s }')
+
+  if [[ $(awk -v s="$summed" 'BEGIN { print (s >= 10000) ? "gib" : "mib" }') == 'gib' ]] ; then
+    expects "${lines[$last]}" to_match '[0-9]+\.[0-9]GiB$'
+  else
+    expects "${lines[$last]}" to_match '[0-9]+\.[0-9]MiB$'
+  fi
 }

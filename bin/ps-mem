@@ -71,10 +71,11 @@ Reading the numbers:
                   Best for "how much do I gain by killing this".
 
   --total appends a horizontal rule and a TOTAL row summing each memory
-  column. Use it to weigh processes against each other, not as a number
-  to reconcile with `vm_stat`, `free`, or Activity Monitor. Combining it
-  with --pss (Linux) or --footprint (macOS) gives the least misleading
-  total.
+  column. A total of 10000.0MiB or more is shown in GiB instead, since
+  five digit MiB values are hard to read. Use it to weigh processes
+  against each other, not as a number to reconcile with `vm_stat`,
+  `free`, or Activity Monitor. Combining it with --pss (Linux) or
+  --footprint (macOS) gives the least misleading total.
 
 Examples:
   ps-mem
@@ -197,6 +198,15 @@ fi
 # PID and USER are always printed first. COMMAND is printed right after USER
 # unless it appears in $columns, in which case it is printed at that position.
 render_awk='
+# Renders a KiB value as MiB, or as GiB once it reaches 10000.0MiB. Five digit
+# MiB values are hard to read at a glance, and only the TOTAL row realistically
+# gets that large, so per-process rows stay in MiB.
+function format_kib(kib,   mib) {
+  mib = kib / 1024
+  if (mib >= 10000) return sprintf("%.1fGiB", mib / 1024)
+  return sprintf("%.1fMiB", mib)
+}
+
 BEGIN {
   n_cols = split(columns, col_list, ",")
   pid_w = 8
@@ -256,7 +266,7 @@ END {
     if (!has_cmd && length(total_label) > cmd_w) cmd_w = length(total_label)
     for (i = 1; i <= n_cols; i++) {
       if (col_list[i] == "COMMAND") t_val[i] = total_label
-      else t_val[i] = sprintf("%.1fMiB", sum[i] / 1024)
+      else t_val[i] = format_kib(sum[i])
       if (length(t_val[i]) > col_w[i]) col_w[i] = length(t_val[i])
     }
   }
