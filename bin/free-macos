@@ -11,15 +11,15 @@ Usage:
   free-macos -h | --help
 
 Options:
-  --detail    Show a total / used / available breakdown in MB
+  --detail    Show a total / used / available breakdown
   -h, --help  Show this help message
 
 Description:
   Without options, prints the `PhysMem` line of `top -l 1 -s 0`, which is
   macOS' own summary of physical memory usage.
 
-  With --detail, prints total / used / available in MB, computed from
-  `vm_stat` page counters:
+  With --detail, prints total / used / available computed from `vm_stat`
+  page counters:
 
     used      = active + wired + compressor
     available = free + inactive + speculative
@@ -27,6 +27,10 @@ Description:
 
   Compressed pages are counted as used, so the numbers line up with what
   Activity Monitor reports rather than with a naive free-page count.
+
+  Values are always scaled to a readable unit, like `free -h` does on
+  Linux: 1024MiB and up in GiB with one decimal, smaller ones in MiB or
+  KiB with no decimal.
 
   `total` is the memory macOS is currently accounting for, not the amount
   of RAM installed. It can fall a little short of the hardware total,
@@ -90,6 +94,14 @@ if [[ $detail == true ]] ; then
   # because it differs between architectures (4096 on Intel, 16384 on Apple
   # Silicon).
   vm_stat | awk '
+    # Scales a MiB value the way `free -h` does: one decimal once the value
+    # reaches GiB, no decimal below that.
+    function readable(mb) {
+      if (mb >= 1024) return sprintf("%.1fGiB", mb / 1024)
+      if (mb >= 1) return sprintf("%.0fMiB", mb)
+      return sprintf("%.0fKiB", mb * 1024)
+    }
+
     /page size of/            { ps = $8 }
     /Pages free/              { free = $3+0 }
     /Pages active/            { active = $3+0 }
@@ -105,9 +117,10 @@ if [[ $detail == true ]] ; then
       used_mb  = (active + wired + comp) * ps / 1024 / 1024
       avail_mb = (free + inactive + spec) * ps / 1024 / 1024
       total_mb = used_mb + avail_mb
-      printf "total:     %6.0f MB\n", total_mb
-      printf "used:      %6.0f MB\n", used_mb
-      printf "available: %6.0f MB\n", avail_mb
+
+      printf "total:     %9s\n", readable(total_mb)
+      printf "used:      %9s\n", readable(used_mb)
+      printf "available: %9s\n", readable(avail_mb)
     }
   '
   exit $?

@@ -408,9 +408,9 @@ $ free-macos
 PhysMem: 23G used (6281M wired, 8684M compressor), 94M unused.
 
 $ free-macos --detail          # total / used / available, compressed pages counted as used
-total:      23731 MB
-used:       18947 MB
-available:   4784 MB
+total:       23.2GiB
+used:        18.5GiB
+available:    4.7GiB
 ```
 
 <!-- }}} -->

@@ -953,7 +953,7 @@ free-macos [--detail]
 Without options, prints the `PhysMem` line of `top -l 1 -s 0`, which is macOS'
 own summary of physical memory usage.
 
-With `--detail`, prints `total` / `used` / `available` in MB, computed from
+With `--detail`, prints `total` / `used` / `available`, computed from
 `vm_stat`'s page counters:
 
 | Row | Formula |
@@ -968,6 +968,16 @@ Silicon).
 
 Compressed pages count as used, so the numbers line up with what Activity
 Monitor reports rather than with a naive free-page count.
+
+Values are always scaled to a readable unit, the way `free -h` does on Linux.
+There is no flag for it, since a page count is never the more useful answer.
+GNU `free` spells that flag `-h`, which is `--help` here anyway.
+
+| Value | Shown as |
+| --- | --- |
+| 1024MiB and up | GiB with one decimal, e.g. `23.2GiB` |
+| 1MiB to 1023MiB | MiB with no decimal, e.g. `768MiB` |
+| below 1MiB | KiB with no decimal, e.g. `512KiB` |
 
 `total` is the memory macOS is currently accounting for, not the amount of RAM
 installed. It can fall a little short of the hardware total, because pages the
@@ -987,9 +997,9 @@ PhysMem: 23G used (6281M wired, 8684M compressor), 94M unused.
 
 # A total / used / available breakdown, closer to Linux' free
 $ free-macos --detail
-total:      23731 MB
-used:       18947 MB
-available:   4784 MB
+total:       23.2GiB
+used:        18.5GiB
+available:    4.7GiB
 
 # Outside macOS
 $ free-macos  # on Linux
