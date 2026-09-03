@@ -7,7 +7,8 @@ function show_help() {
 ps-mem - Display per-process memory usage in a readable table (wraps smem or ps)
 
 Usage:
-  ps-mem [--swap] [--rss] [--uss] [--pss] [--pname] [--process-name-max-length N]
+  ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total]
+         [--process-name-max-length N]
   ps-mem -h | --help
 
 Options:
@@ -15,15 +16,17 @@ Options:
   --rss                           Include the RSS column
   --uss                           Include the USS column (Linux only)
   --pss                           Include the PSS column (Linux only)
+  --footprint                     Include the FOOTPRINT column (macOS only)
   --pname, --process-name         Place the COMMAND column at this position
+  --total                         Append a TOTAL row summing the memory columns
   -c, --process-name-max-length N Max width of the COMMAND column (default: 30)
   -h, --help                      Show this help message
 
 Description:
   Always shows PID, USER, and COMMAND. Memory columns are selected via
-  --swap, --rss, --uss, --pss. Multiple options can be given, and the
-  columns are shown in the order the options were passed. If no memory
-  option is given, RSS is shown by default.
+  --swap, --rss, --uss, --pss, --footprint. Multiple options can be given,
+  and the columns are shown in the order the options were passed. If no
+  memory option is given, RSS is shown by default.
 
   COMMAND is placed right after USER by default. Pass --pname (or its
   long form --process-name) to position it explicitly, so that COMMAND
@@ -38,8 +41,39 @@ Description:
 
   Backends:
     Linux: smem
-    macOS: ps (only RSS is available; --swap, --uss, and --pss exit with
-           an error because macOS has no equivalent of them)
+    macOS: ps, plus `top` when --footprint is requested
+           (--swap, --uss, and --pss exit with an error because macOS has
+           no equivalent of them)
+
+Reading the numbers:
+  Summing per-process memory never reproduces the usage the OS reports,
+  and the gap can easily be several GiB. That is expected, not a bug:
+
+    - RSS counts shared pages (libraries, frameworks) once per process,
+      so adding RSS across processes counts them many times over.
+    - On macOS, RSS excludes pages moved into the memory compressor, so a
+      mostly idle process can look far smaller than it really is.
+    - Kernel (wired) memory belongs to no process at all, so no
+      per-process sum can reach the system total.
+
+  So pick the column that answers your actual question:
+
+    --rss         Physical RAM the process holds right now. Best for
+                  "who is resident at this moment", and comparable with
+                  other Unix tools. Available on both Linux and macOS.
+    --footprint   macOS only. What Activity Monitor shows in its "Memory"
+                  column (phys_footprint), compressed pages included.
+                  Reach for this when --rss looks suspiciously small.
+                  Costs roughly a second, since it shells out to `top`.
+    --pss         Linux only. Shared pages split across the processes
+                  mapping them, so its sum is the closest to meaningful.
+    --uss         Linux only. Memory reclaimed if the process exited.
+                  Best for "how much do I gain by killing this".
+
+  --total appends a TOTAL row summing each memory column. Use it to weigh
+  processes against each other, not as a number to reconcile with
+  `vm_stat`, `free`, or Activity Monitor. Combining it with --pss (Linux)
+  or --footprint (macOS) gives the least misleading total.
 
 Examples:
   ps-mem
@@ -48,6 +82,8 @@ Examples:
   ps-mem --uss --pss --rss --swap
   ps-mem --rss --pname
   ps-mem --pname --rss
+  ps-mem --footprint --rss --total
+  ps-mem --pss --total
   ps-mem --process-name-max-length 60
   ps-mem -c 60
 EOF
@@ -57,6 +93,8 @@ columns=()
 
 # Max width of the COMMAND column; longer names are truncated with '...'
 cmd_max=30
+
+show_total=false
 
 while [[ $# -gt 0 ]] ; do
   case "$1" in
@@ -76,8 +114,16 @@ while [[ $# -gt 0 ]] ; do
       columns+=('PSS')
       shift
       ;;
+    --footprint)
+      columns+=('FOOTPRINT')
+      shift
+      ;;
     --pname | --process-name)
       columns+=('COMMAND')
+      shift
+      ;;
+    --total)
+      show_total=true
       shift
       ;;
     -c | --process-name-max-length)
@@ -111,9 +157,13 @@ done
 # RSS is the default memory column. --pname alone does not count as one, so
 # `ps-mem --pname` still shows RSS.
 has_memory_column=false
+needs_footprint=false
 for column in "${columns[@]}" ; do
   if [[ $column != 'COMMAND' ]] ; then
     has_memory_column=true
+  fi
+  if [[ $column == 'FOOTPRINT' ]] ; then
+    needs_footprint=true
   fi
 done
 
@@ -126,13 +176,20 @@ columns_csv=$(IFS=,; echo "${columns[*]}")
 if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "columns=$columns_csv"
   echo "cmd_max=$cmd_max"
+  echo "total=$show_total"
   exit 0
+fi
+
+if [[ $show_total == true ]] ; then
+  total_flag=1
+else
+  total_flag=0
 fi
 
 # Renders the normalized stream produced by each backend.
 #
 # The normalized stream is tab separated, one process per line:
-#   PID \t USER \t SWAP \t USS \t PSS \t RSS \t COMMAND
+#   PID \t USER \t SWAP \t USS \t PSS \t RSS \t FOOTPRINT \t COMMAND
 # Memory values are in KiB. Columns a backend cannot provide are 0, which is
 # safe because such columns are rejected before reaching here.
 #
@@ -159,8 +216,13 @@ BEGIN {
   r_pid[rows] = $1
   r_user[rows] = $2
 
-  swap = $3; uss = $4; pss = $5; rss = $6
-  cmd = $7
+  kib["SWAP"] = $3
+  kib["USS"] = $4
+  kib["PSS"] = $5
+  kib["RSS"] = $6
+  kib["FOOTPRINT"] = $7
+
+  cmd = $8
   if (length(cmd) > cmd_max) cmd = substr(cmd, 1, cmd_max - 3) "..."
 
   if (length($1) > pid_w) pid_w = length($1)
@@ -173,16 +235,31 @@ BEGIN {
 
   for (i = 1; i <= n_cols; i++) {
     name = col_list[i]
-    if (name == "COMMAND") value = cmd
-    else if (name == "SWAP") value = sprintf("%.1fMiB", swap / 1024)
-    else if (name == "USS") value = sprintf("%.1fMiB", uss / 1024)
-    else if (name == "PSS") value = sprintf("%.1fMiB", pss / 1024)
-    else value = sprintf("%.1fMiB", rss / 1024)
+    if (name == "COMMAND") {
+      value = cmd
+    } else {
+      sum[i] += kib[name]
+      value = sprintf("%.1fMiB", kib[name] / 1024)
+    }
     r_val[rows, i] = value
     if (length(value) > col_w[i]) col_w[i] = length(value)
   }
 }
 END {
+  # Widths must be final before the header is printed, so build the TOTAL row
+  # first even though it is printed last.
+  if (total) {
+    total_label = rows " processes"
+    if (length(total_label) > cmd_max) total_label = substr(total_label, 1, cmd_max - 3) "..."
+    if (length("TOTAL") > pid_w) pid_w = length("TOTAL")
+    if (!has_cmd && length(total_label) > cmd_w) cmd_w = length(total_label)
+    for (i = 1; i <= n_cols; i++) {
+      if (col_list[i] == "COMMAND") t_val[i] = total_label
+      else t_val[i] = sprintf("%.1fMiB", sum[i] / 1024)
+      if (length(t_val[i]) > col_w[i]) col_w[i] = length(t_val[i])
+    }
+  }
+
   header = sprintf("%-*s %-*s", pid_w, "PID", user_w, "USER")
   if (!has_cmd) header = header sprintf(" %-*s", cmd_w, "COMMAND")
   for (i = 1; i <= n_cols; i++) {
@@ -200,8 +277,34 @@ END {
     }
     print row
   }
+
+  if (total) {
+    row = sprintf("%-*s %-*s", pid_w, "TOTAL", user_w, "-")
+    if (!has_cmd) row = row sprintf(" %-*s", cmd_w, total_label)
+    for (i = 1; i <= n_cols; i++) {
+      if (col_list[i] == "COMMAND") row = row sprintf(" %-*s", col_w[i], t_val[i])
+      else row = row sprintf(" %*s", col_w[i], t_val[i])
+    }
+    print row
+  }
 }
 '
+
+# Emits `top`'s per-process phys_footprint, which is the value Activity Monitor
+# shows in its "Memory" column. Only run when FOOTPRINT was requested, since
+# `top -l 1` costs about a second.
+#
+# The leading '#' is a sentinel: it guarantees this stream is never empty, so
+# the NR == FNR trick below keeps working even when FOOTPRINT is not requested.
+#
+# `-n` is required because top otherwise limits its rows to the terminal
+# height, which yields no process at all when stdout is a pipe.
+function emit_footprint_table() {
+  echo '#'
+  if [[ $needs_footprint == true ]] ; then
+    top -l 1 -n 100000 -stats pid,mem 2> /dev/null
+  fi
+}
 
 if [[ $(uname -s) == 'Darwin' ]] ; then
   # macOS has no /proc/smaps, so smem cannot work here. `ps` provides RSS only.
@@ -222,27 +325,50 @@ if [[ $(uname -s) == 'Darwin' ]] ; then
     esac
   done
 
-  ps -axo pid,user,rss,comm | tail -n +2 | sort -k3 -n | awk '
+  awk -v OFS='\t' '
+  NR == FNR {
+    if ($1 ~ /^[0-9]+$/ && NF >= 2) {
+      value = $2
+      sub(/[^0-9.BKMGTbkmgt]+$/, "", value)
+      unit = toupper(substr(value, length(value), 1))
+      number = substr(value, 1, length(value) - 1) + 0
+      if (unit == "B") footprint[$1] = number / 1024
+      else if (unit == "K") footprint[$1] = number
+      else if (unit == "M") footprint[$1] = number * 1024
+      else if (unit == "G") footprint[$1] = number * 1024 * 1024
+      else if (unit == "T") footprint[$1] = number * 1024 * 1024 * 1024
+      else footprint[$1] = (value + 0) / 1024
+    }
+    next
+  }
   {
     cmd = ""
     for (i = 4; i <= NF; i++) cmd = cmd (cmd == "" ? "" : " ") $i
-    printf("%s\t%s\t0\t0\t0\t%s\t%s\n", $1, $2, $3, cmd)
-  }' | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" "$render_awk"
+    print $1, $2, 0, 0, 0, $3, (($1 in footprint) ? footprint[$1] : 0), cmd
+  }' <(emit_footprint_table) <(ps -axo pid,user,rss,comm | tail -n +2 | sort -k3 -n) \
+    | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
   exit $?
 fi
+
+for column in "${columns[@]}" ; do
+  if [[ $column == 'FOOTPRINT' ]] ; then
+    echo 'Error: --footprint is supported on macOS only' >&2
+    exit 1
+  fi
+done
 
 if ! command -v smem > /dev/null 2>&1 ; then
   echo 'Error: smem is not installed' >&2
   exit 1
 fi
 
-smem -c 'pid user command swap uss pss rss' -H -s rss | awk '
+smem -c 'pid user command swap uss pss rss' -H -s rss | awk -v OFS='\t' '
 {
   n = NF
   cmd = ""
   for (i = 3; i <= n - 4; i++) cmd = cmd (cmd == "" ? "" : " ") $i
-  printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $(n-3), $(n-2), $(n-1), $n, cmd)
-}' | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" "$render_awk"
+  print $1, $2, $(n-3), $(n-2), $(n-1), $n, 0, cmd
+}' | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
 
 # https://github.com/aiya000/bash-toys
 #

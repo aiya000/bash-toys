@@ -67,6 +67,43 @@ setup() {
   expects "${lines[0]}" to_equal 'columns=USS,PSS,RSS,SWAP'
 }
 
+@test '--footprint selects FOOTPRINT only' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --footprint
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=FOOTPRINT'
+}
+
+@test '--footprint --rss keeps given order' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --footprint --rss
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=FOOTPRINT,RSS'
+}
+
+@test 'total is off by default' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
+  expects "$status" to_be 0
+  expects "${lines[2]}" to_equal 'total=false'
+}
+
+@test '--total turns the TOTAL row on' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --total
+  expects "$status" to_be 0
+  expects "${lines[2]}" to_equal 'total=true'
+}
+
+@test '--total works regardless of position' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --total --pname
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS,COMMAND'
+  expects "${lines[2]}" to_equal 'total=true'
+}
+
+@test '--total alone does not count as a memory column' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --total
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS'
+}
+
 @test '--pname adds COMMAND to the ordered columns, keeping the default RSS' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --pname
   expects "$status" to_be 0
@@ -205,6 +242,40 @@ setup() {
   expects "$status" to_be 0
   expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
   expects "$output" to_match '[0-9]+\.[0-9]MiB'
+}
+
+@test '--footprint is rejected outside macOS' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'macOS supports --footprint'
+  fi
+  run ps-mem --footprint
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --footprint is supported on macOS only'
+}
+
+@test '--footprint is rejected outside macOS even when combined with --rss' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'macOS supports --footprint'
+  fi
+  run ps-mem --rss --footprint
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --footprint is supported on macOS only'
+}
+
+@test 'TOTAL row is appended when --total is given' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
+  if ! command -v smem &> /dev/null ; then
+    skip 'smem is not installed'
+  fi
+  run ps-mem --pss --total
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +PSS'
+
+  # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
+  local last=$(( ${#lines[@]} - 1 ))
+  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9]MiB$'
 }
 
 @test 'errors clearly when smem is not installed' {
@@ -347,4 +418,79 @@ setup() {
   for line in "${lines[@]:1}" ; do
     expects "${#line}" to_be "$header_length"
   done
+}
+
+@test 'macOS: --footprint shows a FOOTPRINT column with MiB values' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --footprint
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +FOOTPRINT'
+  expects "$output" to_match '[0-9]+\.[0-9]MiB'
+}
+
+@test 'macOS: --footprint keeps its position next to --rss' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss --footprint
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS +FOOTPRINT'
+}
+
+@test 'macOS: --footprint reports more than RSS in total' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss --footprint --total
+  expects "$status" to_be 0
+
+  local last=$(( ${#lines[@]} - 1 ))
+  local total_line=${lines[$last]}
+  expects "$total_line" to_match '^TOTAL +-'
+
+  local rss footprint
+  rss=$(echo "$total_line" | awk '{ v = $(NF - 1); sub(/MiB$/, "", v); print v }')
+  footprint=$(echo "$total_line" | awk '{ v = $NF; sub(/MiB$/, "", v); print v }')
+  expects "$(awk -v a="$rss" -v b="$footprint" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_be yes
+}
+
+@test 'macOS: --total appends a TOTAL row' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --total
+  expects "$status" to_be 0
+
+  local last=$(( ${#lines[@]} - 1 ))
+  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9]MiB$'
+}
+
+@test 'macOS: --total keeps every row aligned with the header' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --total
+  expects "$status" to_be 0
+
+  local header_length=${#lines[0]}
+  local line
+  for line in "${lines[@]:1}" ; do
+    expects "${#line}" to_be "$header_length"
+  done
+}
+
+@test 'macOS: --total sums the RSS column of the printed rows' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --total
+  expects "$status" to_be 0
+
+  local last=$(( ${#lines[@]} - 1 ))
+  local reported summed
+  reported=$(echo "${lines[$last]}" | awk '{ v = $NF; sub(/MiB$/, "", v); print v }')
+  summed=$(printf '%s\n' "${lines[@]:1}" | awk '!/^TOTAL /  { v = $NF; sub(/MiB$/, "", v); s += v } END { printf "%.1f", s }')
+  expects "$(awk -v a="$reported" -v b="$summed" 'BEGIN { print ((a - b) < 1 && (b - a) < 1) ? "yes" : "no" }')" to_be yes
 }

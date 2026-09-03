@@ -814,15 +814,18 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 Displays per-process memory usage in a readable table by wrapping [`smem`](https://www.selenic.com/smem/) on Linux, or `ps` on macOS.
 
 ```bash
-ps-mem [--swap] [--rss] [--uss] [--pss] [--pname] [--process-name-max-length N]
+ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total] [--process-name-max-length N]
 ```
 
 Always shows `PID`, `USER`, and `COMMAND`. Memory columns are selected via
-`--swap`, `--rss`, `--uss`, `--pss`; multiple options can be given, and
-columns appear in the order the options were passed. If no memory option is
-given, `RSS` is shown by default. Values are converted to MiB. Sort order
-always follows RSS ascending (smem's default `-s rss`), regardless of which
-columns are displayed.
+`--swap`, `--rss`, `--uss`, `--pss`, `--footprint`; multiple options can be
+given, and columns appear in the order the options were passed. If no memory
+option is given, `RSS` is shown by default. Values are converted to MiB. Sort
+order always follows RSS ascending (smem's default `-s rss`), regardless of
+which columns are displayed.
+
+`--total` appends a `TOTAL` row that sums each memory column. See
+[Reading the numbers](#ps-mem-reading-the-numbers) before trusting that sum.
 
 `COMMAND` sits right after `USER` by default. Pass `--pname` (long form:
 `--process-name`) to position it explicitly, so `COMMAND` takes part in the
@@ -842,13 +845,44 @@ each column is sized to the widest value actually printed. If `-c` /
 | OS | Backend | Available columns |
 | --- | --- | --- |
 | Linux | [`smem`](https://www.selenic.com/smem/) | `SWAP`, `RSS`, `USS`, `PSS` |
-| macOS | `ps -axo pid,user,rss,comm` | `RSS` only |
+| macOS | `ps -axo pid,user,rss,comm`, plus `top -l 1 -stats pid,mem` for `--footprint` | `RSS`, `FOOTPRINT` |
 
 `smem` reads `/proc/smaps`, which macOS does not have, so macOS falls back to
 `ps`. Since `ps` exposes no equivalent of SWAP / USS / PSS, requesting those
-columns on macOS exits with an error.
+columns on macOS exits with an error. Conversely `FOOTPRINT` is a macOS-only
+metric, so `--footprint` exits with an error elsewhere. `top` is only spawned
+when `--footprint` is actually requested, because that sample costs roughly a
+second.
 
-**Dependencies**: [`smem`](https://www.selenic.com/smem/) (Linux only; macOS uses the built-in `ps`)
+**Dependencies**: [`smem`](https://www.selenic.com/smem/) (Linux only; macOS uses the built-in `ps` and `top`)
+
+<a id="ps-mem-reading-the-numbers"></a>
+**Reading the numbers**:
+
+Summing per-process memory never reproduces the usage the OS reports, and the
+gap can easily be several GiB. That is expected rather than a bug:
+
+- `RSS` counts shared pages (libraries, frameworks) once per process, so
+  adding `RSS` across processes counts them many times over
+- On macOS, `RSS` excludes pages moved into the memory compressor, so a mostly
+  idle process can look far smaller than it really is. A single Xcode process
+  measured at 71MiB of `RSS` while actually holding 4376MiB
+- Kernel (wired) memory belongs to no process at all, so no per-process sum can
+  reach the system total
+
+So pick the column that answers the question you actually have:
+
+| Column | Where | What it answers | Use it when |
+| --- | --- | --- | --- |
+| `--rss` | Linux, macOS | Physical RAM the process holds right now | You want "who is resident at this moment", or a number comparable with other Unix tools |
+| `--footprint` | macOS only | `phys_footprint`, the value Activity Monitor shows in its "Memory" column, compressed pages included | `--rss` looks suspiciously small, or you want to match what Activity Monitor reports |
+| `--pss` | Linux only | Shared pages split across the processes mapping them | You need the sum to mean something |
+| `--uss` | Linux only | Memory reclaimed if the process exited | You are deciding what to kill |
+| `--swap` | Linux only | Pages pushed out to swap | You are chasing thrashing |
+
+Use `--total` to weigh processes against each other, not as a number to
+reconcile with `vm_stat`, `free`, or Activity Monitor. Pairing it with `--pss`
+on Linux or `--footprint` on macOS gives the least misleading total.
 
 **Examples**:
 ```bash
@@ -877,9 +911,24 @@ $ ps-mem --swap --pname --rss
 PID      USER               SWAP COMMAND                              RSS
 1234     aiya000          0.0MiB /usr/bin/some-daemon             12.3MiB
 
+# Compare RSS against what Activity Monitor reports (macOS only)
+$ ps-mem --rss --footprint
+PID      USER       COMMAND                              RSS    FOOTPRINT
+96372    aiya000    /Applications/Xcode.app/...       71.0MiB    4376.0MiB
+
+# Sum the displayed memory columns
+$ ps-mem --rss --footprint --total
+PID      USER       COMMAND                              RSS    FOOTPRINT
+...
+TOTAL    -          617 processes                  14700.5MiB   26872.0MiB
+
 # On macOS, SWAP / USS / PSS are unavailable
 $ ps-mem --uss
 Error: --uss is not supported on macOS
+
+# FOOTPRINT is macOS only
+$ ps-mem --footprint  # on Linux
+Error: --footprint is supported on macOS only
 
 # Show longer command names instead of truncating at 30 characters
 $ ps-mem -c 60
