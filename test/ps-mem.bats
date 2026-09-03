@@ -276,6 +276,10 @@ setup() {
   # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
   local last=$(( ${#lines[@]} - 1 ))
   expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9]MiB$'
+
+  local rule=$(( last - 1 ))
+  expects "${lines[$rule]}" to_match '^-+$'
+  expects "${#lines[$rule]}" to_be "${#lines[0]}"
 }
 
 @test 'errors clearly when smem is not installed' {
@@ -465,6 +469,34 @@ setup() {
 
   local last=$(( ${#lines[@]} - 1 ))
   expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9]MiB$'
+}
+
+@test 'macOS: --total draws a horizontal rule right above the TOTAL row' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --total
+  expects "$status" to_be 0
+
+  local last=$(( ${#lines[@]} - 1 ))
+  local rule=$(( last - 1 ))
+  expects "${lines[$rule]}" to_match '^-+$'
+  expects "${#lines[$rule]}" to_be "${#lines[0]}"
+}
+
+@test 'macOS: no horizontal rule is drawn without --total' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem
+  expects "$status" to_be 0
+
+  # `$output` is checked line by line because bash's `=~` anchors match the
+  # whole string, not each line
+  local line
+  for line in "${lines[@]}" ; do
+    expects "$line" not to_match '^-+$'
+  done
 }
 
 @test 'macOS: --total keeps every row aligned with the header' {

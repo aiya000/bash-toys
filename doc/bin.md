@@ -824,7 +824,9 @@ option is given, `RSS` is shown by default. Values are converted to MiB. Sort
 order always follows RSS ascending (smem's default `-s rss`), regardless of
 which columns are displayed.
 
-`--total` appends a `TOTAL` row that sums each memory column. See
+`--total` appends a horizontal rule and a `TOTAL` row that sums each memory
+column. The rule is as wide as the table, so it stays aligned whatever columns
+and widths you chose. See
 [Reading the numbers](#ps-mem-reading-the-numbers) before trusting that sum.
 
 `COMMAND` sits right after `USER` by default. Pass `--pname` (long form:
@@ -920,6 +922,7 @@ PID      USER       COMMAND                              RSS    FOOTPRINT
 $ ps-mem --rss --footprint --total
 PID      USER       COMMAND                              RSS    FOOTPRINT
 ...
+--------------------------------------------------------------------------
 TOTAL    -          617 processes                  14700.5MiB   26872.0MiB
 
 # On macOS, SWAP / USS / PSS are unavailable

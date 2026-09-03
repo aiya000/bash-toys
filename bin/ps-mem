@@ -70,10 +70,11 @@ Reading the numbers:
     --uss         Linux only. Memory reclaimed if the process exited.
                   Best for "how much do I gain by killing this".
 
-  --total appends a TOTAL row summing each memory column. Use it to weigh
-  processes against each other, not as a number to reconcile with
-  `vm_stat`, `free`, or Activity Monitor. Combining it with --pss (Linux)
-  or --footprint (macOS) gives the least misleading total.
+  --total appends a horizontal rule and a TOTAL row summing each memory
+  column. Use it to weigh processes against each other, not as a number
+  to reconcile with `vm_stat`, `free`, or Activity Monitor. Combining it
+  with --pss (Linux) or --footprint (macOS) gives the least misleading
+  total.
 
 Examples:
   ps-mem
@@ -279,6 +280,10 @@ END {
   }
 
   if (total) {
+    separator = sprintf("%*s", length(header), "")
+    gsub(/ /, "-", separator)
+    print separator
+
     row = sprintf("%-*s %-*s", pid_w, "TOTAL", user_w, "-")
     if (!has_cmd) row = row sprintf(" %-*s", cmd_w, total_label)
     for (i = 1; i <= n_cols; i++) {
