@@ -390,6 +390,33 @@ $ kill-list
 </details>
 
 <details>
+<summary>Memory Monitoring</summary> <!-- {{{ -->
+
+**[`ps-mem`](./bin/ps-mem)** - Per-process memory in a readable table. Pick the column that answers your question.
+
+```bash
+$ ps-mem                            # PID, USER, COMMAND, RSS
+$ ps-mem --rss --footprint --total  # macOS: compare RSS with Activity Monitor's number
+$ ps-mem --pss --total              # Linux: the least misleading total
+$ ps-mem -c 60                      # Widen COMMAND instead of truncating at 30
+```
+
+**[`free-macos`](./bin/free-macos)** - Linux' `free`, for macOS. System-wide memory at a glance.
+
+```bash
+$ free-macos
+PhysMem: 23G used (6281M wired, 8684M compressor), 94M unused.
+
+$ free-macos --detail          # total / used / available, compressed pages counted as used
+total:      23731 MB
+used:       18947 MB
+available:   4784 MB
+```
+
+<!-- }}} -->
+</details>
+
+<details>
 <summary>Security</summary> <!-- {{{ -->
 
 **[`clamdscan-full`](./bin/clamdscan-full)** - Full system virus scan with ClamAV.
