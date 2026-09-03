@@ -67,6 +67,36 @@ setup() {
   expects "${lines[0]}" to_equal 'columns=USS,PSS,RSS,SWAP'
 }
 
+@test '--pname adds COMMAND to the ordered columns, keeping the default RSS' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --pname
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=COMMAND,RSS'
+}
+
+@test '--process-name is a long form of --pname' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --process-name
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=COMMAND,RSS'
+}
+
+@test '--rss --pname keeps given order (RSS before COMMAND)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --pname
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS,COMMAND'
+}
+
+@test '--pname --rss keeps given order (COMMAND before RSS)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --pname --rss
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=COMMAND,RSS'
+}
+
+@test '--pname takes part in the ordering of memory columns' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap --pname --rss
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=SWAP,COMMAND,RSS'
+}
+
 @test 'default cmd_max is 30' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
   expects "$status" to_be 0
@@ -150,6 +180,18 @@ setup() {
   run ps-mem --rss --swap
   expects "$status" to_be 0
   expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS +SWAP'
+}
+
+@test 'header places COMMAND at the --pname position' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
+  if ! command -v smem &> /dev/null ; then
+    skip 'smem is not installed'
+  fi
+  run ps-mem --swap --pname --rss
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +SWAP +COMMAND +RSS'
 }
 
 @test 'default run shows RSS column with MiB values for at least one process' {
@@ -266,6 +308,38 @@ setup() {
     skip 'not macOS'
   fi
   run ps-mem
+  expects "$status" to_be 0
+
+  local header_length=${#lines[0]}
+  local line
+  for line in "${lines[@]:1}" ; do
+    expects "${#line}" to_be "$header_length"
+  done
+}
+
+@test 'macOS: --pname places COMMAND after RSS' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss --pname
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +RSS +COMMAND'
+}
+
+@test 'macOS: --pname alone keeps COMMAND before RSS' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --pname
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
+}
+
+@test 'macOS: all data rows stay aligned with --rss --pname' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss --pname
   expects "$status" to_be 0
 
   local header_length=${#lines[0]}

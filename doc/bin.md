@@ -814,7 +814,7 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 Displays per-process memory usage in a readable table by wrapping [`smem`](https://www.selenic.com/smem/) on Linux, or `ps` on macOS.
 
 ```bash
-ps-mem [--swap] [--rss] [--uss] [--pss] [--process-name-max-length N]
+ps-mem [--swap] [--rss] [--uss] [--pss] [--pname] [--process-name-max-length N]
 ```
 
 Always shows `PID`, `USER`, and `COMMAND`. Memory columns are selected via
@@ -823,6 +823,12 @@ columns appear in the order the options were passed. If no memory option is
 given, `RSS` is shown by default. Values are converted to MiB. Sort order
 always follows RSS ascending (smem's default `-s rss`), regardless of which
 columns are displayed.
+
+`COMMAND` sits right after `USER` by default. Pass `--pname` (long form:
+`--process-name`) to position it explicitly, so `COMMAND` takes part in the
+same ordering as the memory columns, e.g. `ps-mem --rss --pname` prints
+`PID`, `USER`, `RSS`, `COMMAND`. `--pname` does not count as a memory
+column, so `ps-mem --pname` still falls back to `RSS`.
 
 Command names are truncated with `...` when they exceed the `COMMAND` column
 width (30 characters by default). Use `-c N` / `--process-name-max-length N`
@@ -860,6 +866,16 @@ PID      USER       COMMAND                             SWAP          RSS
 $ ps-mem --rss --swap
 PID      USER       COMMAND                              RSS         SWAP
 1234     aiya000    /usr/bin/some-daemon              12.3MiB       0.0MiB
+
+# Move COMMAND to the end by positioning it with --pname
+$ ps-mem --rss --pname
+PID      USER                RSS COMMAND
+1234     aiya000         12.3MiB /usr/bin/some-daemon
+
+# COMMAND can also sit between memory columns (Linux only)
+$ ps-mem --swap --pname --rss
+PID      USER               SWAP COMMAND                              RSS
+1234     aiya000          0.0MiB /usr/bin/some-daemon             12.3MiB
 
 # On macOS, SWAP / USS / PSS are unavailable
 $ ps-mem --uss

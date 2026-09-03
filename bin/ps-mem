@@ -7,7 +7,7 @@ function show_help() {
 ps-mem - Display per-process memory usage in a readable table (wraps smem or ps)
 
 Usage:
-  ps-mem [--swap] [--rss] [--uss] [--pss] [--process-name-max-length N]
+  ps-mem [--swap] [--rss] [--uss] [--pss] [--pname] [--process-name-max-length N]
   ps-mem -h | --help
 
 Options:
@@ -15,6 +15,7 @@ Options:
   --rss                           Include the RSS column
   --uss                           Include the USS column (Linux only)
   --pss                           Include the PSS column (Linux only)
+  --pname, --process-name         Place the COMMAND column at this position
   -c, --process-name-max-length N Max width of the COMMAND column (default: 30)
   -h, --help                      Show this help message
 
@@ -23,6 +24,11 @@ Description:
   --swap, --rss, --uss, --pss. Multiple options can be given, and the
   columns are shown in the order the options were passed. If no memory
   option is given, RSS is shown by default.
+
+  COMMAND is placed right after USER by default. Pass --pname (or its
+  long form --process-name) to position it explicitly, so that COMMAND
+  takes part in the same ordering as the memory columns. For example,
+  `ps-mem --rss --pname` shows PID, USER, RSS, COMMAND.
 
   Command names longer than the COMMAND column width are truncated with
   '...'. Use --process-name-max-length to widen (or narrow) that column.
@@ -40,6 +46,8 @@ Examples:
   ps-mem --swap --rss
   ps-mem --rss --swap
   ps-mem --uss --pss --rss --swap
+  ps-mem --rss --pname
+  ps-mem --pname --rss
   ps-mem --process-name-max-length 60
   ps-mem -c 60
 EOF
@@ -66,6 +74,10 @@ while [[ $# -gt 0 ]] ; do
       ;;
     --pss)
       columns+=('PSS')
+      shift
+      ;;
+    --pname | --process-name)
+      columns+=('COMMAND')
       shift
       ;;
     -c | --process-name-max-length)
@@ -96,8 +108,17 @@ while [[ $# -gt 0 ]] ; do
   esac
 done
 
-if [[ ${#columns[@]} -eq 0 ]] ; then
-  columns=('RSS')
+# RSS is the default memory column. --pname alone does not count as one, so
+# `ps-mem --pname` still shows RSS.
+has_memory_column=false
+for column in "${columns[@]}" ; do
+  if [[ $column != 'COMMAND' ]] ; then
+    has_memory_column=true
+  fi
+done
+
+if [[ $has_memory_column == false ]] ; then
+  columns+=('RSS')
 fi
 
 columns_csv=$(IFS=,; echo "${columns[*]}")
@@ -107,6 +128,80 @@ if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "cmd_max=$cmd_max"
   exit 0
 fi
+
+# Renders the normalized stream produced by each backend.
+#
+# The normalized stream is tab separated, one process per line:
+#   PID \t USER \t SWAP \t USS \t PSS \t RSS \t COMMAND
+# Memory values are in KiB. Columns a backend cannot provide are 0, which is
+# safe because such columns are rejected before reaching here.
+#
+# PID and USER are always printed first. COMMAND is printed right after USER
+# unless it appears in $columns, in which case it is printed at that position.
+render_awk='
+BEGIN {
+  n_cols = split(columns, col_list, ",")
+  pid_w = 8
+  user_w = 10
+  cmd_w = 30
+  has_cmd = 0
+  for (i = 1; i <= n_cols; i++) {
+    if (col_list[i] == "COMMAND") {
+      has_cmd = 1
+      col_w[i] = 30
+    } else {
+      col_w[i] = 12
+    }
+  }
+}
+{
+  rows++
+  r_pid[rows] = $1
+  r_user[rows] = $2
+
+  swap = $3; uss = $4; pss = $5; rss = $6
+  cmd = $7
+  if (length(cmd) > cmd_max) cmd = substr(cmd, 1, cmd_max - 3) "..."
+
+  if (length($1) > pid_w) pid_w = length($1)
+  if (length($2) > user_w) user_w = length($2)
+
+  if (!has_cmd) {
+    r_cmd[rows] = cmd
+    if (length(cmd) > cmd_w) cmd_w = length(cmd)
+  }
+
+  for (i = 1; i <= n_cols; i++) {
+    name = col_list[i]
+    if (name == "COMMAND") value = cmd
+    else if (name == "SWAP") value = sprintf("%.1fMiB", swap / 1024)
+    else if (name == "USS") value = sprintf("%.1fMiB", uss / 1024)
+    else if (name == "PSS") value = sprintf("%.1fMiB", pss / 1024)
+    else value = sprintf("%.1fMiB", rss / 1024)
+    r_val[rows, i] = value
+    if (length(value) > col_w[i]) col_w[i] = length(value)
+  }
+}
+END {
+  header = sprintf("%-*s %-*s", pid_w, "PID", user_w, "USER")
+  if (!has_cmd) header = header sprintf(" %-*s", cmd_w, "COMMAND")
+  for (i = 1; i <= n_cols; i++) {
+    if (col_list[i] == "COMMAND") header = header sprintf(" %-*s", col_w[i], "COMMAND")
+    else header = header sprintf(" %*s", col_w[i], col_list[i])
+  }
+  print header
+
+  for (j = 1; j <= rows; j++) {
+    row = sprintf("%-*s %-*s", pid_w, r_pid[j], user_w, r_user[j])
+    if (!has_cmd) row = row sprintf(" %-*s", cmd_w, r_cmd[j])
+    for (i = 1; i <= n_cols; i++) {
+      if (col_list[i] == "COMMAND") row = row sprintf(" %-*s", col_w[i], r_val[j, i])
+      else row = row sprintf(" %*s", col_w[i], r_val[j, i])
+    }
+    print row
+  }
+}
+'
 
 if [[ $(uname -s) == 'Darwin' ]] ; then
   # macOS has no /proc/smaps, so smem cannot work here. `ps` provides RSS only.
@@ -127,32 +222,12 @@ if [[ $(uname -s) == 'Darwin' ]] ; then
     esac
   done
 
-  ps -axo pid,user,rss,comm | tail -n +2 | sort -k3 -n | awk -v cmd_max="$cmd_max" '
-  BEGIN {
-    pid_w = 8; user_w = 10; cmd_w = 30; rss_w = 12
-  }
+  ps -axo pid,user,rss,comm | tail -n +2 | sort -k3 -n | awk '
   {
     cmd = ""
     for (i = 4; i <= NF; i++) cmd = cmd (cmd == "" ? "" : " ") $i
-    if (length(cmd) > cmd_max) cmd = substr(cmd, 1, cmd_max - 3) "..."
-
-    rows++
-    r_pid[rows] = $1
-    r_user[rows] = $2
-    r_cmd[rows] = cmd
-    r_rss[rows] = sprintf("%.1fMiB", $3 / 1024)
-
-    if (length(r_pid[rows]) > pid_w) pid_w = length(r_pid[rows])
-    if (length(r_user[rows]) > user_w) user_w = length(r_user[rows])
-    if (length(r_cmd[rows]) > cmd_w) cmd_w = length(r_cmd[rows])
-    if (length(r_rss[rows]) > rss_w) rss_w = length(r_rss[rows])
-  }
-  END {
-    printf("%-*s %-*s %-*s %*s\n", pid_w, "PID", user_w, "USER", cmd_w, "COMMAND", rss_w, "RSS")
-    for (j = 1; j <= rows; j++) {
-      printf("%-*s %-*s %-*s %*s\n", pid_w, r_pid[j], user_w, r_user[j], cmd_w, r_cmd[j], rss_w, r_rss[j])
-    }
-  }'
+    printf("%s\t%s\t0\t0\t0\t%s\t%s\n", $1, $2, $3, cmd)
+  }' | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" "$render_awk"
   exit $?
 fi
 
@@ -161,53 +236,13 @@ if ! command -v smem > /dev/null 2>&1 ; then
   exit 1
 fi
 
-smem -c 'pid user command swap uss pss rss' -H -s rss | awk -v columns="$columns_csv" -v cmd_max="$cmd_max" '
-BEGIN {
-  n_cols = split(columns, col_list, ",")
-  pid_w = 8; user_w = 10; cmd_w = 30
-  for (i = 1; i <= n_cols; i++) col_w[i] = 12
-}
+smem -c 'pid user command swap uss pss rss' -H -s rss | awk '
 {
   n = NF
-  swap = $(n-3); uss = $(n-2); pss = $(n-1); rss = $n
   cmd = ""
   for (i = 3; i <= n - 4; i++) cmd = cmd (cmd == "" ? "" : " ") $i
-  if (length(cmd) > cmd_max) cmd = substr(cmd, 1, cmd_max - 3) "..."
-
-  rows++
-  r_pid[rows] = $1
-  r_user[rows] = $2
-  r_cmd[rows] = cmd
-
-  if (length(r_pid[rows]) > pid_w) pid_w = length(r_pid[rows])
-  if (length(r_user[rows]) > user_w) user_w = length(r_user[rows])
-  if (length(r_cmd[rows]) > cmd_w) cmd_w = length(r_cmd[rows])
-
-  for (i = 1; i <= n_cols; i++) {
-    name = col_list[i]
-    if (name == "SWAP") value = swap
-    else if (name == "USS") value = uss
-    else if (name == "PSS") value = pss
-    else value = rss
-    r_val[rows, i] = sprintf("%.1fMiB", value / 1024)
-    if (length(r_val[rows, i]) > col_w[i]) col_w[i] = length(r_val[rows, i])
-  }
-}
-END {
-  header = sprintf("%-*s %-*s %-*s", pid_w, "PID", user_w, "USER", cmd_w, "COMMAND")
-  for (i = 1; i <= n_cols; i++) {
-    header = header sprintf(" %*s", col_w[i], col_list[i])
-  }
-  print header
-
-  for (j = 1; j <= rows; j++) {
-    row = sprintf("%-*s %-*s %-*s", pid_w, r_pid[j], user_w, r_user[j], cmd_w, r_cmd[j])
-    for (i = 1; i <= n_cols; i++) {
-      row = row sprintf(" %*s", col_w[i], r_val[j, i])
-    }
-    print row
-  }
-}'
+  printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $(n-3), $(n-2), $(n-1), $n, cmd)
+}' | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" "$render_awk"
 
 # https://github.com/aiya000/bash-toys
 #
