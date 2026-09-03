@@ -942,6 +942,60 @@ PID      USER       COMMAND                                                     
 $ ps-mem -c 10 -c 90
 ```
 
+### free-macos
+
+Shows system-wide memory usage on macOS, filling in for Linux' `free`.
+
+```bash
+free-macos [--detail]
+```
+
+Without options, prints the `PhysMem` line of `top -l 1 -s 0`, which is macOS'
+own summary of physical memory usage.
+
+With `--detail`, prints `total` / `used` / `available` in MB, computed from
+`vm_stat`'s page counters:
+
+| Row | Formula |
+| --- | --- |
+| `used` | `active + wired + compressor` |
+| `available` | `free + inactive + speculative` |
+| `total` | `used + available` |
+
+Page counts are multiplied by the page size `vm_stat` reports in its header,
+since that differs between architectures (4096 bytes on Intel, 16384 on Apple
+Silicon).
+
+Compressed pages count as used, so the numbers line up with what Activity
+Monitor reports rather than with a naive free-page count.
+
+`total` is the memory macOS is currently accounting for, not the amount of RAM
+installed. It can fall a little short of the hardware total, because pages the
+counters do not cover are left out. Reach for `sysctl -n hw.memsize` when the
+installed size is what you actually need.
+
+Both modes take about a second, since `top -l 1` and `vm_stat` each sample the
+system once. Outside macOS the command exits with an error.
+
+**Dependencies**: `top`, `vm_stat` (both macOS built-ins)
+
+**Examples**:
+```bash
+# macOS' own summary, straight from top
+$ free-macos
+PhysMem: 23G used (6281M wired, 8684M compressor), 94M unused.
+
+# A total / used / available breakdown, closer to Linux' free
+$ free-macos --detail
+total:      23731 MB
+used:       18947 MB
+available:   4784 MB
+
+# Outside macOS
+$ free-macos  # on Linux
+Error: free-macos is supported on macOS only
+```
+
 ## Navigation & Git
 
 ### git-root

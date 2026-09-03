@@ -49,6 +49,7 @@ source /path/to/bash-toys/completions/rm-dust.bash
 | `docker-tool` | `--help`, `-h` | subcommands (`attach-menu`, `kill-menu`, `teardown-compose`, …); `run` completes subcommand names |
 | `expects` | `--help`, `-h` | matchers (`to_be`, `to_equal`, `not`, …) |
 | `fast-sync` | `--help`, `-h`, `--init` | directories |
+| `free-macos` | `--help`, `-h`, `--detail` | — |
 | `gh-run-view-latest` | `--help`, `-h`, `--log`, `--web`, `--json` | — |
 | `list-dpkg-executables` | `--help`, `-h` | package names |
 | `notify-at` | `--help`, `-h`, `--ntfy`, `--local`, `-l`, `--list`, `-c`, `--cancel` | — |

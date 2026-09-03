@@ -1,0 +1,154 @@
+#!/bin/bash
+
+# See ../doc/bin.md for description
+
+function show_help() {
+  cat << 'EOF'
+free-macos - Show system-wide memory usage on macOS, like Linux' `free`
+
+Usage:
+  free-macos [--detail]
+  free-macos -h | --help
+
+Options:
+  --detail    Show a total / used / available breakdown in MB
+  -h, --help  Show this help message
+
+Description:
+  Without options, prints the `PhysMem` line of `top -l 1 -s 0`, which is
+  macOS' own summary of physical memory usage.
+
+  With --detail, prints total / used / available in MB, computed from
+  `vm_stat` page counters:
+
+    used      = active + wired + compressor
+    available = free + inactive + speculative
+    total     = used + available
+
+  Compressed pages are counted as used, so the numbers line up with what
+  Activity Monitor reports rather than with a naive free-page count.
+
+  `total` is the memory macOS is currently accounting for, not the amount
+  of RAM installed. It can fall a little short of the hardware total,
+  since pages the counters do not cover are left out. Use
+  `sysctl -n hw.memsize` when the installed size is what you need.
+
+Note:
+  Both modes take about a second, because `top -l 1` and `vm_stat` each
+  sample the system once.
+
+Dependencies:
+  top, vm_stat (both macOS built-ins)
+
+Examples:
+  free-macos
+  free-macos --detail
+EOF
+}
+
+detail=false
+
+for arg in "$@" ; do
+  case "$arg" in
+    -h | --help)
+      show_help
+      exit 0
+      ;;
+    --detail)
+      detail=true
+      ;;
+    -*)
+      echo "Error: Unknown option: $arg" >&2
+      show_help >&2
+      exit 1
+      ;;
+    *)
+      echo "Error: Unexpected argument: $arg" >&2
+      show_help >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+  echo "detail=$detail"
+  exit 0
+fi
+
+if [[ $(uname -s) != 'Darwin' ]] ; then
+  echo 'Error: free-macos is supported on macOS only' >&2
+  exit 1
+fi
+
+if [[ $detail == true ]] ; then
+  if ! command -v vm_stat > /dev/null 2>&1 ; then
+    echo 'Error: vm_stat is not available' >&2
+    exit 1
+  fi
+
+  # Page counters are multiplied by the page size reported in vm_stat's header,
+  # because it differs between architectures (4096 on Intel, 16384 on Apple
+  # Silicon).
+  vm_stat | awk '
+    /page size of/            { ps = $8 }
+    /Pages free/              { free = $3+0 }
+    /Pages active/            { active = $3+0 }
+    /Pages inactive/          { inactive = $3+0 }
+    /Pages wired/             { wired = $4+0 }
+    /Pages occupied by comp/  { comp = $5+0 }
+    /Pages speculative/       { spec = $3+0 }
+    END {
+      if (ps == 0) {
+        print "Error: could not read the page size from vm_stat" > "/dev/stderr"
+        exit 1
+      }
+      used_mb  = (active + wired + comp) * ps / 1024 / 1024
+      avail_mb = (free + inactive + spec) * ps / 1024 / 1024
+      total_mb = used_mb + avail_mb
+      printf "total:     %6.0f MB\n", total_mb
+      printf "used:      %6.0f MB\n", used_mb
+      printf "available: %6.0f MB\n", avail_mb
+    }
+  '
+  exit $?
+fi
+
+if ! command -v top > /dev/null 2>&1 ; then
+  echo 'Error: top is not available' >&2
+  exit 1
+fi
+
+# `-s 0` keeps top from sleeping between samples, so `-l 1` returns as soon as
+# its single sample is taken.
+physmem=$(top -l 1 -s 0 2> /dev/null | grep '^PhysMem')
+
+if [[ $physmem == '' ]] ; then
+  echo 'Error: could not read PhysMem from top' >&2
+  exit 1
+fi
+
+echo "$physmem"
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2025- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
