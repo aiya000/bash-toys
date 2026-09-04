@@ -7,6 +7,43 @@ setup() {
   export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
 }
 
+# Prints 'yes' when a memory column never decreases down the table, 'no'
+# otherwise. Pass the data rows only, without the header.
+#
+# The column is identified by which MiB value it is within a row (1 for the
+# leftmost), because COMMAND may contain spaces, so no fixed field number
+# identifies a column once --pname moves COMMAND around.
+#
+# Rendering to one decimal is monotonic, so comparing the printed MiB values is
+# enough to tell whether the underlying KiB values were sorted.
+ascending_mib_column() {
+  local occurrence=$1
+  shift
+  printf '%s\n' "$@" | awk -v occurrence="$occurrence" '
+    {
+      seen = 0
+      value = ""
+      for (i = 1; i <= NF; i++) {
+        if ($i ~ /^[0-9]+\.[0-9]MiB$/) {
+          seen++
+          if (seen == occurrence) {
+            value = $i
+            break
+          }
+        }
+      }
+      if (value == "") {
+        missing = 1
+        next
+      }
+      sub(/MiB$/, "", value)
+      if (value + 0 < previous + 0) descending = 1
+      previous = value
+    }
+    END { print (missing || descending) ? "no" : "yes" }
+  '
+}
+
 @test '`ps-mem --help` should show help message' {
   run ps-mem --help
   expects "$status" to_be 0
@@ -77,6 +114,67 @@ setup() {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --footprint --rss
   expects "$status" to_be 0
   expects "${lines[0]}" to_equal 'columns=FOOTPRINT,RSS'
+}
+
+@test 'sort target defaults to RSS' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=RSS'
+}
+
+@test 'sort target is the last memory option (--swap --rss)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap --rss
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=RSS'
+}
+
+@test 'sort target is the last memory option (--rss --swap)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --swap
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=SWAP'
+}
+
+@test 'sort target is the last memory option (--uss --pss --rss --swap)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --uss --pss --rss --swap
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=SWAP'
+}
+
+@test 'sort target is the last memory option (--rss --footprint)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --footprint
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=FOOTPRINT'
+}
+
+@test 'sort target is the last memory option (--footprint --rss)' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --footprint --rss
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=RSS'
+}
+
+@test '--pname does not become the sort target' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --pname
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=RSS'
+}
+
+@test '--pname does not become the sort target even when passed last' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap --pname
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=SWAP,COMMAND'
+  expects "${lines[3]}" to_equal 'sort=SWAP'
+}
+
+@test '--pname does not shadow a later memory option as the sort target' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap --pname --rss
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=RSS'
+}
+
+@test '--total does not become the sort target' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap --total
+  expects "$status" to_be 0
+  expects "${lines[3]}" to_equal 'sort=SWAP'
 }
 
 @test 'total is off by default' {
@@ -244,6 +342,42 @@ setup() {
   expects "$output" to_match '[0-9]+\.[0-9]MiB'
 }
 
+@test '--pss alone is sorted ascending by PSS, not by RSS' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
+  if ! command -v smem &> /dev/null ; then
+    skip 'smem is not installed'
+  fi
+  run ps-mem --pss
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
+}
+
+@test '--rss --pss is sorted ascending by PSS, since --pss comes last' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
+  if ! command -v smem &> /dev/null ; then
+    skip 'smem is not installed'
+  fi
+  run ps-mem --rss --pss
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+}
+
+@test '--pss --rss is sorted ascending by RSS, since --rss comes last' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'smem backend is Linux only'
+  fi
+  if ! command -v smem &> /dev/null ; then
+    skip 'smem is not installed'
+  fi
+  run ps-mem --pss --rss
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+}
+
 @test '--footprint is rejected outside macOS' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
     skip 'macOS supports --footprint'
@@ -331,6 +465,42 @@ setup() {
     expects "$(awk -v a="$previous" -v b="$current" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_be yes
     previous=$current
   done
+}
+
+@test 'macOS: --footprint alone is sorted ascending by FOOTPRINT' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --footprint
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
+}
+
+@test 'macOS: --rss --footprint is sorted ascending by FOOTPRINT, since --footprint comes last' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss --footprint
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+}
+
+@test 'macOS: --footprint --rss is sorted ascending by RSS, since --rss comes last' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --footprint --rss
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+}
+
+@test 'macOS: --rss --pname keeps RSS ascending even though COMMAND comes last' {
+  if [[ $(uname -s) != 'Darwin' ]] ; then
+    skip 'not macOS'
+  fi
+  run ps-mem --rss --pname
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
 }
 
 @test 'macOS: --uss is rejected' {

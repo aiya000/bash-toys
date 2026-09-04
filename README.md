@@ -392,11 +392,12 @@ $ kill-list
 <details>
 <summary>Memory Monitoring</summary> <!-- {{{ -->
 
-**[`ps-mem`](./bin/ps-mem)** - Per-process memory in a readable table. Pick the column that answers your question.
+**[`ps-mem`](./bin/ps-mem)** - Per-process memory in a readable table. Pick the column that answers your question. Rows are sorted ascending by the last memory option given, so the biggest process is at the bottom.
 
 ```bash
 $ ps-mem                            # PID, USER, COMMAND, RSS
 $ ps-mem --rss --footprint --total  # macOS: compare RSS with Activity Monitor's number
+$ ps-mem --footprint --rss          # Same columns, but sorted by RSS instead
 $ ps-mem --pss --total              # Linux: the least misleading total
 $ ps-mem -c 60                      # Widen COMMAND instead of truncating at 30
 ```

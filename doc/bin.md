@@ -820,9 +820,14 @@ ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total] [--pro
 Always shows `PID`, `USER`, and `COMMAND`. Memory columns are selected via
 `--swap`, `--rss`, `--uss`, `--pss`, `--footprint`; multiple options can be
 given, and columns appear in the order the options were passed. If no memory
-option is given, `RSS` is shown by default. Values are converted to MiB. Sort
-order always follows RSS ascending (smem's default `-s rss`), regardless of
-which columns are displayed.
+option is given, `RSS` is shown by default. Values are converted to MiB.
+
+Rows are sorted ascending by the memory column of the **last** memory option
+given, so the biggest process sits at the bottom of that column. For example
+`ps-mem --rss --footprint` sorts by `FOOTPRINT`, while
+`ps-mem --footprint --rss` sorts by `RSS`. `--pname` does not take part in that
+choice, so `ps-mem --pname` still sorts by `RSS`. Ties are broken by `RSS`
+ascending.
 
 `--total` appends a horizontal rule and a `TOTAL` row that sums each memory
 column. The rule is as wide as the table, so it stays aligned whatever columns
@@ -916,9 +921,15 @@ PID      USER               SWAP COMMAND                              RSS
 1234     aiya000          0.0MiB /usr/bin/some-daemon             12.3MiB
 
 # Compare RSS against what Activity Monitor reports (macOS only)
+# The last memory option wins the sort, so rows are ascending by FOOTPRINT
 $ ps-mem --rss --footprint
 PID      USER       COMMAND                              RSS    FOOTPRINT
 96372    aiya000    /Applications/Xcode.app/...       71.0MiB    4376.0MiB
+
+# Same columns, sorted by RSS instead, since --rss comes last
+$ ps-mem --footprint --rss
+PID      USER       COMMAND                        FOOTPRINT          RSS
+96372    aiya000    /Applications/Xcode.app/...    4376.0MiB      71.0MiB
 
 # Sum the displayed memory columns
 # (10000.0MiB and above is shown in GiB)

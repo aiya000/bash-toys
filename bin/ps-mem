@@ -36,8 +36,11 @@ Description:
   Command names longer than the COMMAND column width are truncated with
   '...'. Use --process-name-max-length to widen (or narrow) that column.
 
-  Values are converted to MiB. Sort order always follows RSS ascending
-  (smem's default `-s rss`), regardless of which columns are displayed.
+  Values are converted to MiB. Rows are sorted ascending by the memory
+  column of the last memory option given, so the biggest process sits at
+  the bottom. For example, `ps-mem --rss --footprint` sorts by FOOTPRINT,
+  while `ps-mem --footprint --rss` sorts by RSS. --pname does not take
+  part in that choice, so `ps-mem --pname` still sorts by RSS.
 
   Backends:
     Linux: smem
@@ -173,12 +176,33 @@ if [[ $has_memory_column == false ]] ; then
   columns+=('RSS')
 fi
 
+# Rows are sorted by the memory column of the last memory option given, so that
+# the column the user asked for most recently is the one reading ascending.
+# COMMAND takes no part in this, since --pname only positions a column.
+sort_column=RSS
+for column in "${columns[@]}" ; do
+  if [[ $column != 'COMMAND' ]] ; then
+    sort_column=$column
+  fi
+done
+
+# Field number of $sort_column within the normalized stream that both backends
+# emit (see $render_awk for its layout)
+case "$sort_column" in
+  SWAP)      sort_field=3 ;;
+  USS)       sort_field=4 ;;
+  PSS)       sort_field=5 ;;
+  RSS)       sort_field=6 ;;
+  FOOTPRINT) sort_field=7 ;;
+esac
+
 columns_csv=$(IFS=,; echo "${columns[*]}")
 
 if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "columns=$columns_csv"
   echo "cmd_max=$cmd_max"
   echo "total=$show_total"
+  echo "sort=$sort_column"
   exit 0
 fi
 
@@ -340,6 +364,9 @@ if [[ $(uname -s) == 'Darwin' ]] ; then
     esac
   done
 
+  # `ps` is pre-sorted by RSS even though the normalized stream is sorted
+  # afterwards, because that sort is stable: RSS then breaks ties within the
+  # sorted column.
   awk -v OFS='\t' '
   NR == FNR {
     if ($1 ~ /^[0-9]+$/ && NF >= 2) {
@@ -361,6 +388,7 @@ if [[ $(uname -s) == 'Darwin' ]] ; then
     for (i = 4; i <= NF; i++) cmd = cmd (cmd == "" ? "" : " ") $i
     print $1, $2, 0, 0, 0, $3, (($1 in footprint) ? footprint[$1] : 0), cmd
   }' <(emit_footprint_table) <(ps -axo pid,user,rss,comm | tail -n +2 | sort -k3 -n) \
+    | sort -s -t "$(printf '\t')" -k "$sort_field,$sort_field" -n \
     | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
   exit $?
 fi
@@ -377,13 +405,17 @@ if ! command -v smem > /dev/null 2>&1 ; then
   exit 1
 fi
 
+# `-s rss` is kept even though the normalized stream is sorted afterwards,
+# because that sort is stable: RSS then breaks ties within the sorted column.
 smem -c 'pid user command swap uss pss rss' -H -s rss | awk -v OFS='\t' '
 {
   n = NF
   cmd = ""
   for (i = 3; i <= n - 4; i++) cmd = cmd (cmd == "" ? "" : " ") $i
   print $1, $2, $(n-3), $(n-2), $(n-1), $n, 0, cmd
-}' | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
+}' \
+  | sort -s -t "$(printf '\t')" -k "$sort_field,$sort_field" -n \
+  | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
 
 # https://github.com/aiya000/bash-toys
 #
