@@ -67,12 +67,15 @@ function define-alt () {
     fi
     return
   fi
-  local value=$2
   local values_length=$#
 
-  # Define an empty variable or a variable with a value
-  if [[ $values_length -le 1 ]] ; then
-    eval "$var_name=$value"
+  # Define an empty variable or a variable with a single value. A single value
+  # has to stay a scalar: bash cannot put an array into the environment, so
+  # making it a one-element array would leave --export with nothing to export.
+  # $2 is referenced from inside the eval so that a value containing spaces is
+  # not word split.
+  if [[ $values_length -le 2 ]] ; then
+    eval "$var_name=\"\$2\""
     if [[ $export_flag == true ]] ; then
       export "$var_name"
     fi

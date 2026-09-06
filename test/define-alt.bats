@@ -42,6 +42,19 @@ setup() {
   expects "$(bash -c 'echo "${#DEFINE_ALT_EXPORT_FLAG_TEST_ARR[@]}"')" to_be 0
 }
 
+@test '`define-alt` should define a single value as a scalar, not a one-element array' {
+  unset DEFINE_ALT_SCALAR_TEST_VAR
+  define-alt DEFINE_ALT_SCALAR_TEST_VAR hello
+  expects "$(declare -p DEFINE_ALT_SCALAR_TEST_VAR)" not to_contain '-a'
+  expects "$DEFINE_ALT_SCALAR_TEST_VAR" to_be hello
+}
+
+@test '`define-alt` should keep the spaces of a single quoted value' {
+  unset DEFINE_ALT_SPACED_TEST_VAR
+  define-alt DEFINE_ALT_SPACED_TEST_VAR 'a b c'
+  expects "$DEFINE_ALT_SPACED_TEST_VAR" to_be 'a b c'
+}
+
 @test '`define-alt --export` should define and export a multi-value array' {
   unset DEFINE_ALT_EXPORT_ARRAY_TEST
   define-alt --export DEFINE_ALT_EXPORT_ARRAY_TEST 1 2 3

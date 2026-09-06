@@ -94,6 +94,7 @@ define-alt [--export] --empty-array <var_name>
 **Examples**:
 ```bash
 define-alt a 10                  # Define scalar: a=10
+define-alt a 'a b c'            # Define scalar: a='a b c' (spaces are kept)
 define-alt xs 1 2 3             # Define array: xs=(1 2 3)
 define-alt --empty-array ys     # Define empty array
 define-alt --export EDITOR vim  # Define and export
