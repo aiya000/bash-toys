@@ -138,6 +138,41 @@ Use the project-local bats binary to run tests:
 lib/bats/bin/bats test/<name>.bats
 ```
 
+## Writing Assertions with `expects`
+
+`bin/expects` is this project's Jest-like assertion command, and every `test/*.bats`
+file is written with it.
+
+### `to_be` compares as a string, `eq` compares as a number
+
+`to_be` and `to_equal` both compare as **strings**, the way Jest's `toBe` and
+`toEqual` compare primitives: neither coerces its arguments. Reach for
+`to_be_numerically_equal_to` (short form `eq`), or `lt` / `gt` / `le` / `ge`, when the
+values are numbers and their spelling does not matter.
+
+```bash
+expects "$found" to_be true   # String comparison
+expects 007 to_be 7           # Fails: '007' is not the string '7'
+expects 007 eq 7              # Passes: compared as numbers
+```
+
+Watch for values that can carry padding, such as the output of `wc -l`: `to_be` sees
+those spaces, so compare them with `eq` instead.
+
+### Why this matters
+
+Until 2026-09-06, `to_be` was `[[ $actual -eq $expected ]]`, an arithmetic comparison.
+Two non-numeric strings both evaluate to `0` in an arithmetic context, so
+`expects no to_be yes` **passed**, and every string assertion written with `to_be` was
+silently disarmed. Two real bugs sat behind it undetected:
+
+- `define-alt --export` assigned a one-element array, which bash cannot export, so the
+  variable never reached child processes
+- The `rm-dust --restore` completion never offered the bare names that `--restore`
+  actually accepts
+
+When a test looks like it cannot fail, check the matcher before trusting it.
+
 ## Checklist When Modifying bin/ Commands
 
 When adding or changing options/behavior of a command in `bin/`, update **all** of the following that exist for that command:
