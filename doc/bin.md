@@ -814,7 +814,7 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 Displays per-process memory usage in a readable table by wrapping `ps`, plus `/proc/PID/smaps_rollup` on Linux or `top` on macOS.
 
 ```bash
-ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total] [--process-name-max-length N]
+ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total] [--reverse] [--head [N] | --tail [N] | --all] [--process-name-max-length N]
 ```
 
 Always shows `PID`, `USER`, and `COMMAND`. Memory columns are selected via
@@ -828,6 +828,25 @@ given, so the biggest process sits at the bottom of that column. For example
 `ps-mem --footprint --rss` sorts by `RSS`. `--pname` does not take part in that
 choice, so `ps-mem --pname` still sorts by `RSS`. Ties are broken by `RSS`
 ascending.
+
+`--reverse` flips that order into descending, putting the biggest process at
+the top of the table instead of the bottom.
+
+Every process is listed by default. `--head N` keeps the first `N` rows and
+`--tail N` keeps the last `N`, where `N` defaults to **15** when omitted, so
+`ps-mem --tail` is the 15 biggest processes and `ps-mem --reverse --head` is
+the same 15 read from the other end. Only one limit is in effect at a time:
+the last of `--head` and `--tail` wins, so `ps-mem --head 5 --tail 3` keeps
+the last three rows.
+
+`--all` cancels `--head` and `--tail` whatever their position, so both
+`ps-mem --tail --all` and `ps-mem --all --tail` list every process again. It
+exists for aliases and wrapper scripts that carry a `--head` or `--tail` you
+want to widen for one run.
+
+The rows are cut before `--total` is computed, so the `TOTAL` row sums the
+rows that were actually printed and its `N processes` label counts them, not
+the whole process table.
 
 `--total` appends a horizontal rule and a `TOTAL` row that sums each memory
 column. The rule is as wide as the table, so it stays aligned whatever columns
@@ -964,6 +983,35 @@ PID      USER       COMMAND                                                     
 
 # When given multiple times, the last -c / --process-name-max-length wins (90 here)
 $ ps-mem -c 10 -c 90
+
+# Biggest process first, instead of last
+$ ps-mem --reverse
+PID      USER       COMMAND                              RSS
+5678     aiya000    /usr/bin/some-hungry-daemon      987.6MiB
+1234     aiya000    /usr/bin/some-daemon              12.3MiB
+
+# The 15 biggest processes only (N defaults to 15)
+$ ps-mem --tail
+
+# The 20 biggest, biggest first
+$ ps-mem --reverse --head 20
+
+# The 10 smallest processes only
+$ ps-mem --head 10
+
+# TOTAL sums the printed rows, so it says '10 processes'
+$ ps-mem --pss --tail 10 --total
+PID      USER       COMMAND                              PSS
+...
+-------------------------------------------------------------
+TOTAL    -          10 processes                     1234.5MiB
+
+# --all cancels a --head or --tail, e.g. one inherited from an alias
+$ ps-mem --tail 5 --all
+
+# N must be 1 or greater
+$ ps-mem --head 0
+Error: --head requires a number of 1 or greater, got: 0
 ```
 
 ### free-macos

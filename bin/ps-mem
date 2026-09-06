@@ -8,6 +8,7 @@ ps-mem - Display per-process memory usage in a readable table (wraps ps and /pro
 
 Usage:
   ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total]
+         [--reverse] [--head [N] | --tail [N] | --all]
          [--process-name-max-length N]
   ps-mem -h | --help
 
@@ -19,6 +20,11 @@ Options:
   --footprint                     Include the FOOTPRINT column (macOS only)
   --pname, --process-name         Place the COMMAND column at this position
   --total                         Append a TOTAL row summing the memory columns
+  --reverse                       Sort descending, putting the biggest process
+                                  at the top instead of the bottom
+  --head [N]                      Show the first N rows only (default: 15)
+  --tail [N]                      Show the last N rows only (default: 15)
+  --all                           Show every row, cancelling --head and --tail
   -c, --process-name-max-length N Max width of the COMMAND column (default: 30)
   -h, --help                      Show this help message
 
@@ -40,7 +46,19 @@ Description:
   column of the last memory option given, so the biggest process sits at
   the bottom. For example, `ps-mem --rss --footprint` sorts by FOOTPRINT,
   while `ps-mem --footprint --rss` sorts by RSS. --pname does not take
-  part in that choice, so `ps-mem --pname` still sorts by RSS.
+  part in that choice, so `ps-mem --pname` still sorts by RSS. --reverse
+  flips that order, putting the biggest process at the top.
+
+  Every process is listed by default. --head keeps the first N rows and
+  --tail keeps the last N, where N defaults to 15 when omitted. The last
+  of them wins if both are given, so `ps-mem --head 5 --tail 3` keeps the
+  last three rows. --all cancels both, whatever their position, so an
+  alias carrying --tail can be widened again with `ps-mem --tail --all`.
+
+  The rows are cut before --total is computed, so the TOTAL row sums the
+  rows actually printed and its 'N processes' label counts them. Combine
+  --tail with --reverse --head to read the same processes from the other
+  end of the table.
 
   Backends:
     Linux: ps, plus /proc/PID/smaps_rollup (Linux 4.14 or later)
@@ -90,6 +108,11 @@ Examples:
   ps-mem --pname --rss
   ps-mem --footprint --rss --total
   ps-mem --pss --total
+  ps-mem --reverse
+  ps-mem --tail
+  ps-mem --reverse --head 20
+  ps-mem --pss --tail 10 --total
+  ps-mem --tail 5 --all
   ps-mem --process-name-max-length 60
   ps-mem -c 60
 EOF
@@ -101,6 +124,40 @@ columns=()
 cmd_max=30
 
 show_total=false
+
+reverse=false
+
+# 'none', 'head', or 'tail'. $limit_n is meaningless while this is 'none'.
+limit_mode=none
+limit_n=15
+
+# --all cancels --head and --tail regardless of their order, so it is resolved
+# after the whole argument list has been read
+show_all=false
+
+# Consumes the optional N of --head / --tail. Sets $limit_shift to how many
+# arguments were used, since bash functions cannot shift the caller's "$@".
+function read_limit_count() {
+  local option=$1
+  local value=$2
+
+  limit_shift=1
+  limit_n=15
+
+  # A non-numeric next argument is not ours: it is the next option, or an error
+  # the main loop reports
+  if ! [[ $value =~ ^[0-9]+$ ]] ; then
+    return 0
+  fi
+
+  if [[ $value -lt 1 ]] ; then
+    echo "Error: $option requires a number of 1 or greater, got: $value" >&2
+    exit 1
+  fi
+
+  limit_n=$value
+  limit_shift=2
+}
 
 while [[ $# -gt 0 ]] ; do
   case "$1" in
@@ -130,6 +187,24 @@ while [[ $# -gt 0 ]] ; do
       ;;
     --total)
       show_total=true
+      shift
+      ;;
+    --reverse)
+      reverse=true
+      shift
+      ;;
+    --head)
+      limit_mode=head
+      read_limit_count --head "$2"
+      shift "$limit_shift"
+      ;;
+    --tail)
+      limit_mode=tail
+      read_limit_count --tail "$2"
+      shift "$limit_shift"
+      ;;
+    --all)
+      show_all=true
       shift
       ;;
     -c | --process-name-max-length)
@@ -199,13 +274,44 @@ esac
 
 columns_csv=$(IFS=,; echo "${columns[*]}")
 
+if [[ $show_all == true ]] ; then
+  limit_mode=none
+fi
+
 if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "columns=$columns_csv"
   echo "cmd_max=$cmd_max"
   echo "total=$show_total"
   echo "sort=$sort_column"
+  echo "reverse=$reverse"
+  echo "limit=$limit_mode"
+  echo "limit_n=$limit_n"
+  echo "all=$show_all"
   exit 0
 fi
+
+# Shared by both backends, so that --reverse flips the secondary keys too
+sort_options=(-s -t "$(printf '\t')" -n)
+if [[ $reverse == true ]] ; then
+  sort_options+=(-r)
+fi
+
+# Cuts the sorted stream down to --head / --tail. `head` is spelled as awk
+# because `head` closes the pipe early, which makes `sort` upstream report a
+# broken pipe.
+function apply_limit() {
+  case "$limit_mode" in
+    head)
+      awk -v n="$limit_n" 'NR <= n'
+      ;;
+    tail)
+      tail -n "$limit_n"
+      ;;
+    *)
+      cat
+      ;;
+  esac
+}
 
 if [[ $show_total == true ]] ; then
   total_flag=1
@@ -389,7 +495,8 @@ if [[ $(uname -s) == 'Darwin' ]] ; then
     for (i = 4; i <= NF; i++) cmd = cmd (cmd == "" ? "" : " ") $i
     print $1, $2, 0, 0, 0, $3, (($1 in footprint) ? footprint[$1] : 0), cmd
   }' <(emit_footprint_table) <(ps -axo pid,user,rss,comm | tail -n +2 | sort -k3 -n) \
-    | sort -s -t "$(printf '\t')" -k "$sort_field,$sort_field" -n \
+    | sort "${sort_options[@]}" -k "$sort_field,$sort_field" \
+    | apply_limit \
     | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
   exit $?
 fi
@@ -448,7 +555,8 @@ ps -eww -o pid=,user:32=,args= | awk -v OFS='\t' '
   for (i = 3; i <= NF; i++) cmd = cmd (cmd == "" ? "" : " ") $i
   print $1, $2, swap, uss, pss, rss, 0, cmd
 }' \
-  | sort -s -t "$(printf '\t')" -n -k "$sort_field,$sort_field" -k 6,6 \
+  | sort "${sort_options[@]}" -k "$sort_field,$sort_field" -k 6,6 \
+  | apply_limit \
   | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
 
 # https://github.com/aiya000/bash-toys

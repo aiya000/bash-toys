@@ -7,8 +7,9 @@ setup() {
   export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
 }
 
-# Prints 'yes' when a memory column never decreases down the table, 'no'
-# otherwise. Pass the data rows only, without the header.
+# Prints 'yes' when a memory column never decreases ('asc') or never increases
+# ('desc') down the table, 'no' otherwise. Pass the data rows only, without the
+# header.
 #
 # The column is identified by which MiB value it is within a row (1 for the
 # leftmost), because COMMAND may contain spaces, so no fixed field number
@@ -16,10 +17,11 @@ setup() {
 #
 # Rendering to one decimal is monotonic, so comparing the printed MiB values is
 # enough to tell whether the underlying KiB values were sorted.
-ascending_mib_column() {
-  local occurrence=$1
-  shift
-  printf '%s\n' "$@" | awk -v occurrence="$occurrence" '
+sorted_mib_column() {
+  local direction=$1
+  local occurrence=$2
+  shift 2
+  printf '%s\n' "$@" | awk -v occurrence="$occurrence" -v direction="$direction" '
     {
       seen = 0
       value = ""
@@ -37,11 +39,32 @@ ascending_mib_column() {
         next
       }
       sub(/MiB$/, "", value)
-      if (value + 0 < previous + 0) descending = 1
+      if (rows > 0) {
+        if (direction == "asc" && value + 0 < previous + 0) unsorted = 1
+        if (direction == "desc" && value + 0 > previous + 0) unsorted = 1
+      }
+      rows++
       previous = value
     }
-    END { print (missing || descending) ? "no" : "yes" }
+    END { print (missing || unsorted) ? "no" : "yes" }
   '
+}
+
+ascending_mib_column() {
+  local occurrence=$1
+  shift
+  sorted_mib_column asc "$occurrence" "$@"
+}
+
+descending_mib_column() {
+  local occurrence=$1
+  shift
+  sorted_mib_column desc "$occurrence" "$@"
+}
+
+# Prints 'yes' when $1 is greater than $2
+greater_than() {
+  awk -v a="$1" -v b="$2" 'BEGIN { print (a > b) ? "yes" : "no" }'
 }
 
 @test '`ps-mem --help` should show help message' {
@@ -291,6 +314,204 @@ ascending_mib_column() {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem -c 90 --process-name-max-length 10
   expects "$status" to_be 0
   expects "${lines[1]}" to_equal 'cmd_max=10'
+}
+
+@test 'reverse is off by default' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
+  expects "$status" to_be 0
+  expects "${lines[4]}" to_equal 'reverse=false'
+}
+
+@test '--reverse turns descending order on' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --reverse
+  expects "$status" to_be 0
+  expects "${lines[4]}" to_equal 'reverse=true'
+}
+
+@test '--reverse works regardless of position' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --reverse --pname
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS,COMMAND'
+  expects "${lines[4]}" to_equal 'reverse=true'
+}
+
+@test '--reverse does not become the sort target' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --swap --reverse
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=SWAP'
+  expects "${lines[3]}" to_equal 'sort=SWAP'
+}
+
+@test 'no row limit is applied by default' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=none'
+  expects "${lines[6]}" to_equal 'limit_n=15'
+  expects "${lines[7]}" to_equal 'all=false'
+}
+
+@test '--head without a number defaults to 15' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=head'
+  expects "${lines[6]}" to_equal 'limit_n=15'
+}
+
+@test '--tail without a number defaults to 15' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --tail
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=tail'
+  expects "${lines[6]}" to_equal 'limit_n=15'
+}
+
+@test '--head takes its number' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head 5
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=head'
+  expects "${lines[6]}" to_equal 'limit_n=5'
+}
+
+@test '--tail takes its number' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --tail 5
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=tail'
+  expects "${lines[6]}" to_equal 'limit_n=5'
+}
+
+@test '--head does not swallow a following option as its number' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head --swap
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=SWAP'
+  expects "${lines[5]}" to_equal 'limit=head'
+  expects "${lines[6]}" to_equal 'limit_n=15'
+}
+
+@test '--head works regardless of position' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --head 5 --total
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS'
+  expects "${lines[2]}" to_equal 'total=true'
+  expects "${lines[5]}" to_equal 'limit=head'
+  expects "${lines[6]}" to_equal 'limit_n=5'
+}
+
+@test 'the last of --head and --tail wins' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head 5 --tail 3
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=tail'
+  expects "${lines[6]}" to_equal 'limit_n=3'
+}
+
+@test 'the last of --tail and --head wins' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --tail 3 --head 5
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=head'
+  expects "${lines[6]}" to_equal 'limit_n=5'
+}
+
+@test 'a later --head without a number falls back to 15' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head 5 --head
+  expects "$status" to_be 0
+  expects "${lines[6]}" to_equal 'limit_n=15'
+}
+
+@test '--all cancels --head' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head 5 --all
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=none'
+  expects "${lines[7]}" to_equal 'all=true'
+}
+
+@test '--all cancels --tail' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --tail 5 --all
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=none'
+}
+
+@test '--all cancels --head even when passed before it' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --all --head 5
+  expects "$status" to_be 0
+  expects "${lines[5]}" to_equal 'limit=none'
+}
+
+@test '--all alone is accepted' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --all
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS'
+  expects "${lines[5]}" to_equal 'limit=none'
+  expects "${lines[7]}" to_equal 'all=true'
+}
+
+@test '--head errors when its number is below the minimum' {
+  run ps-mem --head 0
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --head requires a number of 1 or greater, got: 0'
+}
+
+@test '--tail errors when its number is below the minimum' {
+  run ps-mem --tail 0
+  expects "$status" to_be 1
+  expects "$output" to_contain 'Error: --tail requires a number of 1 or greater, got: 0'
+}
+
+@test '--head 3 prints three data rows' {
+  run ps-mem --head 3
+  expects "$status" to_be 0
+  expects "${#lines[@]}" to_be 4
+}
+
+@test '--tail 3 prints three data rows' {
+  run ps-mem --tail 3
+  expects "$status" to_be 0
+  expects "${#lines[@]}" to_be 4
+}
+
+@test '--head without a number prints at most 15 data rows' {
+  run ps-mem --head
+  expects "$status" to_be 0
+  expects "$(awk -v n="${#lines[@]}" 'BEGIN { print (n <= 16) ? "yes" : "no" }')" to_be yes
+}
+
+@test '--all restores the rows --head cut away' {
+  run ps-mem --head 1 --all
+  expects "$status" to_be 0
+  expects "$(greater_than "${#lines[@]}" 2)" to_be yes
+}
+
+@test '--total counts only the rows kept by --head' {
+  run ps-mem --head 3 --total
+  expects "$status" to_be 0
+
+  # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
+  local last=$(( ${#lines[@]} - 1 ))
+  expects "${lines[$last]}" to_match '^TOTAL +- +3 processes '
+}
+
+@test '--total counts only the rows kept by --tail' {
+  run ps-mem --tail 3 --total
+  expects "$status" to_be 0
+
+  local last=$(( ${#lines[@]} - 1 ))
+  expects "${lines[$last]}" to_match '^TOTAL +- +3 processes '
+}
+
+@test '--reverse sorts the memory column descending' {
+  run ps-mem --reverse
+  expects "$status" to_be 0
+  expects "$(descending_mib_column 1 "${lines[@]:1}")" to_be yes
+}
+
+@test '--reverse --head keeps the biggest processes' {
+  run ps-mem --reverse --head 3
+  expects "$status" to_be 0
+  expects "${#lines[@]}" to_be 4
+  expects "$(descending_mib_column 1 "${lines[@]:1}")" to_be yes
+}
+
+@test 'without --reverse the memory column stays ascending' {
+  run ps-mem
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
 }
 
 @test 'header always shows PID, USER, COMMAND plus selected columns in order' {
