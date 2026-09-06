@@ -402,7 +402,7 @@ $ ps-mem                            # PID, USER, COMMAND, RSS
 $ ps-mem --rss --footprint --total  # macOS: compare RSS with Activity Monitor's number
 $ ps-mem --footprint --rss          # Same columns, but sorted by RSS instead
 $ ps-mem --pss --total              # Linux: the least misleading total
-$ ps-mem --tail                     # The 15 biggest processes only
+$ ps-mem --tail                     # The 30 biggest processes only
 $ ps-mem --reverse --head 20        # The 20 biggest, biggest first
 $ ps-mem --tail --all               # Undo a --tail an alias brought along
 $ ps-mem -c 60                      # Widen COMMAND instead of truncating at 30

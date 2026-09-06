@@ -858,9 +858,9 @@ ascending.
 the top of the table instead of the bottom.
 
 Every process is listed by default. `--head N` keeps the first `N` rows and
-`--tail N` keeps the last `N`, where `N` defaults to **15** when omitted, so
-`ps-mem --tail` is the 15 biggest processes and `ps-mem --reverse --head` is
-the same 15 read from the other end. Only one limit is in effect at a time:
+`--tail N` keeps the last `N`, where `N` defaults to **30** when omitted, so
+`ps-mem --tail` is the 30 biggest processes and `ps-mem --reverse --head` is
+the same 30 read from the other end. Only one limit is in effect at a time:
 the last of `--head` and `--tail` wins, so `ps-mem --head 5 --tail 3` keeps
 the last three rows.
 
@@ -1028,7 +1028,7 @@ PID      USER       COMMAND                              RSS
 5678     aiya000    /usr/bin/some-hungry-daemon      987.6MiB
 1234     aiya000    /usr/bin/some-daemon              12.3MiB
 
-# The 15 biggest processes only (N defaults to 15)
+# The 30 biggest processes only (N defaults to 30)
 $ ps-mem --tail
 
 # The 20 biggest, biggest first

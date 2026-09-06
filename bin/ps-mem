@@ -22,8 +22,8 @@ Options:
   --total                         Append a TOTAL row summing the memory columns
   --reverse                       Sort descending, putting the biggest process
                                   at the top instead of the bottom
-  --head [N]                      Show the first N rows only (default: 15)
-  --tail [N]                      Show the last N rows only (default: 15)
+  --head [N]                      Show the first N rows only (default: 30)
+  --tail [N]                      Show the last N rows only (default: 30)
   --all                           Show every row, cancelling --head and --tail
   -c, --process-name-max-length N Max width of the COMMAND column (default: 30)
   -h, --help                      Show this help message
@@ -53,7 +53,7 @@ Description:
   flips that order, putting the biggest process at the top.
 
   Every process is listed by default. --head keeps the first N rows and
-  --tail keeps the last N, where N defaults to 15 when omitted. The last
+  --tail keeps the last N, where N defaults to 30 when omitted. The last
   of them wins if both are given, so `ps-mem --head 5 --tail 3` keeps the
   last three rows. --all cancels both, whatever their position, so an
   alias carrying --tail can be widened again with `ps-mem --tail --all`.
@@ -132,7 +132,7 @@ reverse=false
 
 # 'none', 'head', or 'tail'. $limit_n is meaningless while this is 'none'.
 limit_mode=none
-limit_n=15
+limit_n=30
 
 # --all cancels --head and --tail regardless of their order, so it is resolved
 # after the whole argument list has been read
@@ -145,7 +145,7 @@ function read_limit_count() {
   local value=$2
 
   limit_shift=1
-  limit_n=15
+  limit_n=30
 
   # A non-numeric next argument is not ours: it is the next option, or an error
   # the main loop reports

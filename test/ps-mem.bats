@@ -346,22 +346,22 @@ greater_than() {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
   expects "$status" to_be 0
   expects "${lines[5]}" to_equal 'limit=none'
-  expects "${lines[6]}" to_equal 'limit_n=15'
+  expects "${lines[6]}" to_equal 'limit_n=30'
   expects "${lines[7]}" to_equal 'all=false'
 }
 
-@test '--head without a number defaults to 15' {
+@test '--head without a number defaults to 30' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head
   expects "$status" to_be 0
   expects "${lines[5]}" to_equal 'limit=head'
-  expects "${lines[6]}" to_equal 'limit_n=15'
+  expects "${lines[6]}" to_equal 'limit_n=30'
 }
 
-@test '--tail without a number defaults to 15' {
+@test '--tail without a number defaults to 30' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --tail
   expects "$status" to_be 0
   expects "${lines[5]}" to_equal 'limit=tail'
-  expects "${lines[6]}" to_equal 'limit_n=15'
+  expects "${lines[6]}" to_equal 'limit_n=30'
 }
 
 @test '--head takes its number' {
@@ -383,7 +383,7 @@ greater_than() {
   expects "$status" to_be 0
   expects "${lines[0]}" to_equal 'columns=SWAP'
   expects "${lines[5]}" to_equal 'limit=head'
-  expects "${lines[6]}" to_equal 'limit_n=15'
+  expects "${lines[6]}" to_equal 'limit_n=30'
 }
 
 @test '--head works regardless of position' {
@@ -409,10 +409,10 @@ greater_than() {
   expects "${lines[6]}" to_equal 'limit_n=5'
 }
 
-@test 'a later --head without a number falls back to 15' {
+@test 'a later --head without a number falls back to 30' {
   run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --head 5 --head
   expects "$status" to_be 0
-  expects "${lines[6]}" to_equal 'limit_n=15'
+  expects "${lines[6]}" to_equal 'limit_n=30'
 }
 
 @test '--all cancels --head' {
@@ -467,10 +467,10 @@ greater_than() {
   expects "${#lines[@]}" to_be 5
 }
 
-@test '--head without a number prints at most 15 data rows' {
+@test '--head without a number prints at most 30 data rows' {
   run ps-mem --head
   expects "$status" to_be 0
-  expects "$(awk -v n="${#lines[@]}" 'BEGIN { print (n <= 17) ? "yes" : "no" }')" to_equal yes
+  expects "$(awk -v n="${#lines[@]}" 'BEGIN { print (n <= 32) ? "yes" : "no" }')" to_equal yes
 }
 
 @test '--all restores the rows --head cut away' {
