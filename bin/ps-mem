@@ -42,6 +42,9 @@ Description:
   Command names longer than the COMMAND column width are truncated with
   '...'. Use --process-name-max-length to widen (or narrow) that column.
 
+  A horizontal rule as wide as the table is drawn under the header, so
+  the columns stay readable once the command names start running long.
+
   Values are converted to MiB. Rows are sorted ascending by the memory
   column of the last memory option given, so the biggest process sits at
   the bottom. For example, `ps-mem --rss --footprint` sorts by FOOTPRINT,
@@ -410,6 +413,12 @@ END {
   }
   print header
 
+  # A horizontal rule under the header, as wide as the table, so the columns
+  # stay readable once the command names start running long
+  separator = sprintf("%*s", length(header), "")
+  gsub(/ /, "-", separator)
+  print separator
+
   for (j = 1; j <= rows; j++) {
     row = sprintf("%-*s %-*s", pid_w, r_pid[j], user_w, r_user[j])
     if (!has_cmd) row = row sprintf(" %-*s", cmd_w, r_cmd[j])
@@ -421,8 +430,6 @@ END {
   }
 
   if (total) {
-    separator = sprintf("%*s", length(header), "")
-    gsub(/ /, "-", separator)
     print separator
 
     row = sprintf("%-*s %-*s", pid_w, "TOTAL", user_w, "-")

@@ -848,9 +848,12 @@ The rows are cut before `--total` is computed, so the `TOTAL` row sums the
 rows that were actually printed and its `N processes` label counts them, not
 the whole process table.
 
-`--total` appends a horizontal rule and a `TOTAL` row that sums each memory
-column. The rule is as wide as the table, so it stays aligned whatever columns
-and widths you chose. A total of 10000.0MiB or more is printed in GiB instead,
+A horizontal rule as wide as the table is drawn under the header, so the
+columns stay readable once the command names start running long.
+
+`--total` appends a second rule and a `TOTAL` row that sums each memory
+column. Both rules follow the table width, so they stay aligned whatever
+columns and widths you chose. A total of 10000.0MiB or more is printed in GiB instead,
 because five digit MiB values are hard to read at a glance; per-process rows
 stay in MiB, since only the sum realistically gets that large. See
 [Reading the numbers](#ps-mem-reading-the-numbers) before trusting that sum.
@@ -927,43 +930,51 @@ on Linux or `--footprint` on macOS gives the least misleading total.
 # Default: PID, USER, COMMAND, RSS
 $ ps-mem
 PID      USER       COMMAND                              RSS
+-------------------------------------------------------------
 1234     aiya000    /usr/bin/some-daemon              12.3MiB
 
 # Show SWAP before RSS (Linux only)
 $ ps-mem --swap --rss
 PID      USER       COMMAND                             SWAP          RSS
+-------------------------------------------------------------------------
 1234     aiya000    /usr/bin/some-daemon              0.0MiB      12.3MiB
 
 # Show RSS before SWAP (column order follows option order, Linux only)
 $ ps-mem --rss --swap
 PID      USER       COMMAND                              RSS         SWAP
+--------------------------------------------------------------------------
 1234     aiya000    /usr/bin/some-daemon              12.3MiB       0.0MiB
 
 # Move COMMAND to the end by positioning it with --pname
 $ ps-mem --rss --pname
 PID      USER                RSS COMMAND
+-----------------------------------------------------
 1234     aiya000         12.3MiB /usr/bin/some-daemon
 
 # COMMAND can also sit between memory columns (Linux only)
 $ ps-mem --swap --pname --rss
 PID      USER               SWAP COMMAND                              RSS
+-------------------------------------------------------------------------
 1234     aiya000          0.0MiB /usr/bin/some-daemon             12.3MiB
 
 # Compare RSS against what Activity Monitor reports (macOS only)
 # The last memory option wins the sort, so rows are ascending by FOOTPRINT
 $ ps-mem --rss --footprint
 PID      USER       COMMAND                              RSS    FOOTPRINT
+--------------------------------------------------------------------------
 96372    aiya000    /Applications/Xcode.app/...       71.0MiB    4376.0MiB
 
 # Same columns, sorted by RSS instead, since --rss comes last
 $ ps-mem --footprint --rss
 PID      USER       COMMAND                        FOOTPRINT          RSS
+-------------------------------------------------------------------------
 96372    aiya000    /Applications/Xcode.app/...    4376.0MiB      71.0MiB
 
 # Sum the displayed memory columns
 # (10000.0MiB and above is shown in GiB)
 $ ps-mem --rss --footprint --total
 PID      USER       COMMAND                              RSS    FOOTPRINT
+--------------------------------------------------------------------------
 ...
 --------------------------------------------------------------------------
 TOTAL    -          617 processes                     14.4GiB      26.2GiB
@@ -979,6 +990,7 @@ Error: --footprint is supported on macOS only
 # Show longer command names instead of truncating at 30 characters
 $ ps-mem -c 60
 PID      USER       COMMAND                                                      RSS
+--------------------------------------------------------------------------------------
 1234     aiya000    /usr/bin/some-very-long-daemon-path-that-would-be-cut      12.3MiB
 
 # When given multiple times, the last -c / --process-name-max-length wins (90 here)
@@ -987,6 +999,7 @@ $ ps-mem -c 10 -c 90
 # Biggest process first, instead of last
 $ ps-mem --reverse
 PID      USER       COMMAND                              RSS
+-------------------------------------------------------------
 5678     aiya000    /usr/bin/some-hungry-daemon      987.6MiB
 1234     aiya000    /usr/bin/some-daemon              12.3MiB
 
@@ -1002,8 +1015,9 @@ $ ps-mem --head 10
 # TOTAL sums the printed rows, so it says '10 processes'
 $ ps-mem --pss --tail 10 --total
 PID      USER       COMMAND                              PSS
+--------------------------------------------------------------
 ...
--------------------------------------------------------------
+--------------------------------------------------------------
 TOTAL    -          10 processes                     1234.5MiB
 
 # --all cancels a --head or --tail, e.g. one inherited from an alias

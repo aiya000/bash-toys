@@ -454,28 +454,29 @@ greater_than() {
   expects "$output" to_contain 'Error: --tail requires a number of 1 or greater, got: 0'
 }
 
+# The header and the rule under it, which every table carries
 @test '--head 3 prints three data rows' {
   run ps-mem --head 3
   expects "$status" to_be 0
-  expects "${#lines[@]}" to_be 4
+  expects "${#lines[@]}" to_be 5
 }
 
 @test '--tail 3 prints three data rows' {
   run ps-mem --tail 3
   expects "$status" to_be 0
-  expects "${#lines[@]}" to_be 4
+  expects "${#lines[@]}" to_be 5
 }
 
 @test '--head without a number prints at most 15 data rows' {
   run ps-mem --head
   expects "$status" to_be 0
-  expects "$(awk -v n="${#lines[@]}" 'BEGIN { print (n <= 16) ? "yes" : "no" }')" to_be yes
+  expects "$(awk -v n="${#lines[@]}" 'BEGIN { print (n <= 17) ? "yes" : "no" }')" to_equal yes
 }
 
 @test '--all restores the rows --head cut away' {
   run ps-mem --head 1 --all
   expects "$status" to_be 0
-  expects "$(greater_than "${#lines[@]}" 2)" to_be yes
+  expects "$(greater_than "${#lines[@]}" 3)" to_equal yes
 }
 
 @test '--total counts only the rows kept by --head' {
@@ -498,20 +499,52 @@ greater_than() {
 @test '--reverse sorts the memory column descending' {
   run ps-mem --reverse
   expects "$status" to_be 0
-  expects "$(descending_mib_column 1 "${lines[@]:1}")" to_be yes
+  expects "$(descending_mib_column 1 "${lines[@]:2}")" to_equal yes
 }
 
 @test '--reverse --head keeps the biggest processes' {
   run ps-mem --reverse --head 3
   expects "$status" to_be 0
-  expects "${#lines[@]}" to_be 4
-  expects "$(descending_mib_column 1 "${lines[@]:1}")" to_be yes
+  expects "${#lines[@]}" to_be 5
+  expects "$(descending_mib_column 1 "${lines[@]:2}")" to_equal yes
 }
 
 @test 'without --reverse the memory column stays ascending' {
   run ps-mem
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 1 "${lines[@]:2}")" to_equal yes
+}
+
+@test 'a horizontal rule is drawn right under the header' {
+  run ps-mem
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_match '^-+$'
+  expects "${#lines[1]}" to_be "${#lines[0]}"
+}
+
+@test 'the header rule follows the table width' {
+  run ps-mem -c 60
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_match '^-+$'
+  expects "${#lines[1]}" to_be "${#lines[0]}"
+}
+
+@test 'the header rule is drawn alongside the --total rule' {
+  run ps-mem --total
+  expects "$status" to_be 0
+  expects "${lines[1]}" to_match '^-+$'
+
+  # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
+  local last=$(( ${#lines[@]} - 1 ))
+  local rule=$(( last - 1 ))
+  expects "${lines[$rule]}" to_match '^-+$'
+  expects "${#lines[$rule]}" to_be "${#lines[1]}"
+}
+
+@test 'the first data row comes right after the header rule' {
+  run ps-mem
+  expects "$status" to_be 0
+  expects "${lines[2]}" to_match '^[0-9]+ +[^ ]+ +.*[0-9]+\.[0-9]MiB$'
 }
 
 @test 'header always shows PID, USER, COMMAND plus selected columns in order' {
@@ -557,7 +590,7 @@ greater_than() {
   fi
   run ps-mem --pss
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 1 "${lines[@]:2}")" to_equal yes
 }
 
 @test '--rss --pss is sorted ascending by PSS, since --pss comes last' {
@@ -566,7 +599,7 @@ greater_than() {
   fi
   run ps-mem --rss --pss
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 2 "${lines[@]:2}")" to_equal yes
 }
 
 @test '--pss --rss is sorted ascending by RSS, since --rss comes last' {
@@ -575,7 +608,7 @@ greater_than() {
   fi
   run ps-mem --pss --rss
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 2 "${lines[@]:2}")" to_equal yes
 }
 
 @test '--footprint is rejected outside macOS' {
@@ -633,9 +666,9 @@ greater_than() {
 
   # Every data row is a whole process: PID and USER first, a value last
   local last=$(( ${#lines[@]} - 1 ))
-  local rows=$(( last - 2 ))
+  local rows=$(( last - 3 ))
   local line
-  for line in "${lines[@]:1:$rows}" ; do
+  for line in "${lines[@]:2:$rows}" ; do
     expects "$line" to_match '^[0-9]+ +[^ ]+ +.*[0-9]+\.[0-9]MiB$'
   done
 
@@ -691,7 +724,7 @@ greater_than() {
     if [[ $current == '' ]] ; then
       continue
     fi
-    expects "$(awk -v a="$previous" -v b="$current" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_be yes
+    expects "$(awk -v a="$previous" -v b="$current" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_equal yes
     previous=$current
   done
 }
@@ -702,7 +735,7 @@ greater_than() {
   fi
   run ps-mem --footprint
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 1 "${lines[@]:2}")" to_equal yes
 }
 
 @test 'macOS: --rss --footprint is sorted ascending by FOOTPRINT, since --footprint comes last' {
@@ -711,7 +744,7 @@ greater_than() {
   fi
   run ps-mem --rss --footprint
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 2 "${lines[@]:2}")" to_equal yes
 }
 
 @test 'macOS: --footprint --rss is sorted ascending by RSS, since --rss comes last' {
@@ -720,7 +753,7 @@ greater_than() {
   fi
   run ps-mem --footprint --rss
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 2 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 2 "${lines[@]:2}")" to_equal yes
 }
 
 @test 'macOS: --rss --pname keeps RSS ascending even though COMMAND comes last' {
@@ -729,7 +762,7 @@ greater_than() {
   fi
   run ps-mem --rss --pname
   expects "$status" to_be 0
-  expects "$(ascending_mib_column 1 "${lines[@]:1}")" to_be yes
+  expects "$(ascending_mib_column 1 "${lines[@]:2}")" to_equal yes
 }
 
 @test 'macOS: --uss is rejected' {
@@ -857,7 +890,7 @@ greater_than() {
   local rss footprint
   rss=$(echo "$total_line" | awk '{ v = $(NF - 1); if (sub(/GiB$/, "", v)) v = v * 1024; else sub(/MiB$/, "", v); print v }')
   footprint=$(echo "$total_line" | awk '{ v = $NF; if (sub(/GiB$/, "", v)) v = v * 1024; else sub(/MiB$/, "", v); print v }')
-  expects "$(awk -v a="$rss" -v b="$footprint" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_be yes
+  expects "$(awk -v a="$rss" -v b="$footprint" 'BEGIN { print (a <= b) ? "yes" : "no" }')" to_equal yes
 }
 
 @test 'macOS: --total appends a TOTAL row' {
@@ -884,17 +917,18 @@ greater_than() {
   expects "${#lines[$rule]}" to_be "${#lines[0]}"
 }
 
-@test 'macOS: no horizontal rule is drawn without --total' {
+@test 'macOS: the only horizontal rule without --total is the one under the header' {
   if [[ $(uname -s) != 'Darwin' ]] ; then
     skip 'not macOS'
   fi
   run ps-mem
   expects "$status" to_be 0
+  expects "${lines[1]}" to_match '^-+$'
 
   # `$output` is checked line by line because bash's `=~` anchors match the
   # whole string, not each line
   local line
-  for line in "${lines[@]}" ; do
+  for line in "${lines[@]:2}" ; do
     expects "$line" not to_match '^-+$'
   done
 }
@@ -932,7 +966,7 @@ greater_than() {
   else
     tolerance=1
   fi
-  expects "$(awk -v a="$reported" -v b="$summed" -v t="$tolerance" 'BEGIN { print ((a - b) < t && (b - a) < t) ? "yes" : "no" }')" to_be yes
+  expects "$(awk -v a="$reported" -v b="$summed" -v t="$tolerance" 'BEGIN { print ((a - b) < t && (b - a) < t) ? "yes" : "no" }')" to_equal yes
 }
 
 @test '--total shows the TOTAL row in GiB from 10000.0MiB up, in MiB below it' {
