@@ -451,18 +451,6 @@ Usage:
 ...
 ```
 
-If a command doesn't have `--help`, use `bash-toys-help` to extract help from script comments:
-
-```bash
-$ bash-toys-help rm-dust
-
-# For 'source' commands (don't forget .sh extension)
-$ bash-toys-help cd-to-git-root.sh
-
-# Disable markdown rendering
-$ bash-toys-help --disable-glow rm-dust
-```
-
 ## :bookmark_tabs: Installation
 
 In this section, we assumed you are using bash and `~/.bashrc`.
