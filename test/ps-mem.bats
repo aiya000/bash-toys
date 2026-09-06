@@ -295,10 +295,7 @@ ascending_mib_column() {
 
 @test 'header always shows PID, USER, COMMAND plus selected columns in order' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem --swap --rss
   expects "$status" to_be 0
@@ -307,10 +304,7 @@ ascending_mib_column() {
 
 @test 'header column order follows --rss --swap' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem --rss --swap
   expects "$status" to_be 0
@@ -319,10 +313,7 @@ ascending_mib_column() {
 
 @test 'header places COMMAND at the --pname position' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem --swap --pname --rss
   expects "$status" to_be 0
@@ -331,10 +322,7 @@ ascending_mib_column() {
 
 @test 'default run shows RSS column with MiB values for at least one process' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem
   expects "$status" to_be 0
@@ -344,10 +332,7 @@ ascending_mib_column() {
 
 @test '--pss alone is sorted ascending by PSS, not by RSS' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem --pss
   expects "$status" to_be 0
@@ -356,10 +341,7 @@ ascending_mib_column() {
 
 @test '--rss --pss is sorted ascending by PSS, since --pss comes last' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem --rss --pss
   expects "$status" to_be 0
@@ -368,10 +350,7 @@ ascending_mib_column() {
 
 @test '--pss --rss is sorted ascending by RSS, since --rss comes last' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem --pss --rss
   expects "$status" to_be 0
@@ -398,10 +377,7 @@ ascending_mib_column() {
 
 @test 'TOTAL row is appended when --total is given' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'smem backend is Linux only'
-  fi
-  if ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
+    skip 'the /proc backend is Linux only'
   fi
   run ps-mem --pss --total
   expects "$status" to_be 0
@@ -416,19 +392,51 @@ ascending_mib_column() {
   expects "${#lines[$rule]}" to_be "${#lines[0]}"
 }
 
-@test 'errors clearly when smem is not installed' {
+@test 'a command line containing a newline stays on one row' {
   if [[ $(uname -s) == 'Darwin' ]] ; then
-    skip 'macOS uses the ps backend, so smem is not required'
+    skip 'the /proc backend is Linux only'
   fi
-  if command -v smem &> /dev/null ; then
-    skip 'smem is installed; cannot test the not-installed path'
-  fi
-  run ps-mem
-  expects "$status" to_be 1
-  expects "$output" to_contain 'Error: smem is not installed'
+
+  # $0 of the sh is a harmless place to put a newline into argv. fd 3 is closed
+  # so that the background process does not keep bats waiting on it.
+  sh -c 'sleep 30' $'ps-mem-newline-marker\nsecond-line' > /dev/null 2>&1 3>&- &
+  local sleeper=$!
+
+  run ps-mem --rss --total -c 80
+  kill "$sleeper"
+  expects "$status" to_be 0
+
+  # The newline is folded into the row instead of starting a new one
+  expects "$output" to_match 'ps-mem-newline-marker.second-line'
+  expects "$output" not to_contain $'\nsecond-line'
+
+  # Every data row is a whole process: PID and USER first, a value last
+  local last=$(( ${#lines[@]} - 1 ))
+  local rows=$(( last - 2 ))
+  local line
+  for line in "${lines[@]:1:$rows}" ; do
+    expects "$line" to_match '^[0-9]+ +[^ ]+ +.*[0-9]+\.[0-9]MiB$'
+  done
+
+  # Nothing was dropped between the rows and the TOTAL row
+  expects "${lines[$last]}" to_match "^TOTAL +- +$rows processes "
 }
 
-@test 'macOS: default run shows RSS column with MiB values without smem' {
+@test 'Linux: --process-name-max-length is not capped by the backend' {
+  if [[ $(uname -s) == 'Darwin' ]] ; then
+    skip 'the /proc backend is Linux only'
+  fi
+
+  sh -c 'sleep 30' 'ps-mem-long-marker-0123456789-0123456789-0123456789' > /dev/null 2>&1 3>&- &
+  local sleeper=$!
+
+  run ps-mem -c 80
+  kill "$sleeper"
+  expects "$status" to_be 0
+  expects "$output" to_contain 'sh -c sleep 30 ps-mem-long-marker-0123456789-0123456789-0123456789'
+}
+
+@test 'macOS: default run shows RSS column with MiB values' {
   if [[ $(uname -s) != 'Darwin' ]] ; then
     skip 'not macOS'
   fi
@@ -707,9 +715,6 @@ ascending_mib_column() {
 }
 
 @test '--total shows the TOTAL row in GiB from 10000.0MiB up, in MiB below it' {
-  if [[ $(uname -s) != 'Darwin' ]] && ! command -v smem &> /dev/null ; then
-    skip 'smem is not installed'
-  fi
   run ps-mem --total
   expects "$status" to_be 0
 

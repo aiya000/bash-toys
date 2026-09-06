@@ -811,7 +811,7 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 
 ### ps-mem
 
-Displays per-process memory usage in a readable table by wrapping [`smem`](https://www.selenic.com/smem/) on Linux, or `ps` on macOS.
+Displays per-process memory usage in a readable table by wrapping `ps`, plus `/proc/PID/smaps_rollup` on Linux or `top` on macOS.
 
 ```bash
 ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total] [--process-name-max-length N]
@@ -853,17 +853,27 @@ each column is sized to the widest value actually printed. If `-c` /
 
 | OS | Backend | Available columns |
 | --- | --- | --- |
-| Linux | [`smem`](https://www.selenic.com/smem/) | `SWAP`, `RSS`, `USS`, `PSS` |
+| Linux | `ps -eww -o pid,user,args`, plus `/proc/PID/smaps_rollup` (Linux 4.14 or later) | `SWAP`, `RSS`, `USS`, `PSS` |
 | macOS | `ps -axo pid,user,rss,comm`, plus `top -l 1 -stats pid,mem` for `--footprint` | `RSS`, `FOOTPRINT` |
 
-`smem` reads `/proc/smaps`, which macOS does not have, so macOS falls back to
-`ps`. Since `ps` exposes no equivalent of SWAP / USS / PSS, requesting those
-columns on macOS exits with an error. Conversely `FOOTPRINT` is a macOS-only
-metric, so `--footprint` exits with an error elsewhere. `top` is only spawned
-when `--footprint` is actually requested, because that sample costs roughly a
-second.
+On Linux, `/proc/PID/smaps_rollup` carries the kernel-side sums of
+`/proc/PID/smaps`: its `Rss`, `Pss`, and `Swap` lines feed the columns of the
+same name, and `USS` is `Private_Clean + Private_Dirty`. That is exactly what
+[`smem`](https://www.selenic.com/smem/) computes, so no extra tool is needed.
+Processes whose rollup cannot be read (other users' processes when not root,
+and kernel threads) are skipped, like `smem` does. `PID`, `USER`, and
+`COMMAND` come from `ps` because it folds newlines and other control
+characters in a command line into spaces or `?`, so a process whose arguments
+contain a newline (an awk script passed as an argument, say) still occupies a
+single row.
 
-**Dependencies**: [`smem`](https://www.selenic.com/smem/) (Linux only; macOS uses the built-in `ps` and `top`)
+macOS has no `/proc`, so it falls back to `ps`. Since `ps` exposes no
+equivalent of SWAP / USS / PSS, requesting those columns on macOS exits with an
+error. Conversely `FOOTPRINT` is a macOS-only metric, so `--footprint` exits
+with an error elsewhere. `top` is only spawned when `--footprint` is actually
+requested, because that sample costs roughly a second.
+
+**Dependencies**: none beyond the built-in `ps` (Linux additionally needs `/proc/PID/smaps_rollup`, i.e. Linux 4.14 or later; macOS uses `top` for `--footprint`)
 
 <a id="ps-mem-reading-the-numbers"></a>
 **Reading the numbers**:

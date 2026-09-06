@@ -4,7 +4,7 @@
 
 function show_help() {
   cat << 'EOF'
-ps-mem - Display per-process memory usage in a readable table (wraps smem or ps)
+ps-mem - Display per-process memory usage in a readable table (wraps ps and /proc)
 
 Usage:
   ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total]
@@ -43,7 +43,8 @@ Description:
   part in that choice, so `ps-mem --pname` still sorts by RSS.
 
   Backends:
-    Linux: smem
+    Linux: ps, plus /proc/PID/smaps_rollup (Linux 4.14 or later)
+           (--footprint exits with an error because it is a macOS metric)
     macOS: ps, plus `top` when --footprint is requested
            (--swap, --uss, and --pss exit with an error because macOS has
            no equivalent of them)
@@ -346,7 +347,7 @@ function emit_footprint_table() {
 }
 
 if [[ $(uname -s) == 'Darwin' ]] ; then
-  # macOS has no /proc/smaps, so smem cannot work here. `ps` provides RSS only.
+  # macOS has no /proc, so smaps_rollup is unavailable. `ps` provides RSS only.
   for column in "${columns[@]}" ; do
     case "$column" in
       SWAP)
@@ -400,21 +401,54 @@ for column in "${columns[@]}" ; do
   fi
 done
 
-if ! command -v smem > /dev/null 2>&1 ; then
-  echo 'Error: smem is not installed' >&2
+# /proc/PID/smaps_rollup (Linux 4.14+) carries the per-process sums of
+# /proc/PID/smaps, which is exactly what smem computes, so no extra tool is
+# needed. Its Rss, Pss, and Swap lines map to the columns of the same name,
+# and USS is Private_Clean + Private_Dirty.
+if [[ ! -r /proc/self/smaps_rollup ]] ; then
+  echo 'Error: /proc/PID/smaps_rollup is not available (Linux 4.14 or later is required)' >&2
   exit 1
 fi
 
-# `-s rss` is kept even though the normalized stream is sorted afterwards,
-# because that sort is stable: RSS then breaks ties within the sorted column.
-smem -c 'pid user command swap uss pss rss' -H -s rss | awk -v OFS='\t' '
+# PID, USER, and COMMAND come from `ps` rather than /proc/PID/cmdline, because
+# `ps` folds newlines and other control characters in the command line into
+# spaces or '?'. A raw command line can contain newlines (an awk script passed
+# as an argument, for instance), which would split one process across several
+# lines of the normalized stream. `user:32` keeps long user names from being
+# truncated with '+', and `-ww` keeps long command lines intact.
+#
+# Processes whose smaps_rollup cannot be read are skipped, like smem did: other
+# users' processes when not running as root, kernel threads (whose rollup has
+# no Rss line), and processes that exited between `ps` and here.
+#
+# `-k 6,6` (RSS) is a secondary key so that RSS breaks ties within the sorted
+# column.
+ps -eww -o pid=,user:32=,args= | awk -v OFS='\t' '
 {
-  n = NF
+  file = "/proc/" $1 "/smaps_rollup"
+  found = 0
+  swap = uss = pss = rss = 0
+  while ((getline line < file) > 0) {
+    split(line, f)
+    if (f[1] == "Rss:") {
+      rss = f[2]
+      found = 1
+    } else if (f[1] == "Pss:") {
+      pss = f[2]
+    } else if (f[1] == "Swap:") {
+      swap = f[2]
+    } else if (f[1] == "Private_Clean:" || f[1] == "Private_Dirty:") {
+      uss += f[2]
+    }
+  }
+  close(file)
+  if (!found) next
+
   cmd = ""
-  for (i = 3; i <= n - 4; i++) cmd = cmd (cmd == "" ? "" : " ") $i
-  print $1, $2, $(n-3), $(n-2), $(n-1), $n, 0, cmd
+  for (i = 3; i <= NF; i++) cmd = cmd (cmd == "" ? "" : " ") $i
+  print $1, $2, swap, uss, pss, rss, 0, cmd
 }' \
-  | sort -s -t "$(printf '\t')" -k "$sort_field,$sort_field" -n \
+  | sort -s -t "$(printf '\t')" -n -k "$sort_field,$sort_field" -k 6,6 \
   | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
 
 # https://github.com/aiya000/bash-toys
