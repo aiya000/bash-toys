@@ -80,7 +80,9 @@ Provides intelligent completion for the `rm-dust` command:
 
 - **Options**: Completes `--help`, `-h`, `--restore`, `--keep`
 - **File paths**: Completes normal file paths when adding files to dustbox
-- **Dustbox files**: When using `--restore`, completes with files currently in the dustbox
+- **Dustbox files**: When using `--restore`, completes with the date-hour
+  directories and with the bare names inside them, since `--restore` accepts
+  either form
 
 **Example usage**:
 
@@ -89,9 +91,13 @@ Provides intelligent completion for the `rm-dust` command:
 $ rm-dust --<TAB>
 --help  --restore  --keep
 
-# Complete with dustbox files when using --restore
+# Complete with dustbox entries when using --restore
 $ rm-dust --restore <TAB>
-+tmp+file1.txt_2026-02-03_13:32:52.txt  +tmp+file2.txt_2026-02-03_13:32:53.txt
+2026-02-03-13/  +tmp+file1.txt.13:32.txt  +tmp+file2.txt.13:32.txt
+
+# Or narrow it down to one date-hour directory first
+$ rm-dust --restore 2026-02-03-13/<TAB>
+2026-02-03-13/+tmp+file1.txt.13:32.txt  2026-02-03-13/+tmp+file2.txt.13:32.txt
 ```
 
 ## License

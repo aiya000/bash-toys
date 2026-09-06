@@ -45,6 +45,34 @@ _rm_dust_completion() {
             COMPREPLY+=("${dir_part}${entry}")
           fi
         done < <(ls -1 "${target_dir}" 2>/dev/null)
+
+        # `rm-dust --restore` also takes a bare name, which it looks up across
+        # every date-hour directory, so offer those names alongside the
+        # directories themselves. Only at the top level: once a date-hour
+        # directory has been typed, the listing above is already the file list.
+        if [[ $dir_part == '' ]] ; then
+          local date_hour name candidate seen
+          while IFS= read -r date_hour ; do
+            [[ $date_hour == '' ]] && continue
+            [[ -d "${BASH_TOYS_DUSTBOX_DIR}/${date_hour}" ]] || continue
+            while IFS= read -r name ; do
+              [[ $name == '' ]] && continue
+              [[ $file_part != '' && ${name:0:${#file_part}} != "$file_part" ]] && continue
+              # The same name can sit in several date-hour directories, and
+              # --restore takes the first match, so offer it once
+              seen=false
+              for candidate in "${COMPREPLY[@]}" ; do
+                if [[ $candidate == "$name" ]] ; then
+                  seen=true
+                  break
+                fi
+              done
+              [[ $seen == true ]] && continue
+              COMPREPLY+=("$name")
+            done < <(ls -1 "${BASH_TOYS_DUSTBOX_DIR}/${date_hour}" 2>/dev/null)
+          done < <(ls -1 "$BASH_TOYS_DUSTBOX_DIR" 2>/dev/null)
+        fi
+
         # Enable filename mode so bash properly escapes spaces in completion candidates
         compopt -o filenames 2>/dev/null || :
       fi

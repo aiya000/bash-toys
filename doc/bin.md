@@ -431,7 +431,9 @@ source /path/to/bash-toys/completions/rm-dust.bash
 Completion features:
 - Option completion: `--help`, `-h`, `--restore`, `--keep`
 - File/directory completion: normal paths when adding to dustbox
-- Dustbox item completion: files and directories in dustbox when using `--restore`
+- Dustbox item completion: with `--restore`, the date-hour directories plus the
+  bare names inside them, which `--restore` looks up across every date-hour
+  directory. Typing a date-hour directory then completes the files under it
 
 **Migration from Old Formats**:
 
