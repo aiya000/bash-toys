@@ -42,8 +42,7 @@ Description:
   Command names longer than the COMMAND column width are truncated with
   '...'. Use --process-name-max-length to widen (or narrow) that column.
 
-  Columns are separated by '|', and a horizontal rule as wide as the
-  table is drawn under the header, breaking at those same positions, so
+  A horizontal rule as wide as the table is drawn under the header, so
   the columns stay readable once the command names start running long.
 
   Values are converted to MiB. Rows are sorted ascending by the memory
@@ -406,28 +405,26 @@ END {
     }
   }
 
-  header = sprintf("%-*s | %-*s", pid_w, "PID", user_w, "USER")
-  if (!has_cmd) header = header sprintf(" | %-*s", cmd_w, "COMMAND")
+  header = sprintf("%-*s %-*s", pid_w, "PID", user_w, "USER")
+  if (!has_cmd) header = header sprintf(" %-*s", cmd_w, "COMMAND")
   for (i = 1; i <= n_cols; i++) {
-    if (col_list[i] == "COMMAND") header = header sprintf(" | %-*s", col_w[i], "COMMAND")
-    else header = header sprintf(" | %*s", col_w[i], col_list[i])
+    if (col_list[i] == "COMMAND") header = header sprintf(" %-*s", col_w[i], "COMMAND")
+    else header = header sprintf(" %*s", col_w[i], col_list[i])
   }
   print header
 
   # A horizontal rule under the header, as wide as the table, so the columns
-  # stay readable once the command names start running long. It is derived from
-  # the header so that its column breaks land on the same separators, whatever
-  # widths the table ended up with.
-  separator = header
-  gsub(/[^|]/, "-", separator)
+  # stay readable once the command names start running long
+  separator = sprintf("%*s", length(header), "")
+  gsub(/ /, "-", separator)
   print separator
 
   for (j = 1; j <= rows; j++) {
-    row = sprintf("%-*s | %-*s", pid_w, r_pid[j], user_w, r_user[j])
-    if (!has_cmd) row = row sprintf(" | %-*s", cmd_w, r_cmd[j])
+    row = sprintf("%-*s %-*s", pid_w, r_pid[j], user_w, r_user[j])
+    if (!has_cmd) row = row sprintf(" %-*s", cmd_w, r_cmd[j])
     for (i = 1; i <= n_cols; i++) {
-      if (col_list[i] == "COMMAND") row = row sprintf(" | %-*s", col_w[i], r_val[j, i])
-      else row = row sprintf(" | %*s", col_w[i], r_val[j, i])
+      if (col_list[i] == "COMMAND") row = row sprintf(" %-*s", col_w[i], r_val[j, i])
+      else row = row sprintf(" %*s", col_w[i], r_val[j, i])
     }
     print row
   }
@@ -435,11 +432,11 @@ END {
   if (total) {
     print separator
 
-    row = sprintf("%-*s | %-*s", pid_w, "TOTAL", user_w, "-")
-    if (!has_cmd) row = row sprintf(" | %-*s", cmd_w, total_label)
+    row = sprintf("%-*s %-*s", pid_w, "TOTAL", user_w, "-")
+    if (!has_cmd) row = row sprintf(" %-*s", cmd_w, total_label)
     for (i = 1; i <= n_cols; i++) {
-      if (col_list[i] == "COMMAND") row = row sprintf(" | %-*s", col_w[i], t_val[i])
-      else row = row sprintf(" | %*s", col_w[i], t_val[i])
+      if (col_list[i] == "COMMAND") row = row sprintf(" %-*s", col_w[i], t_val[i])
+      else row = row sprintf(" %*s", col_w[i], t_val[i])
     }
     print row
   }

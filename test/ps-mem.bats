@@ -62,26 +62,6 @@ descending_mib_column() {
   sorted_mib_column desc "$occurrence" "$@"
 }
 
-# Prints the 1-based positions of the '|' column breaks in a line, space
-# separated. Pass $2 to stop after that many, which is what a data row needs:
-# only the PID and USER cells are guaranteed not to contain a '|' of their own,
-# since COMMAND carries a whole command line.
-pipe_positions() {
-  printf '%s' "$1" | awk -v want="$2" '
-    {
-      out = ""
-      found = 0
-      for (i = 1; i <= length($0); i++) {
-        if (substr($0, i, 1) != "|") continue
-        found++
-        out = out (out == "" ? "" : " ") i
-        if (want != "" && found >= want + 0) break
-      }
-      print out
-    }
-  '
-}
-
 # Prints 'yes' when $1 is greater than $2
 greater_than() {
   awk -v a="$1" -v b="$2" 'BEGIN { print (a > b) ? "yes" : "no" }'
@@ -505,7 +485,7 @@ greater_than() {
 
   # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
   local last=$(( ${#lines[@]} - 1 ))
-  expects "${lines[$last]}" to_match '^TOTAL +\| +- +\| +3 processes '
+  expects "${lines[$last]}" to_match '^TOTAL +- +3 processes '
 }
 
 @test '--total counts only the rows kept by --tail' {
@@ -513,7 +493,7 @@ greater_than() {
   expects "$status" to_be 0
 
   local last=$(( ${#lines[@]} - 1 ))
-  expects "${lines[$last]}" to_match '^TOTAL +\| +- +\| +3 processes '
+  expects "${lines[$last]}" to_match '^TOTAL +- +3 processes '
 }
 
 @test '--reverse sorts the memory column descending' {
@@ -538,73 +518,33 @@ greater_than() {
 @test 'a horizontal rule is drawn right under the header' {
   run ps-mem
   expects "$status" to_be 0
-  expects "${lines[1]}" to_match '^[-|]+$'
+  expects "${lines[1]}" to_match '^-+$'
   expects "${#lines[1]}" to_be "${#lines[0]}"
 }
 
 @test 'the header rule follows the table width' {
   run ps-mem -c 60
   expects "$status" to_be 0
-  expects "${lines[1]}" to_match '^[-|]+$'
+  expects "${lines[1]}" to_match '^-+$'
   expects "${#lines[1]}" to_be "${#lines[0]}"
 }
 
 @test 'the header rule is drawn alongside the --total rule' {
   run ps-mem --total
   expects "$status" to_be 0
-  expects "${lines[1]}" to_match '^[-|]+$'
+  expects "${lines[1]}" to_match '^-+$'
 
   # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
   local last=$(( ${#lines[@]} - 1 ))
   local rule=$(( last - 1 ))
-  expects "${lines[$rule]}" to_match '^[-|]+$'
+  expects "${lines[$rule]}" to_match '^-+$'
   expects "${#lines[$rule]}" to_be "${#lines[1]}"
 }
 
 @test 'the first data row comes right after the header rule' {
   run ps-mem
   expects "$status" to_be 0
-  expects "${lines[2]}" to_match '^[0-9]+ +\| +[^ ]+ +\| +.*[0-9]+\.[0-9]MiB$'
-}
-
-@test 'columns are separated by a pipe' {
-  run ps-mem
-  expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS'
-  expects "${lines[2]}" to_match '^[0-9]+ +\| +[^ ]+ +\| +.*\| +[0-9]+\.[0-9]MiB$'
-}
-
-@test 'both rules break at the same columns as the header' {
-  run ps-mem --total
-  expects "$status" to_be 0
-
-  local wanted
-  wanted=$(pipe_positions "${lines[0]}")
-  expects "$wanted" not to_equal ''
-  expects "$(pipe_positions "${lines[1]}")" to_equal "$wanted"
-
-  # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
-  local last=$(( ${#lines[@]} - 1 ))
-  local rule=$(( last - 1 ))
-  expects "$(pipe_positions "${lines[$rule]}")" to_equal "$wanted"
-}
-
-@test 'data rows and the TOTAL row line up with the header' {
-  run ps-mem --total
-  expects "$status" to_be 0
-
-  local wanted
-  wanted=$(pipe_positions "${lines[0]}" 2)
-  expects "$(pipe_positions "${lines[2]}" 2)" to_equal "$wanted"
-
-  local last=$(( ${#lines[@]} - 1 ))
-  expects "$(pipe_positions "${lines[$last]}" 2)" to_equal "$wanted"
-}
-
-@test 'a pipe also separates COMMAND wherever --pname puts it' {
-  run ps-mem --rss --pname
-  expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| +RSS +\| COMMAND'
+  expects "${lines[2]}" to_match '^[0-9]+ +[^ ]+ +.*[0-9]+\.[0-9]MiB$'
 }
 
 @test 'header always shows PID, USER, COMMAND plus selected columns in order' {
@@ -613,7 +553,7 @@ greater_than() {
   fi
   run ps-mem --swap --rss
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +SWAP +\| +RSS'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +SWAP +RSS'
 }
 
 @test 'header column order follows --rss --swap' {
@@ -622,7 +562,7 @@ greater_than() {
   fi
   run ps-mem --rss --swap
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS +\| +SWAP'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS +SWAP'
 }
 
 @test 'header places COMMAND at the --pname position' {
@@ -631,7 +571,7 @@ greater_than() {
   fi
   run ps-mem --swap --pname --rss
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| +SWAP +\| COMMAND +\| +RSS'
+  expects "${lines[0]}" to_match 'PID +USER +SWAP +COMMAND +RSS'
 }
 
 @test 'default run shows RSS column with MiB values for at least one process' {
@@ -640,7 +580,7 @@ greater_than() {
   fi
   run ps-mem
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
   expects "$output" to_match '[0-9]+\.[0-9]MiB'
 }
 
@@ -695,14 +635,14 @@ greater_than() {
   fi
   run ps-mem --pss --total
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +PSS'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +PSS'
 
   # bash 3.2 (macOS' /bin/bash) has no negative array subscripts
   local last=$(( ${#lines[@]} - 1 ))
-  expects "${lines[$last]}" to_match '^TOTAL +\| +- +\| +[0-9]+ processes +\| +[0-9]+\.[0-9](MiB|GiB)$'
+  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9](MiB|GiB)$'
 
   local rule=$(( last - 1 ))
-  expects "${lines[$rule]}" to_match '^[-|]+$'
+  expects "${lines[$rule]}" to_match '^-+$'
   expects "${#lines[$rule]}" to_be "${#lines[0]}"
 }
 
@@ -729,11 +669,11 @@ greater_than() {
   local rows=$(( last - 3 ))
   local line
   for line in "${lines[@]:2:$rows}" ; do
-    expects "$line" to_match '^[0-9]+ +\| +[^ ]+ +\| +.*[0-9]+\.[0-9]MiB$'
+    expects "$line" to_match '^[0-9]+ +[^ ]+ +.*[0-9]+\.[0-9]MiB$'
   done
 
   # Nothing was dropped between the rows and the TOTAL row
-  expects "${lines[$last]}" to_match "^TOTAL +\| +- +\| +$rows processes "
+  expects "${lines[$last]}" to_match "^TOTAL +- +$rows processes "
 }
 
 @test 'Linux: --process-name-max-length is not capped by the backend' {
@@ -756,7 +696,7 @@ greater_than() {
   fi
   run ps-mem
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
   expects "$output" to_match '[0-9]+\.[0-9]MiB'
 }
 
@@ -766,7 +706,7 @@ greater_than() {
   fi
   run ps-mem --rss
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
 }
 
 @test 'macOS: RSS is sorted ascending' {
@@ -867,7 +807,7 @@ greater_than() {
   fi
   run ps-mem --process-name-max-length 60
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
 }
 
 @test 'macOS: all data rows have the same line length as the header' {
@@ -890,7 +830,7 @@ greater_than() {
   fi
   run ps-mem --rss --pname
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| +RSS +\| COMMAND'
+  expects "${lines[0]}" to_match 'PID +USER +RSS +COMMAND'
 }
 
 @test 'macOS: --pname alone keeps COMMAND before RSS' {
@@ -899,7 +839,7 @@ greater_than() {
   fi
   run ps-mem --pname
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS'
 }
 
 @test 'macOS: all data rows stay aligned with --rss --pname' {
@@ -922,7 +862,7 @@ greater_than() {
   fi
   run ps-mem --footprint
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +FOOTPRINT'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +FOOTPRINT'
   expects "$output" to_match '[0-9]+\.[0-9]MiB'
 }
 
@@ -932,7 +872,7 @@ greater_than() {
   fi
   run ps-mem --rss --footprint
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match 'PID +\| USER +\| COMMAND +\| +RSS +\| +FOOTPRINT'
+  expects "${lines[0]}" to_match 'PID +USER +COMMAND +RSS +FOOTPRINT'
 }
 
 @test 'macOS: --footprint reports more than RSS in total' {
@@ -944,7 +884,7 @@ greater_than() {
 
   local last=$(( ${#lines[@]} - 1 ))
   local total_line=${lines[$last]}
-  expects "$total_line" to_match '^TOTAL +\| +-'
+  expects "$total_line" to_match '^TOTAL +-'
 
   # The TOTAL row switches to GiB from 10000.0MiB up, so normalize to MiB
   local rss footprint
@@ -961,7 +901,7 @@ greater_than() {
   expects "$status" to_be 0
 
   local last=$(( ${#lines[@]} - 1 ))
-  expects "${lines[$last]}" to_match '^TOTAL +\| +- +\| +[0-9]+ processes +\| +[0-9]+\.[0-9](MiB|GiB)$'
+  expects "${lines[$last]}" to_match '^TOTAL +- +[0-9]+ processes +[0-9]+\.[0-9](MiB|GiB)$'
 }
 
 @test 'macOS: --total draws a horizontal rule right above the TOTAL row' {
@@ -973,7 +913,7 @@ greater_than() {
 
   local last=$(( ${#lines[@]} - 1 ))
   local rule=$(( last - 1 ))
-  expects "${lines[$rule]}" to_match '^[-|]+$'
+  expects "${lines[$rule]}" to_match '^-+$'
   expects "${#lines[$rule]}" to_be "${#lines[0]}"
 }
 
@@ -983,13 +923,13 @@ greater_than() {
   fi
   run ps-mem
   expects "$status" to_be 0
-  expects "${lines[1]}" to_match '^[-|]+$'
+  expects "${lines[1]}" to_match '^-+$'
 
   # `$output` is checked line by line because bash's `=~` anchors match the
   # whole string, not each line
   local line
   for line in "${lines[@]:2}" ; do
-    expects "$line" not to_match '^[-|]+$'
+    expects "$line" not to_match '^-+$'
   done
 }
 
