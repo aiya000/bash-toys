@@ -1793,6 +1793,32 @@ ctags-auto: generating to '/path/to/git/repo/.git/tags-tmp'
 Generated: /path/to/git/repo/.git/tags
 ```
 
+### is-in-macos
+
+Check if running on macOS.
+
+```bash
+is-in-macos
+```
+
+**Examples**:
+```bash
+# On macOS
+$ is-in-macos && echo 'macOS' || echo 'Not macOS'
+macOS
+# Exit status: 0
+
+# Outside macOS (Linux, WSL, etc.)
+$ is-in-macos && echo 'macOS' || echo 'Not macOS'
+Not macOS
+# Exit status: 1
+
+# Use in scripts
+$ if is-in-macos ; then
+>   echo "Running on macOS"
+> fi
+```
+
 ### is-in-wsl
 
 Check if running in Windows Subsystem for Linux.
