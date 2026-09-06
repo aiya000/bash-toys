@@ -37,6 +37,48 @@ setup() {
   [[ $status -eq 0 ]]
 }
 
+@test '`expects no to_be yes` should fail' {
+  run expects no to_be yes
+  expects "$status" to_be 1
+  [[ $output == "FAIL: expected {actual} to_be 'yes', but {actual} is 'no'" ]]
+}
+
+@test '`expects hello to_be hello` should succeed' {
+  run expects hello to_be hello
+  expects "$status" to_be 0
+}
+
+@test '`expects 007 to_be 7` should fail, since to_be compares as a string' {
+  run expects 007 to_be 7
+  expects "$status" to_be 1
+}
+
+@test '`expects "" to_be 0` should fail, since an empty value is not the string 0' {
+  run expects "" to_be 0
+  expects "$status" to_be 1
+}
+
+@test '`expects 007 eq 7` should succeed, since eq compares as a number' {
+  run expects 007 eq 7
+  expects "$status" to_be 0
+}
+
+@test '`expects 007 to_be_numerically_equal_to 7` is the long form of eq' {
+  run expects 007 to_be_numerically_equal_to 7
+  expects "$status" to_be 0
+}
+
+@test '`expects 42 eq 10` should fail' {
+  run expects 42 eq 10
+  expects "$status" to_be 1
+  [[ $output == "FAIL: expected {actual} eq '10', but {actual} is '42'" ]]
+}
+
+@test '`expects 10 not eq 42` should succeed' {
+  run expects 10 not eq 42
+  expects "$status" to_be 0
+}
+
 @test '`expects 10 not to_be 10` should fail' {
   run expects 10 not to_be 10
   [[ $status -eq 1 ]]

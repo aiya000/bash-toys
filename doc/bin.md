@@ -629,7 +629,15 @@ expects VALUE MATCHER [EXPECTED]
 expects VALUE not MATCHER [EXPECTED]
 ```
 
-**Matchers**: `to_be`, `to_equal`, `to_be_less_than`, `to_be_greater_than`, `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`, `to_be_a_file`, `to_be_a_dir`
+**Matchers**: `to_be`, `to_equal`, `to_be_numerically_equal_to` (`eq`), `to_be_less_than` (`lt`), `to_be_greater_than` (`gt`), `to_be_less_than_or_equal_to` (`le`), `to_be_greater_than_or_equal_to` (`ge`), `to_contain`, `to_match`, `to_be_true`, `to_be_false`, `to_be_defined`, `to_be_a_file`, `to_be_a_dir`
+
+`to_be` and `to_equal` both compare as **strings**, the way Jest's `toBe` and
+`toEqual` compare primitives: neither coerces its arguments, so
+`expects no to_be yes` fails rather than quietly passing. (Jest separates the
+two only for objects, which a shell has no equivalent of.)
+
+Use `eq` / `lt` / `gt` / `le` / `ge` when the values are numbers and their
+spelling does not matter, e.g. `expects 007 eq 7`.
 
 **Examples**:
 ```bash
@@ -644,6 +652,21 @@ FAIL: expected {actual} to_be '10', but {actual} is '42'
 # Negated assertion
 $ expects 10 not to_be 42 && echo "Test passed"
 Test passed
+
+# to_be compares as a string, so unequal words really do fail
+$ expects no to_be yes
+FAIL: expected {actual} to_be 'yes', but {actual} is 'no'
+
+# ... and so does a number spelled differently
+$ expects 007 to_be 7
+FAIL: expected {actual} to_be '7', but {actual} is '007'
+
+# Use eq to compare as numbers instead
+$ expects 007 eq 7 && echo "Test passed"
+Test passed
+
+$ expects 42 eq 10
+FAIL: expected {actual} eq '10', but {actual} is '42'
 
 # String containment
 $ expects "hello world" to_contain "world" && echo "Test passed"

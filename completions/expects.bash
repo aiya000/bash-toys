@@ -7,7 +7,7 @@ _expects_completion() {
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  local matchers='to_be to_equal to_be_less_than lt to_be_greater_than gt to_be_less_than_or_equal_to le to_be_greater_than_or_equal_to ge to_contain to_match to_be_true to_be_false to_be_defined to_be_a_file to_be_a_dir'
+  local matchers='to_be to_equal to_be_numerically_equal_to eq to_be_less_than lt to_be_greater_than gt to_be_less_than_or_equal_to le to_be_greater_than_or_equal_to ge to_contain to_match to_be_true to_be_false to_be_defined to_be_a_file to_be_a_dir'
 
   if [[ $cur == -* ]] ; then
     COMPREPLY=($(compgen -W '--help -h' -- "$cur"))

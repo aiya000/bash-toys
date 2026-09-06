@@ -13,7 +13,8 @@ Usage:
 
 Arguments:
   VALUE               The value to test
-  MATCHER            One of: to_be, to_equal, to_be_less_than (lt), to_be_greater_than (gt),
+  MATCHER            One of: to_be, to_equal, to_be_numerically_equal_to (eq),
+                     to_be_less_than (lt), to_be_greater_than (gt),
                      to_be_less_than_or_equal_to (le), to_be_greater_than_or_equal_to (ge),
                      to_contain, to_match, to_be_true, to_be_false, to_be_defined,
                      to_be_a_file, to_be_a_dir
@@ -22,9 +23,16 @@ Arguments:
 Options:
   -h, --help         Show this help message
 
+Note:
+  to_be and to_equal both compare as strings, like Jest's toBe and toEqual do
+  for primitives. Use eq / lt / gt / le / ge to compare as numbers, so that
+  '007' and '7' count as the same value.
+
 Examples:
   expects 10 to_be 10
+  expects hello not to_be world
   expects hello not to_equal world
+  expects 007 eq 7
   expects true to_be_true
   expects foo to_contain oo
   expects 123 to_match '^[0-9]+$'
@@ -52,6 +60,10 @@ function test_value () {
   local actual=$1 matcher=$2 expected=$3
   case $matcher in
     to_be)
+      [[ $actual == "$expected" ]]
+      return $?
+      ;;
+    to_be_numerically_equal_to|eq)
       [[ $actual -eq $expected ]]
       return $?
       ;;
@@ -132,7 +144,7 @@ function format_failure_message () {
   if [[ $matcher == to_be_defined && -z $not ]] ; then
     printf "FAIL: expected {actual} %s%s, but {actual} is %s\n" \
       "$not" "$matcher" "$visible_actual"
-  elif [[ $matcher == to_equal ]] ; then
+  elif [[ $matcher == to_be || $matcher == to_equal ]] ; then
     printf "FAIL: expected {actual} %s%s %s, but {actual} is %s\n" \
       "$not" "$matcher" "$visible_expected" "$visible_actual"
   else

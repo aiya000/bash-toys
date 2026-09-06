@@ -207,6 +207,8 @@ PASS
 $ expects "$x" not to_be 0 && echo "PASS"        # Negation
 PASS
 $ expects "hello world" to_contain "world"       # String containment
+$ expects 007 eq 7 && echo "PASS"                # eq compares as numbers, to_be as strings
+PASS
 ```
 
 And more assertions are available.
