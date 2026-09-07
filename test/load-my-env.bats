@@ -21,3 +21,14 @@ setup() {
   expects "$status" to_be 0
   expects "${lines[0]}" to_match '^load-my-env - '
 }
+
+@test '`load-my-env headroom` should be defined (not an undefined env)' {
+  run load-my-env headroom
+  expects "$status" to_be 0
+  expects "$output" to_match 'headroom mcp backend'
+}
+
+@test '`load-my-env headroom` should set $ANTHROPIC_BASE_URL' {
+  load-my-env headroom > /dev/null
+  expects "$ANTHROPIC_BASE_URL" to_be http://127.0.0.1:8787
+}

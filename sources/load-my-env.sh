@@ -14,7 +14,7 @@ Arguments:
   env_name    Name of the environment to load
 
 Available environments:
-  cargo, ccache, conda, docker, drawio, gcloud, gradlew,
+  cargo, ccache, conda, docker, drawio, gcloud, gradlew, headroom,
   idris, linuxbrew, mise, nvm, pkgsrc, pnpm, rbenv, cabal, stack, ghcup, travis, virtualenv
 
 Examples:
@@ -264,6 +264,20 @@ function load-my-env () {
 
     pnpm)
       eval "$(pnpm completion zsh)"
+      ;;
+
+    headroom)
+      # https://github.com/headroomlabs-ai/headroom
+      export HEADROOM_PORT=8787
+      export HEADROOM_HOST=127.0.0.1
+      export HEADROOM_MODE=cache
+      export HEADROOM_BACKEND=anthropic
+      export HEADROOM_TELEMETRY=off
+      export ANTHROPIC_BASE_URL=http://127.0.0.1:8787
+      export ENABLE_TOOL_SEARCH=true
+      echo 'The headroom mcp backend has been started.'
+      echo '$ANTHROPIC_BASE_URL has been set.'
+      echo 'Please note that /remote-control becomes unavailable.'
       ;;
 
     *)

@@ -292,7 +292,7 @@ load-my-env help
 
 **Available environments**:
 - cabal, cargo, ccache, conda, docker, drawio, gcloud
-- gradlew, idris, linuxbrew, mise, nvm, pkgsrc
+- gradlew, headroom, idris, linuxbrew, mise, nvm, pkgsrc
 - pnpm, rbenv, stack, travis, virtualenv
 
 **Example**:
