@@ -231,7 +231,7 @@ Error: BASH_TOYS_NTFY_TOPIC environment variable is required
 
 Start a self-hosted ntfy server and subscribe to its event stream.
 Without `--docker`, runs the local `ntfy` binary directly on this machine (must be installed; see https://ntfy.sh).
-With `--docker`, runs it in Docker instead.
+With `--docker`, runs it in Docker instead (exits with status 1 if the container fails to start, e.g. Docker is not running).
 Automatically stops the server on exit (including Ctrl+C).
 
 The server always listens on all network interfaces; `--host` only affects the URL used to subscribe (and, with `--docker`, the ntfy server's `--base-url`), so pass the LAN IP you want other devices to reach it at.

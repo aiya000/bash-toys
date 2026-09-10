@@ -201,6 +201,11 @@ if [[ $opt_docker == true ]] ; then
     --base-url "$base_url" \
   )
 
+  if [[ $container_id == '' ]] ; then
+    echo "Error: Failed to start the ntfy Docker container. Is Docker running?" >&2
+    exit 1
+  fi
+
   echo "ntfy container: $container_id"
 else
   if ! command -v ntfy > /dev/null 2>&1 ; then
