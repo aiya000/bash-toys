@@ -164,9 +164,19 @@ function find_attachement_dir() {
 function format_event() {
   jq -r '
     def human_time: localtime | strftime("%Y-%m-%d %H:%M");
+    def render_entries(indent):
+      to_entries
+      | map(
+          if (.value | type) == "object" then
+            indent + "- \(.key):\n" + (.value | render_entries(indent + "  "))
+          else
+            indent + "- \(.key): \(.value)"
+          end
+        )
+      | join("\n");
     ("\n>>> " + (.time | human_time)) as $header
     | (if has("expires") then .expires |= human_time else . end) as $obj
-    | $header + "\n" + ($obj | del(.time) | to_entries | map("- \(.key): \(.value)") | join("\n"))
+    | $header + "\n" + ($obj | del(.time) | render_entries(""))
   '
 }
 
