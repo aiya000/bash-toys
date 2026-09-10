@@ -102,7 +102,7 @@ These dependencies are documented at the beginning of the script.
 | [`notify-cascade`](./bin/notify-cascade) | Send cascade of notifications at specified intervals before target time | `$ notify-cascade 15:00 "M" "M" 30m 5m # 30m,5m before` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`notify-ntfy`](./bin/notify-ntfy) | Send notification to mobile via ntfy.sh | `$ notify-ntfy "T" "M" # to mobile` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`notify-task-result`](./bin/notify-task-result) | Send notification based on exit status of previous command | `$ make; notify-task-result # success/fail` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-notify-task-result.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-notify-task-result.yml) |
-| [`ntfy-watch-docker`](./bin/ntfy-watch-docker) | Start a self-hosted ntfy server in Docker and subscribe to its default topic | `$ ntfy-watch-docker --host 192.168.1.10 --port 18432` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
+| [`ntfy-watch`](./bin/ntfy-watch) | Start a self-hosted ntfy server (locally or in Docker) and subscribe to its event stream | `$ ntfy-watch --host 192.168.1.10 --port 18432` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`pathshorten`](./bin/pathshorten) | Abbreviate file path with shortened parent directories | `$ pathshorten ~/Documents/Proj # => ~/Docu/Proj` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`peco-reverse`](./bin/peco-reverse) | Reverse order interactive filter using peco | `$ ls \| peco-reverse # reversed filter` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
 | [`photoframe`](./bin/photoframe) | Display photos in fullscreen slideshow mode using feh | `$ photoframe ~/Pictures # slideshow` | ![No Test](https://img.shields.io/badge/Test-N%2FA-lightgray) |
@@ -237,13 +237,14 @@ $ long-running-task && notify-ntfy "Done" "Task finished"
 # See ./bin/notify-ntfy for usage
 ```
 
-**[`ntfy-watch-docker`](./bin/ntfy-watch-docker)** - Run a self-hosted [ntfy](https://ntfy.sh) server in Docker and watch its event stream.
+**[`ntfy-watch`](./bin/ntfy-watch)** - Start a self-hosted [ntfy](https://ntfy.sh) server and watch its event stream. By default, runs the local `ntfy` binary (must be installed); with `--docker`, runs it in Docker instead.
 
 ```bash
-$ ntfy-watch-docker                                    # localhost:80 (defaults)
-$ ntfy-watch-docker --host 192.168.1.10 --port 18432   # specific host/port
-$ BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch-docker
-# Ctrl+C cleanly stops the container
+$ ntfy-watch                                           # run local ntfy, then subscribe (localhost:80)
+$ ntfy-watch --docker                                  # run ntfy in Docker, then subscribe
+$ ntfy-watch --host 192.168.1.10 --port 18432          # specific host/port
+$ BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch
+# Ctrl+C cleanly stops the server
 ```
 
 **[`notify-at`](./bin/notify-at)** - Schedule notifications with human-friendly time formats. (A wrapper for `notify`, and `at` command (Linux) or `launchd` (macOS).)

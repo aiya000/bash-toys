@@ -6,16 +6,21 @@ FILTERED_EVENTS=('keepalive')
 ATTACHMENTS_SIZE_LIMIT=100M
 
 container_id=
+ntfy_serve_pid=
 curl_pid=
 
 function show_help() {
   cat << EOF
-Usage: ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT] [--topic TOPIC]
-       ntfy-watch-docker (-h | --help)
+Usage: ntfy-watch [--docker] [--protocol PROTOCOL] [--host HOST] [--port PORT] [--topic TOPIC]
+       ntfy-watch (-h | --help)
 
-Start a self-hosted ntfy server in Docker and subscribe to its default topic.
+Start a self-hosted ntfy server and subscribe to its event stream.
+Without --docker, runs the local \`ntfy\` binary directly on this machine.
+With --docker, runs it in Docker instead.
+Automatically stops the server on exit (including Ctrl+C).
 
 Options:
+  --docker               Run the ntfy server in Docker instead of the local \`ntfy\` binary
   --protocol PROTOCOL    Protocol to use (default: http, or parsed from BASH_TOYS_NTFY_SERVING_URL)
   --host HOST            Hostname or IP address (default: localhost, or parsed from BASH_TOYS_NTFY_SERVING_URL)
   --port PORT            Port number (default: 80, or parsed from BASH_TOYS_NTFY_SERVING_URL)
@@ -26,14 +31,16 @@ Environment Variables:
   BASH_TOYS_TMP_BASE_DIR        Base directory for attachment cache
 
 Examples:
-  ntfy-watch-docker
-  ntfy-watch-docker --host 192.168.1.10 --port 18432
-  ntfy-watch-docker --protocol https --host 192.168.1.10 --port 18432
-  BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch-docker
+  ntfy-watch
+  ntfy-watch --docker
+  ntfy-watch --host 192.168.1.10 --port 18432
+  ntfy-watch --docker --protocol https --host 192.168.1.10 --port 18432
+  BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch
 
 EOF
 }
 
+opt_docker=false
 opt_protocol=
 opt_host=
 opt_port=
@@ -41,6 +48,10 @@ opt_topic=
 
 while [[ $# -gt 0 ]] ; do
   case "$1" in
+    --docker)
+      opt_docker=true
+      shift
+      ;;
     --protocol)
       opt_protocol="$2"
       shift 2
@@ -127,6 +138,7 @@ base_url="$protocol://$host:$port"
 authority="$host:$port"
 
 if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+  echo "docker=$opt_docker"
   echo "protocol=$protocol"
   echo "host=$host"
   echo "port=$port"
@@ -143,7 +155,6 @@ function find_attachement_dir() {
 
   echo "Coudn't find a directory for attachment files. Fallback to /tmp" >&2
 }
-attachments_store_dir=$(find_attachement_dir)
 
 function filter_events() {
   while IFS= read -r line ; do
@@ -158,30 +169,57 @@ function cleanup() {
   if [[ $curl_pid != '' ]] ; then
     kill "$curl_pid" 2>/dev/null
   fi
-  if [[ $container_id != '' ]] ; then
-    docker stop "$container_id" 2>/dev/null
+  if [[ $opt_docker == true ]] ; then
+    if [[ $container_id != '' ]] ; then
+      docker stop "$container_id" 2>/dev/null
+    fi
+  else
+    if [[ $ntfy_serve_pid != '' ]] ; then
+      kill "$ntfy_serve_pid" 2>/dev/null
+    fi
   fi
 }
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+attachments_store_dir=$(find_attachement_dir)
+
 if [[ ! -d $attachments_store_dir ]] ; then
   mkdir -p "$attachments_store_dir"
 fi
 
-container_id=$( \
-  docker run -d \
-  -p "$port:80" \
-  -v $attachments_store_dir:/attachments \
-  binwiederhier/ntfy serve \
-  --attachment-cache-dir /attachments \
-  --attachment-file-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
-  --attachment-total-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
-  --base-url "$base_url" \
-)
+if [[ $opt_docker == true ]] ; then
+  container_id=$( \
+    docker run -d \
+    -p "$port:80" \
+    -v $attachments_store_dir:/attachments \
+    binwiederhier/ntfy serve \
+    --attachment-cache-dir /attachments \
+    --attachment-file-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
+    --attachment-total-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
+    --base-url "$base_url" \
+  )
 
-echo "ntfy container: $container_id"
+  echo "ntfy container: $container_id"
+else
+  if ! command -v ntfy > /dev/null 2>&1 ; then
+    echo "Error: ntfy command not found. Install it (https://ntfy.sh), or use --docker instead." >&2
+    exit 1
+  fi
+
+  ntfy serve \
+    --listen-http ":$port" \
+    --attachment-cache-dir "$attachments_store_dir" \
+    --attachment-file-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
+    --attachment-total-size-limit "$ATTACHMENTS_SIZE_LIMIT" \
+    --base-url "$base_url" \
+    &
+  ntfy_serve_pid=$!
+
+  echo "ntfy process: $ntfy_serve_pid"
+fi
+
 echo "Base URL: $base_url"
 echo "Topic: $topic"
 

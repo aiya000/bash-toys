@@ -227,17 +227,22 @@ Error: BASH_TOYS_NTFY_TOPIC environment variable is required
 # Exit status: 1
 ```
 
-### ntfy-watch-docker
+### ntfy-watch
 
-Start a self-hosted ntfy server in Docker and subscribe to its default topic.
-Automatically starts and stops the Docker container on exit (including Ctrl+C).
+Start a self-hosted ntfy server and subscribe to its event stream.
+Without `--docker`, runs the local `ntfy` binary directly on this machine (must be installed; see https://ntfy.sh).
+With `--docker`, runs it in Docker instead.
+Automatically stops the server on exit (including Ctrl+C).
+
+The server always listens on all network interfaces; `--host` only affects the URL used to subscribe (and, with `--docker`, the ntfy server's `--base-url`), so pass the LAN IP you want other devices to reach it at.
 
 ```bash
-ntfy-watch-docker [--protocol PROTOCOL] [--host HOST] [--port PORT] [--topic TOPIC]
-ntfy-watch-docker (-h | --help)
+ntfy-watch [--docker] [--protocol PROTOCOL] [--host HOST] [--port PORT] [--topic TOPIC]
+ntfy-watch (-h | --help)
 ```
 
 **Options**:
+- `--docker` - Run the ntfy server in Docker instead of the local `ntfy` binary
 - `--protocol PROTOCOL` - Protocol to use (default: `http`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
 - `--host HOST` - Hostname or IP address (default: `localhost`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
 - `--port PORT` - Port number (default: `80`, or parsed from `BASH_TOYS_NTFY_SERVING_URL`)
@@ -249,25 +254,33 @@ ntfy-watch-docker (-h | --help)
 
 **Examples**:
 ```bash
-# Start with defaults (localhost:80, topic: default)
-$ ntfy-watch-docker
+# Run the local `ntfy` binary and subscribe (localhost:80, topic: default)
+$ ntfy-watch
+ntfy process: 12345
+Base URL: http://localhost:80
+Topic: default
+
+# Run in Docker instead
+$ ntfy-watch --docker
 ntfy container: abc123def456
+Base URL: http://localhost:80
+Topic: default
 
 # Specify host and port only (no need to specify protocol)
-$ ntfy-watch-docker --host 192.168.1.10 --port 18432
-ntfy container: abc123def456
+$ ntfy-watch --host 192.168.1.10 --port 18432
+ntfy process: 12345
 
 # Specify all options
-$ ntfy-watch-docker --protocol https --host 192.168.1.10 --port 18432
+$ ntfy-watch --docker --protocol https --host 192.168.1.10 --port 18432
 ntfy container: abc123def456
 
 # Subscribe to a specific topic
-$ ntfy-watch-docker --topic alerts
-ntfy container: abc123def456
+$ ntfy-watch --topic alerts
+ntfy process: 12345
 
 # Start via environment variable
-$ BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch-docker
-ntfy container: abc123def456
+$ BASH_TOYS_NTFY_SERVING_URL=http://192.168.1.10:18432 ntfy-watch
+ntfy process: 12345
 ```
 
 ## File Operations

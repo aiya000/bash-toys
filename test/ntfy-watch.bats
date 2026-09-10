@@ -7,133 +7,153 @@ setup() {
   export PATH="$BATS_TEST_DIRNAME/../bin:$PATH"
 }
 
-@test '`ntfy-watch-docker --help` should show help message' {
-  run ntfy-watch-docker --help
+@test '`ntfy-watch --help` should show help message' {
+  run ntfy-watch --help
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match '^Usage: ntfy-watch-docker '
+  expects "${lines[0]}" to_match '^Usage: ntfy-watch '
 }
 
-@test '`ntfy-watch-docker -h` should show help message' {
-  run ntfy-watch-docker -h
+@test '`ntfy-watch -h` should show help message' {
+  run ntfy-watch -h
   expects "$status" to_be 0
-  expects "${lines[0]}" to_match '^Usage: ntfy-watch-docker '
+  expects "${lines[0]}" to_match '^Usage: ntfy-watch '
 }
 
 @test 'unknown option exits with status 1' {
-  run ntfy-watch-docker --unknown-option
+  run ntfy-watch --unknown-option
   expects "$status" to_be 1
 }
 
+@test 'parse_docker: defaults to false when --docker is not given' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch
+  expects "$status" to_be 0
+  expects "$output" to_match 'docker=false'
+}
+
+@test 'parse_docker: --docker sets it to true' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --docker
+  expects "$status" to_be 0
+  expects "$output" to_match 'docker=true'
+}
+
+@test 'parse_docker: --docker works together with other options regardless of order' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --host 192.168.1.10 --docker --port 18432
+  expects "$status" to_be 0
+  expects "$output" to_match 'docker=true'
+  expects "$output" to_match 'host=192.168.1.10'
+  expects "$output" to_match 'port=18432'
+}
+
 @test 'parse_protocol: --protocol arg is used' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --protocol https
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --protocol https
   expects "$status" to_be 0
   expects "$output" to_match 'protocol=https'
 }
 
 @test 'parse_protocol: BASH_TOYS_NTFY_SERVING_URL is parsed' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch-docker
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'protocol=http'
 }
 
 @test 'parse_protocol: --protocol arg takes precedence over BASH_TOYS_NTFY_SERVING_URL' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch-docker --protocol https
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch --protocol https
   expects "$status" to_be 0
   expects "$output" to_match 'protocol=https'
 }
 
 @test 'parse_protocol: falls back to http when no arg and no env var' {
-  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'protocol=http'
 }
 
 @test 'parse_host: --host arg is used' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --host 192.168.1.10
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --host 192.168.1.10
   expects "$status" to_be 0
   expects "$output" to_match 'host=192.168.1.10'
 }
 
 @test 'parse_host: BASH_TOYS_NTFY_SERVING_URL is parsed' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch-docker
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'host=192.168.1.10'
 }
 
 @test 'parse_host: --host arg takes precedence over BASH_TOYS_NTFY_SERVING_URL' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch-docker --host 10.0.0.1
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch --host 10.0.0.1
   expects "$status" to_be 0
   expects "$output" to_match 'host=10.0.0.1'
 }
 
 @test 'parse_host: falls back to localhost when no arg and no env var' {
-  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'host=localhost'
 }
 
 @test 'parse_port: --port arg is used' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --port 18432
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --port 18432
   expects "$status" to_be 0
   expects "$output" to_match 'port=18432'
 }
 
 @test 'parse_port: BASH_TOYS_NTFY_SERVING_URL is parsed' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch-docker
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'port=18432'
 }
 
 @test 'parse_port: --port arg takes precedence over BASH_TOYS_NTFY_SERVING_URL' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch-docker --port 9999
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 BASH_TOYS_NTFY_SERVING_URL='http://192.168.1.10:18432' ntfy-watch --port 9999
   expects "$status" to_be 0
   expects "$output" to_match 'port=9999'
 }
 
 @test 'parse_port: falls back to 80 when no arg and no env var' {
-  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'port=80'
 }
 
 @test 'parse_topic: --topic arg is used' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --topic my-topic
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --topic my-topic
   expects "$status" to_be 0
   expects "$output" to_match 'topic=my-topic'
 }
 
 @test 'parse_topic: falls back to default when no arg' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'topic=default'
 }
 
 @test 'startup output: Base URL is composed from protocol, host, and port' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --protocol https --host 192.168.1.10 --port 18432
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --protocol https --host 192.168.1.10 --port 18432
   expects "$status" to_be 0
   expects "$output" to_match 'base_url=https://192.168.1.10:18432'
 }
 
 @test 'startup output: Base URL uses defaults when no args given' {
-  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  run env -u BASH_TOYS_NTFY_SERVING_URL DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'base_url=http://localhost:80'
 }
 
 @test 'startup output: Topic is shown' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --topic alerts
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --topic alerts
   expects "$status" to_be 0
   expects "$output" to_match 'topic=alerts'
 }
 
 @test 'startup output: Topic defaults to default' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch
   expects "$status" to_be 0
   expects "$output" to_match 'topic=default'
 }
 
 @test 'options work regardless of order' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --port 18432 --host 192.168.1.10 --protocol https
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --port 18432 --host 192.168.1.10 --protocol https
   expects "$status" to_be 0
   expects "$output" to_match 'protocol=https'
   expects "$output" to_match 'host=192.168.1.10'
@@ -141,7 +161,7 @@ setup() {
 }
 
 @test 'options work regardless of order (with --topic)' {
-  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch-docker --topic alerts --port 18432 --host 192.168.1.10 --protocol https
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ntfy-watch --topic alerts --port 18432 --host 192.168.1.10 --protocol https
   expects "$status" to_be 0
   expects "$output" to_match 'protocol=https'
   expects "$output" to_match 'host=192.168.1.10'

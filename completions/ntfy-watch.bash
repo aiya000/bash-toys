@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Bash completion for ntfy-watch-docker command
+# Bash completion for ntfy-watch command
 
-_ntfy_watch_docker_completion() {
+_ntfy_watch_completion() {
   local cur prev
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
@@ -19,12 +19,12 @@ _ntfy_watch_docker_completion() {
   esac
 
   if [[ $cur == -* ]] ; then
-    COMPREPLY=($(compgen -W '--help -h --protocol --host --port --topic' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -h --docker --protocol --host --port --topic' -- "$cur"))
     return
   fi
 }
 
-complete -F _ntfy_watch_docker_completion ntfy-watch-docker
+complete -F _ntfy_watch_completion ntfy-watch
 
 # https://github.com/aiya000/bash-toys
 #
