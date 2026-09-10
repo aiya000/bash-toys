@@ -236,14 +236,16 @@ Automatically stops the server on exit (including Ctrl+C).
 
 The server always listens on all network interfaces; `--host` only affects the URL used to subscribe (and, with `--docker`, the ntfy server's `--base-url`), so pass the LAN IP you want other devices to reach it at.
 
-Each incoming event is printed as a human-readable list (via `jq`, which must be installed) instead of raw JSON:
+Each incoming event is printed as a human-readable list (via `jq`, which must be installed) instead of raw JSON. The header is the local time of the event, `time` is dropped, and `expires` (if present) is rendered the same way:
 
 ```
-- - -
-- id: u9XJcAsbjgOp
-- time: 1789004142
-- event: open
+>>> 2026-09-10 10:52
+- id: 9zrO6mnAf43x
+- expires: 2026-09-10 22:52
+- event: message
 - topic: default
+- title: test
+- message: test
 ```
 
 ```bash

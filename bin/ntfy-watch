@@ -162,7 +162,12 @@ function find_attachement_dir() {
 }
 
 function format_event() {
-  jq -r 'to_entries | "\n- - -\n" + (map("- \(.key): \(.value)") | join("\n"))'
+  jq -r '
+    def human_time: localtime | strftime("%Y-%m-%d %H:%M");
+    ("\n>>> " + (.time | human_time)) as $header
+    | (if has("expires") then .expires |= human_time else . end) as $obj
+    | $header + "\n" + ($obj | del(.time) | to_entries | map("- \(.key): \(.value)") | join("\n"))
+  '
 }
 
 function filter_events() {
