@@ -147,6 +147,11 @@ if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   exit 0
 fi
 
+if ! command -v jq > /dev/null 2>&1 ; then
+  echo 'Error: jq command not found. Install it (https://jqlang.org).' >&2
+  exit 1
+fi
+
 function find_attachement_dir() {
   if [[ $BASH_TOYS_TMP_BASE_DIR != '' ]] ; then
     echo "$BASH_TOYS_TMP_BASE_DIR/ntfy-watch"
@@ -156,12 +161,16 @@ function find_attachement_dir() {
   echo "Coudn't find a directory for attachment files. Fallback to /tmp" >&2
 }
 
+function format_event() {
+  jq -r 'to_entries | "\n- - -\n" + (map("- \(.key): \(.value)") | join("\n"))'
+}
+
 function filter_events() {
   while IFS= read -r line ; do
     for event in "${FILTERED_EVENTS[@]}" ; do
       [[ "$line" == *"\"event\":\"$event\""* ]] && continue 2
     done
-    echo "$line"
+    echo "$line" | format_event
   done
 }
 

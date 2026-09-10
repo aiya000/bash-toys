@@ -236,6 +236,16 @@ Automatically stops the server on exit (including Ctrl+C).
 
 The server always listens on all network interfaces; `--host` only affects the URL used to subscribe (and, with `--docker`, the ntfy server's `--base-url`), so pass the LAN IP you want other devices to reach it at.
 
+Each incoming event is printed as a human-readable list (via `jq`, which must be installed) instead of raw JSON:
+
+```
+- - -
+- id: u9XJcAsbjgOp
+- time: 1789004142
+- event: open
+- topic: default
+```
+
 ```bash
 ntfy-watch [--docker] [--protocol PROTOCOL] [--host HOST] [--port PORT] [--topic TOPIC]
 ntfy-watch (-h | --help)
