@@ -26,11 +26,11 @@ Options:
   -h, --help      Show this help message
 
 Environment:
-  BASH_TOYS_POMODORO_DEFAULT_INTERVAL    Default work interval (default: 30)
+  BASH_TOYS_POMODORO_DEFAULT_INTERVAL    Default work interval (default: 25)
   BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED Command to run when timer finishes
 
 Examples:
-  pomodoro-timer          # 30 minute work session
+  pomodoro-timer          # 25 minute work session
   pomodoro-timer 45       # 45 minute work session
   pomodoro-timer --rest   # 5 minute break
 EOF
@@ -112,7 +112,7 @@ if [[ $1 == --clean ]] ; then
 fi
 
 is_rest_time=false
-interval=${BASH_TOYS_POMODORO_DEFAULT_INTERVAL:-30}
+interval=${BASH_TOYS_POMODORO_DEFAULT_INTERVAL:-25}
 if [[ $1 == --rest ]] ; then
   is_rest_time=true
   if [[ $2 != '' ]] ; then

@@ -1470,16 +1470,16 @@ pomodoro-timer --clean
 ```
 
 **Environment Variables**:
-- `BASH_TOYS_POMODORO_DEFAULT_INTERVAL` - Default work interval in minutes (default: `30`)
+- `BASH_TOYS_POMODORO_DEFAULT_INTERVAL` - Default work interval in minutes (default: `25`)
 - `BASH_TOYS_WHEN_POMODORO_TIMER_FINISHED` - Command to run when timer finishes, executed via `eval` (default: `notify 'Pomodoro Timer' 'Pomodoro complete!'`)
 
 **Examples**:
 ```bash
-# Start 30-minute work session (default)
+# Start 25-minute work session (default)
 $ pomodoro-timer
 > Starting 1-th work time
-> 1 minutes / 30
-> 2 minutes / 30
+> 1 minutes / 25
+> 2 minutes / 25
 ...
 > The 1-th work hour is over
 
