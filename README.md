@@ -109,7 +109,7 @@ These dependencies are documented at the beginning of the script.
 | [`pomodoro-cycle`](./bin/pomodoro-cycle) | Run a full pomodoro cycle with multiple work sessions and breaks | `$ pomodoro-cycle 3 25 25 25 # 3x25min cycle` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-cycle.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-cycle.yml) |
 | [`pomodoro-timer`](./bin/pomodoro-timer) | A simplest Pomodoro Timer implementation in shell script | `$ pomodoro-timer 25 # start 25min` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-timer.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-pomodoro-timer.yml) |
 | [`prompt`](./bin/prompt) | Display a prompt and wait for the user to press Enter (always exits 0) | `$ prompt 'Press Enter: ' # pause` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-prompt.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-prompt.yml) |
-| [`ps-mem`](./bin/ps-mem) | Display per-process memory usage in a readable table (wraps ps, plus /proc on Linux or top on macOS) | `$ ps-mem --footprint --total # macOS` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-ps-mem.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-ps-mem.yml) |
+| [`ps-mem`](./bin/ps-mem) | Display per-process memory usage in a readable table (wraps ps, plus /proc on Linux, top on macOS, or powershell.exe for the Windows host from WSL) | `$ ps-mem --footprint --total # macOS` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-ps-mem.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-ps-mem.yml) |
 | [`realpath-wslpath-w`](./bin/realpath-wslpath-w) | Convert a Unix path to an absolute Windows path (WSL only) | `$ realpath-wslpath-w ~/Downloads # => C:\...` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-realpath-wslpath-w.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-realpath-wslpath-w.yml) |
 | [`rm-dust`](./bin/rm-dust) | An alternative to `rm`, moving files to a dustbox instead. Use `--restore` to recover files. `alias rm=rm-dust` is recommended! | `$ rm-dust file.txt # mv to dustbox` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-dust.yml) |
 | [`run-wait-output`](./bin/run-wait-output) | Run two commands sequentially, with second triggered after first becomes silent | `$ run-wait-output 1000 "npm watch" "echo Done" # after silent` | [![Test](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml/badge.svg)](https://github.com/aiya000/bash-toys/actions/workflows/test-run-wait-output.yml) |
@@ -407,6 +407,7 @@ $ ps-mem --tail                     # The 30 biggest processes only
 $ ps-mem --reverse --head 20        # The 20 biggest, biggest first
 $ ps-mem --tail --all               # Undo a --tail an alias brought along
 $ ps-mem -c 60                      # Widen COMMAND instead of truncating at 30
+$ ps-mem --windows-from-wsl --tail  # WSL: the Windows host's 30 biggest processes
 ```
 
 **[`free-macos`](./bin/free-macos)** - Linux' `free`, for macOS. System-wide memory at a glance.

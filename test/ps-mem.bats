@@ -985,3 +985,120 @@ greater_than() {
     expects "${lines[$last]}" to_match '[0-9]+\.[0-9]MiB$'
   fi
 }
+
+@test 'the Windows backend is off by default' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem
+  expects "$status" to_be 0
+  expects "${lines[8]}" to_equal 'windows_from_wsl=false'
+}
+
+@test '--windows-from-wsl turns the Windows backend on' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --windows-from-wsl
+  expects "$status" to_be 0
+  expects "${lines[8]}" to_equal 'windows_from_wsl=true'
+}
+
+@test '--windows-from-wsl works regardless of position' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --rss --windows-from-wsl --total
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS'
+  expects "${lines[2]}" to_equal 'total=true'
+  expects "${lines[8]}" to_equal 'windows_from_wsl=true'
+}
+
+@test '--windows-from-wsl does not count as a memory column' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 ps-mem --windows-from-wsl
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_equal 'columns=RSS'
+  expects "${lines[3]}" to_equal 'sort=RSS'
+}
+
+@test '--windows-from-wsl is rejected outside WSL' {
+  run env -u WSL_INTEROP ps-mem --windows-from-wsl
+  expects "$status" to_be 1
+  expects "$output" to_match 'requires WSL'
+}
+
+@test '--windows-from-wsl rejects --swap, which Windows has no equivalent of' {
+  run env -u WSL_INTEROP ps-mem --windows-from-wsl --swap
+  expects "$status" to_be 1
+  expects "$output" to_equal 'Error: --swap is not supported with --windows-from-wsl'
+}
+
+@test '--windows-from-wsl rejects --pss, which Windows has no equivalent of' {
+  run env -u WSL_INTEROP ps-mem --windows-from-wsl --pss
+  expects "$status" to_be 1
+  expects "$output" to_equal 'Error: --pss is not supported with --windows-from-wsl'
+}
+
+@test '--windows-from-wsl rejects --footprint, which stays a macOS metric' {
+  run env -u WSL_INTEROP ps-mem --windows-from-wsl --footprint
+  expects "$status" to_be 1
+  expects "$output" to_equal 'Error: --footprint is supported on macOS only'
+}
+
+@test '--windows-from-wsl rejects an unsupported column before looking for WSL' {
+  run env -u WSL_INTEROP ps-mem --windows-from-wsl --rss --swap
+  expects "$status" to_be 1
+  expects "$output" to_equal 'Error: --swap is not supported with --windows-from-wsl'
+}
+
+@test 'WSL: --windows-from-wsl shows an RSS column with MiB values' {
+  if [[ $WSL_INTEROP == '' ]] ; then
+    skip 'not WSL'
+  fi
+  run ps-mem --windows-from-wsl
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^PID +USER +COMMAND +RSS$'
+  expects "$(greater_than "${#lines[@]}" 2)" to_equal yes
+  expects "${lines[2]}" to_match '[0-9]+\.[0-9]MiB$'
+}
+
+@test 'WSL: --windows-from-wsl keeps every row aligned with the header' {
+  if [[ $WSL_INTEROP == '' ]] ; then
+    skip 'not WSL'
+  fi
+  run ps-mem --windows-from-wsl --total
+  expects "$status" to_be 0
+
+  local header_length=${#lines[0]}
+  local line
+  for line in "${lines[@]:1}" ; do
+    expects "${#line}" to_be "$header_length"
+  done
+}
+
+@test 'WSL: --windows-from-wsl is sorted ascending by RSS' {
+  if [[ $WSL_INTEROP == '' ]] ; then
+    skip 'not WSL'
+  fi
+  run ps-mem --windows-from-wsl
+  expects "$status" to_be 0
+  expects "$(ascending_mib_column 1 "${lines[@]:2}")" to_equal yes
+}
+
+@test 'WSL: --windows-from-wsl --uss shows a USS column' {
+  if [[ $WSL_INTEROP == '' ]] ; then
+    skip 'not WSL'
+  fi
+  run ps-mem --windows-from-wsl --uss --rss
+  expects "$status" to_be 0
+  expects "${lines[0]}" to_match '^PID +USER +COMMAND +USS +RSS$'
+  expects "$(ascending_mib_column 2 "${lines[@]:2}")" to_equal yes
+}
+
+@test 'WSL: --windows-from-wsl reports at most RSS in USS' {
+  if [[ $WSL_INTEROP == '' ]] ; then
+    skip 'not WSL'
+  fi
+  run ps-mem --windows-from-wsl --uss --rss --total
+  expects "$status" to_be 0
+
+  # The private working set is a part of the working set, so their totals must
+  # not come out the other way round
+  local last=$(( ${#lines[@]} - 1 ))
+  local uss rss
+  uss=$(echo "${lines[$last]}" | awk '{ v = $(NF - 1); if (sub(/GiB$/, "", v)) v = v * 1024; else sub(/MiB$/, "", v); print v }')
+  rss=$(echo "${lines[$last]}" | awk '{ v = $NF; if (sub(/GiB$/, "", v)) v = v * 1024; else sub(/MiB$/, "", v); print v }')
+  expects "$(greater_than "$rss" "$uss")" to_equal yes
+}

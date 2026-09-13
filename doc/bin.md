@@ -861,10 +861,10 @@ $ run-wait-output 2000 "make" "notify 'Done' 'Build complete'"
 
 ### ps-mem
 
-Displays per-process memory usage in a readable table by wrapping `ps`, plus `/proc/PID/smaps_rollup` on Linux or `top` on macOS.
+Displays per-process memory usage in a readable table by wrapping `ps`, plus `/proc/PID/smaps_rollup` on Linux or `top` on macOS, or `powershell.exe` when asked for the Windows host from WSL.
 
 ```bash
-ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total] [--reverse] [--head [N] | --tail [N] | --all] [--process-name-max-length N]
+ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total] [--reverse] [--head [N] | --tail [N] | --all] [--process-name-max-length N] [--windows-from-wsl]
 ```
 
 Always shows `PID`, `USER`, and `COMMAND`. Memory columns are selected via
@@ -921,12 +921,20 @@ long command. All columns stay aligned regardless of the width chosen, since
 each column is sized to the widest value actually printed. If `-c` /
 `--process-name-max-length` is given more than once, the last one wins.
 
+`--windows-from-wsl` looks past the Linux side of WSL and lists the processes
+of the **Windows host** instead, so the Chrome or Teams that is eating the RAM
+your distribution is short of shows up in the same table. Every other option
+keeps its meaning: the columns, the sort, `--head` / `--tail`, `--total` and
+`-c` all behave exactly as they do for a Linux process list. Outside WSL it
+exits with an error, since there is no Windows host to ask.
+
 **Backends**:
 
 | OS | Backend | Available columns |
 | --- | --- | --- |
 | Linux | `ps -eww -o pid,user,args`, plus `/proc/PID/smaps_rollup` (Linux 4.14 or later) | `SWAP`, `RSS`, `USS`, `PSS` |
 | macOS | `ps -axo pid,user,rss,comm`, plus `top -l 1 -stats pid,mem` for `--footprint` | `RSS`, `FOOTPRINT` |
+| WSL, with `--windows-from-wsl` | `powershell.exe`, reading `Win32_Process`, plus `Win32_PerfRawData_PerfProc_Process` for `--uss` | `RSS`, `USS` |
 
 On Linux, `/proc/PID/smaps_rollup` carries the kernel-side sums of
 `/proc/PID/smaps`: its `Rss`, `Pss`, and `Swap` lines feed the columns of the
@@ -945,7 +953,23 @@ error. Conversely `FOOTPRINT` is a macOS-only metric, so `--footprint` exits
 with an error elsewhere. `top` is only spawned when `--footprint` is actually
 requested, because that sample costs roughly a second.
 
-**Dependencies**: none beyond the built-in `ps` (Linux additionally needs `/proc/PID/smaps_rollup`, i.e. Linux 4.14 or later; macOS uses `top` for `--footprint`)
+Under `--windows-from-wsl`, one `powershell.exe` run produces the whole table.
+`Win32_Process` carries both `WorkingSetSize`, which is Windows' name for
+`RSS`, and the full command line. `USS` is the **private working set**, which
+lives in `Win32_PerfRawData_PerfProc_Process` instead, so that second query
+only runs when `--uss` is actually requested: the first such query of a Windows
+session has to warm the counter cache up, which can cost several seconds.
+Windows counts committed memory rather than swapped-out pages, and shares no
+page accounting between processes, so it has nothing to put in `SWAP` or `PSS`
+and requesting either exits with an error. `USER` is filled in by joining the
+logon sessions to the processes; a process owned by no logon session of its own
+(a service, or the kernel side of Windows) is shown as `-`, the way `ps` shows
+a user it cannot name. Asking `Win32_Process` for its owner directly would be
+one WMI call per process, over a minute on an ordinary desktop. PID 0, the
+System Idle Process, is left out, because it is not a process at all: it is how
+Windows accounts for idle CPU, and its counters would only distort `--total`.
+
+**Dependencies**: none beyond the built-in `ps` (Linux additionally needs `/proc/PID/smaps_rollup`, i.e. Linux 4.14 or later; macOS uses `top` for `--footprint`; `--windows-from-wsl` needs WSL's `powershell.exe` interop)
 
 <a id="ps-mem-reading-the-numbers"></a>
 **Reading the numbers**:
@@ -965,10 +989,10 @@ So pick the column that answers the question you actually have:
 
 | Column | Where | What it answers | Use it when |
 | --- | --- | --- | --- |
-| `--rss` | Linux, macOS | Physical RAM the process holds right now | You want "who is resident at this moment", or a number comparable with other Unix tools |
+| `--rss` | Linux, macOS, Windows | Physical RAM the process holds right now (the working set, under `--windows-from-wsl`) | You want "who is resident at this moment", or a number comparable with other Unix tools |
 | `--footprint` | macOS only | `phys_footprint`, the value Activity Monitor shows in its "Memory" column, compressed pages included | `--rss` looks suspiciously small, or you want to match what Activity Monitor reports |
 | `--pss` | Linux only | Shared pages split across the processes mapping them | You need the sum to mean something |
-| `--uss` | Linux only | Memory reclaimed if the process exited | You are deciding what to kill |
+| `--uss` | Linux, Windows | Memory reclaimed if the process exited (the private working set, under `--windows-from-wsl`) | You are deciding what to kill |
 | `--swap` | Linux only | Pages pushed out to swap | You are chasing thrashing |
 
 Use `--total` to weigh processes against each other, not as a number to
@@ -1076,6 +1100,33 @@ $ ps-mem --tail 5 --all
 # N must be 1 or greater
 $ ps-mem --head 0
 Error: --head requires a number of 1 or greater, got: 0
+
+# List the Windows host's processes instead of WSL's own (WSL only)
+$ ps-mem --windows-from-wsl --tail 4 --total
+PID      USER       COMMAND                                 RSS
+---------------------------------------------------------------
+4932     -          MsMpEng.exe                        419.0MiB
+3712     aiya000    "C:\Program Files\WindowsAp...     437.9MiB
+3344     -          Memory Compression                3968.8MiB
+33128    -          vmmemWSL                         12240.5MiB
+---------------------------------------------------------------
+TOTAL    -          4 processes                         16.7GiB
+
+# On Windows, USS is the private working set: what killing the process gives back
+$ ps-mem --windows-from-wsl --uss --rss --reverse --head 3
+PID      USER       COMMAND                                 USS          RSS
+----------------------------------------------------------------------------
+33128    -          vmmemWSL                         12240.4MiB   12240.4MiB
+3344     -          Memory Compression                3968.8MiB    3968.8MiB
+3712     aiya000    "C:\Program Files\WindowsAp...     324.6MiB     438.0MiB
+
+# SWAP and PSS have no Windows equivalent
+$ ps-mem --windows-from-wsl --pss
+Error: --pss is not supported with --windows-from-wsl
+
+# Outside WSL there is no Windows host to ask
+$ ps-mem --windows-from-wsl  # on a plain Linux box
+Error: --windows-from-wsl requires WSL (Windows interop is unavailable)
 ```
 
 ### free-macos

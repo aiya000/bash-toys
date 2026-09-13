@@ -4,18 +4,18 @@
 
 function show_help() {
   cat << 'EOF'
-ps-mem - Display per-process memory usage in a readable table (wraps ps and /proc)
+ps-mem - Display per-process memory usage in a readable table (wraps ps and /proc, or the Windows host from WSL)
 
 Usage:
   ps-mem [--swap] [--rss] [--uss] [--pss] [--footprint] [--pname] [--total]
          [--reverse] [--head [N] | --tail [N] | --all]
-         [--process-name-max-length N]
+         [--process-name-max-length N] [--windows-from-wsl]
   ps-mem -h | --help
 
 Options:
   --swap                          Include the SWAP column (Linux only)
   --rss                           Include the RSS column
-  --uss                           Include the USS column (Linux only)
+  --uss                           Include the USS column (Linux and WSL only)
   --pss                           Include the PSS column (Linux only)
   --footprint                     Include the FOOTPRINT column (macOS only)
   --pname, --process-name         Place the COMMAND column at this position
@@ -25,6 +25,8 @@ Options:
   --head [N]                      Show the first N rows only (default: 30)
   --tail [N]                      Show the last N rows only (default: 30)
   --all                           Show every row, cancelling --head and --tail
+  --windows-from-wsl              List the processes of the Windows host
+                                  instead of this Linux one (WSL only)
   -c, --process-name-max-length N Max width of the COMMAND column (default: 30)
   -h, --help                      Show this help message
 
@@ -63,12 +65,24 @@ Description:
   --tail with --reverse --head to read the same processes from the other
   end of the table.
 
+  --windows-from-wsl looks past the Linux side of WSL and lists the
+  processes of the Windows host instead, so the Chrome or Teams that is
+  eating the RAM your distribution is short of shows up in the same table.
+  Every other option keeps its meaning: the columns, the sort, --head /
+  --tail and --total all work the same way. It exits with an error outside
+  WSL, since there is no Windows host to ask.
+
   Backends:
     Linux: ps, plus /proc/PID/smaps_rollup (Linux 4.14 or later)
            (--footprint exits with an error because it is a macOS metric)
     macOS: ps, plus `top` when --footprint is requested
            (--swap, --uss, and --pss exit with an error because macOS has
            no equivalent of them)
+    WSL, with --windows-from-wsl:
+           powershell.exe, reading Win32_Process, plus
+           Win32_PerfRawData_PerfProc_Process when --uss is requested
+           (--swap, --pss, and --footprint exit with an error because
+           Windows has no equivalent of them)
 
 Reading the numbers:
   Summing per-process memory never reproduces the usage the OS reports,
@@ -85,15 +99,17 @@ Reading the numbers:
 
     --rss         Physical RAM the process holds right now. Best for
                   "who is resident at this moment", and comparable with
-                  other Unix tools. Available on both Linux and macOS.
+                  other Unix tools. Available everywhere; under
+                  --windows-from-wsl it is the Windows working set.
     --footprint   macOS only. What Activity Monitor shows in its "Memory"
                   column (phys_footprint), compressed pages included.
                   Reach for this when --rss looks suspiciously small.
                   Costs roughly a second, since it shells out to `top`.
     --pss         Linux only. Shared pages split across the processes
                   mapping them, so its sum is the closest to meaningful.
-    --uss         Linux only. Memory reclaimed if the process exited.
-                  Best for "how much do I gain by killing this".
+    --uss         Linux, and Windows via --windows-from-wsl, where it is
+                  the private working set. Memory reclaimed if the process
+                  exited. Best for "how much do I gain by killing this".
 
   --total appends a horizontal rule and a TOTAL row summing each memory
   column. A total of 10000.0MiB or more is shown in GiB instead, since
@@ -118,6 +134,8 @@ Examples:
   ps-mem --tail 5 --all
   ps-mem --process-name-max-length 60
   ps-mem -c 60
+  ps-mem --windows-from-wsl
+  ps-mem --windows-from-wsl --uss --rss --reverse --head 20 --total
 EOF
 }
 
@@ -137,6 +155,10 @@ limit_n=30
 # --all cancels --head and --tail regardless of their order, so it is resolved
 # after the whole argument list has been read
 show_all=false
+
+# Reads the Windows host's processes through powershell.exe instead of this
+# Linux one's. Only reachable from WSL, where that interop exists.
+windows_from_wsl=false
 
 # Consumes the optional N of --head / --tail. Sets $limit_shift to how many
 # arguments were used, since bash functions cannot shift the caller's "$@".
@@ -210,6 +232,10 @@ while [[ $# -gt 0 ]] ; do
       show_all=true
       shift
       ;;
+    --windows-from-wsl)
+      windows_from_wsl=true
+      shift
+      ;;
     -c | --process-name-max-length)
       if [[ $2 == '' ]] ; then
         echo 'Error: --process-name-max-length requires a number' >&2
@@ -242,12 +268,16 @@ done
 # `ps-mem --pname` still shows RSS.
 has_memory_column=false
 needs_footprint=false
+needs_uss=false
 for column in "${columns[@]}" ; do
   if [[ $column != 'COMMAND' ]] ; then
     has_memory_column=true
   fi
   if [[ $column == 'FOOTPRINT' ]] ; then
     needs_footprint=true
+  fi
+  if [[ $column == 'USS' ]] ; then
+    needs_uss=true
   fi
 done
 
@@ -290,6 +320,7 @@ if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "limit=$limit_mode"
   echo "limit_n=$limit_n"
   echo "all=$show_all"
+  echo "windows_from_wsl=$windows_from_wsl"
   exit 0
 fi
 
@@ -442,6 +473,116 @@ END {
   }
 }
 '
+
+if [[ $windows_from_wsl == true ]] ; then
+  # Windows counts committed memory rather than swapped-out pages, and shares
+  # no page accounting between processes, so it has nothing to put in SWAP or
+  # PSS. FOOTPRINT stays a macOS metric wherever it is asked for.
+  for column in "${columns[@]}" ; do
+    case "$column" in
+      SWAP)
+        echo 'Error: --swap is not supported with --windows-from-wsl' >&2
+        exit 1
+        ;;
+      PSS)
+        echo 'Error: --pss is not supported with --windows-from-wsl' >&2
+        exit 1
+        ;;
+      FOOTPRINT)
+        echo 'Error: --footprint is supported on macOS only' >&2
+        exit 1
+        ;;
+    esac
+  done
+
+  if [[ $WSL_INTEROP == '' ]] ; then
+    echo 'Error: --windows-from-wsl requires WSL (Windows interop is unavailable)' >&2
+    exit 1
+  fi
+
+  if ! command -v powershell.exe > /dev/null ; then
+    echo 'Error: --windows-from-wsl requires powershell.exe, which is not on PATH' >&2
+    exit 1
+  fi
+
+  # The Windows side of the table is read through powershell.exe, which emits
+  # the very stream $render_awk expects, so the sort, --head / --tail, --total
+  # and the renderer below are shared with the two Unix backends.
+  #
+  # Win32_Process carries both WorkingSetSize, which is Windows' name for RSS,
+  # and the full command line, so one query covers every column but USS.
+  #
+  # USER is in neither class. Asking Win32_Process for its owner directly costs
+  # one WMI call per process, over a minute on an ordinary desktop, so the
+  # logon sessions are joined to the processes instead: two more queries, but
+  # they finish in a fraction of a second. Processes owned by no logon session
+  # of their own (services, and the kernel side of Windows) are left as '-',
+  # the way `ps` shows a user it cannot name.
+  windows_prelude_ps1=$(cat << 'EOF'
+$ErrorActionPreference = 'SilentlyContinue'
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+$owner_of_logon = @{}
+foreach ($logon in Get-CimInstance Win32_LoggedOnUser) { $owner_of_logon[$logon.Dependent.LogonId] = $logon.Antecedent.Name }
+$owner = @{}
+foreach ($session in Get-CimInstance Win32_SessionProcess) { $name = $owner_of_logon[$session.Antecedent.LogonId]; if ($name) { $owner[[string]$session.Dependent.Handle] = $name } }
+$uss = @{}
+EOF
+)
+
+  # The private working set, which is what USS means on Windows, lives in the
+  # performance counter class rather than in Win32_Process. Only queried when
+  # --uss was actually requested: the first such query of a session has to warm
+  # the counter cache up, which can cost several seconds.
+  windows_uss_ps1=$(cat << 'EOF'
+foreach ($counter in Get-CimInstance Win32_PerfRawData_PerfProc_Process) { $uss[[string]$counter.IDProcess] = $counter.WorkingSetPrivate }
+EOF
+)
+
+  # PID 0 is the System Idle Process, which is not a process at all: it is how
+  # Windows accounts for idle CPU, and its counters would only distort --total.
+  #
+  # Newlines and tabs are folded into spaces for the same reason the Linux
+  # backend takes its command lines from `ps`: an argument containing one would
+  # otherwise split a single process across several rows.
+  windows_emit_ps1=$(cat << 'EOF'
+foreach ($process in Get-CimInstance Win32_Process) {
+  if ($process.ProcessId -eq 0) { continue }
+  $id = [string]$process.ProcessId
+  $user = $owner[$id]
+  if (-not $user) { $user = '-' }
+  $command = $process.CommandLine
+  if (-not $command) { $command = $process.Name }
+  $command = $command -replace '[\r\n\t]+', ' '
+  $private = 0
+  if ($uss.ContainsKey($id)) { $private = [long]($uss[$id] / 1024) }
+  $resident = [long]($process.WorkingSetSize / 1024)
+  [Console]::Out.WriteLine("$id`t$user`t0`t$private`t0`t$resident`t0`t$command")
+}
+EOF
+)
+
+  windows_ps1=$windows_prelude_ps1
+  if [[ $needs_uss == true ]] ; then
+    windows_ps1="$windows_ps1"$'\n'"$windows_uss_ps1"
+  fi
+  windows_ps1="$windows_ps1"$'\n'"$windows_emit_ps1"
+
+  # powershell.exe ends its lines with CRLF, and a stray '\r' would ride along
+  # to the end of COMMAND and back over the row once printed
+  windows_rows=$(powershell.exe -NoProfile -NonInteractive -Command "$windows_ps1" | tr -d '\r')
+  if [[ $windows_rows == '' ]] ; then
+    echo 'Error: powershell.exe reported no Windows process' >&2
+    exit 1
+  fi
+
+  # `-k 6,6` (RSS) is a secondary key so that RSS breaks ties within the sorted
+  # column, as it does on Linux
+  printf '%s\n' "$windows_rows" \
+    | sort "${sort_options[@]}" -k "$sort_field,$sort_field" -k 6,6 \
+    | apply_limit \
+    | awk -F '\t' -v columns="$columns_csv" -v cmd_max="$cmd_max" -v total="$total_flag" "$render_awk"
+  exit $?
+fi
 
 # Emits `top`'s per-process phys_footprint, which is the value Activity Monitor
 # shows in its "Memory" column. Only run when FOOTPRINT was requested, since
