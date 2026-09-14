@@ -39,7 +39,7 @@ Description:
   COMMAND is placed right after USER by default. Pass --pname (or its
   long form --process-name) to position it explicitly, so that COMMAND
   takes part in the same ordering as the memory columns. For example,
-  `ps-mem --rss --pname` shows PID, USER, RSS, COMMAND.
+  'ps-mem --rss --pname' shows PID, USER, RSS, COMMAND.
 
   Command names longer than the COMMAND column width are truncated with
   '...'. Use --process-name-max-length to widen (or narrow) that column.
@@ -49,16 +49,16 @@ Description:
 
   Values are converted to MiB. Rows are sorted ascending by the memory
   column of the last memory option given, so the biggest process sits at
-  the bottom. For example, `ps-mem --rss --footprint` sorts by FOOTPRINT,
-  while `ps-mem --footprint --rss` sorts by RSS. --pname does not take
-  part in that choice, so `ps-mem --pname` still sorts by RSS. --reverse
+  the bottom. For example, 'ps-mem --rss --footprint' sorts by FOOTPRINT,
+  while 'ps-mem --footprint --rss' sorts by RSS. --pname does not take
+  part in that choice, so 'ps-mem --pname' still sorts by RSS. --reverse
   flips that order, putting the biggest process at the top.
 
   Every process is listed by default. --head keeps the first N rows and
   --tail keeps the last N, where N defaults to 30 when omitted. The last
-  of them wins if both are given, so `ps-mem --head 5 --tail 3` keeps the
+  of them wins if both are given, so 'ps-mem --head 5 --tail 3' keeps the
   last three rows. --all cancels both, whatever their position, so an
-  alias carrying --tail can be widened again with `ps-mem --tail --all`.
+  alias carrying --tail can be widened again with 'ps-mem --tail --all'.
 
   The rows are cut before --total is computed, so the TOTAL row sums the
   rows actually printed and its 'N processes' label counts them. Combine
@@ -75,7 +75,7 @@ Description:
   Backends:
     Linux: ps, plus /proc/PID/smaps_rollup (Linux 4.14 or later)
            (--footprint exits with an error because it is a macOS metric)
-    macOS: ps, plus `top` when --footprint is requested
+    macOS: ps, plus 'top' when --footprint is requested
            (--swap, --uss, and --pss exit with an error because macOS has
            no equivalent of them)
     WSL, with --windows-from-wsl:
@@ -104,7 +104,7 @@ Reading the numbers:
     --footprint   macOS only. What Activity Monitor shows in its "Memory"
                   column (phys_footprint), compressed pages included.
                   Reach for this when --rss looks suspiciously small.
-                  Costs roughly a second, since it shells out to `top`.
+                  Costs roughly a second, since it shells out to 'top'.
     --pss         Linux only. Shared pages split across the processes
                   mapping them, so its sum is the closest to meaningful.
     --uss         Linux, and Windows via --windows-from-wsl, where it is
@@ -114,8 +114,8 @@ Reading the numbers:
   --total appends a horizontal rule and a TOTAL row summing each memory
   column. A total of 10000.0MiB or more is shown in GiB instead, since
   five digit MiB values are hard to read. Use it to weigh processes
-  against each other, not as a number to reconcile with `vm_stat`,
-  `free`, or Activity Monitor. Combining it with --pss (Linux) or
+  against each other, not as a number to reconcile with 'vm_stat',
+  'free', or Activity Monitor. Combining it with --pss (Linux) or
   --footprint (macOS) gives the least misleading total.
 
 Examples:
@@ -219,11 +219,13 @@ while [[ $# -gt 0 ]] ; do
       shift
       ;;
     --head)
+      # shellcheck disable=SC2209  # 'head' here is a mode name, not the command
       limit_mode=head
       read_limit_count --head "$2"
       shift "$limit_shift"
       ;;
     --tail)
+      # shellcheck disable=SC2209  # 'tail' here is a mode name, not the command
       limit_mode=tail
       read_limit_count --tail "$2"
       shift "$limit_shift"
@@ -265,7 +267,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 # RSS is the default memory column. --pname alone does not count as one, so
-# `ps-mem --pname` still shows RSS.
+# 'ps-mem --pname' still shows RSS.
 has_memory_column=false
 needs_footprint=false
 needs_uss=false
@@ -330,8 +332,8 @@ if [[ $reverse == true ]] ; then
   sort_options+=(-r)
 fi
 
-# Cuts the sorted stream down to --head / --tail. `head` is spelled as awk
-# because `head` closes the pipe early, which makes `sort` upstream report a
+# Cuts the sorted stream down to --head / --tail. 'head' is spelled as awk
+# because 'head' closes the pipe early, which makes 'sort' upstream report a
 # broken pipe.
 function apply_limit() {
   case "$limit_mode" in
@@ -517,7 +519,7 @@ if [[ $windows_from_wsl == true ]] ; then
   # logon sessions are joined to the processes instead: two more queries, but
   # they finish in a fraction of a second. Processes owned by no logon session
   # of their own (services, and the kernel side of Windows) are left as '-',
-  # the way `ps` shows a user it cannot name.
+  # the way 'ps' shows a user it cannot name.
   windows_prelude_ps1=$(cat << 'EOF'
 $ErrorActionPreference = 'SilentlyContinue'
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
@@ -542,7 +544,7 @@ EOF
   # Windows accounts for idle CPU, and its counters would only distort --total.
   #
   # Newlines and tabs are folded into spaces for the same reason the Linux
-  # backend takes its command lines from `ps`: an argument containing one would
+  # backend takes its command lines from 'ps': an argument containing one would
   # otherwise split a single process across several rows.
   windows_emit_ps1=$(cat << 'EOF'
 foreach ($process in Get-CimInstance Win32_Process) {
@@ -556,7 +558,8 @@ foreach ($process in Get-CimInstance Win32_Process) {
   $private = 0
   if ($uss.ContainsKey($id)) { $private = [long]($uss[$id] / 1024) }
   $resident = [long]($process.WorkingSetSize / 1024)
-  [Console]::Out.WriteLine("$id`t$user`t0`t$private`t0`t$resident`t0`t$command")
+  $tab = [char]9
+  [Console]::Out.WriteLine(($id, $user, 0, $private, 0, $resident, 0, $command) -join $tab)
 }
 EOF
 )
@@ -575,7 +578,7 @@ EOF
     exit 1
   fi
 
-  # `-k 6,6` (RSS) is a secondary key so that RSS breaks ties within the sorted
+  # '-k 6,6' (RSS) is a secondary key so that RSS breaks ties within the sorted
   # column, as it does on Linux
   printf '%s\n' "$windows_rows" \
     | sort "${sort_options[@]}" -k "$sort_field,$sort_field" -k 6,6 \
@@ -584,14 +587,14 @@ EOF
   exit $?
 fi
 
-# Emits `top`'s per-process phys_footprint, which is the value Activity Monitor
+# Emits the per-process phys_footprint from 'top', which is the value Activity Monitor
 # shows in its "Memory" column. Only run when FOOTPRINT was requested, since
-# `top -l 1` costs about a second.
+# 'top -l 1' costs about a second.
 #
 # The leading '#' is a sentinel: it guarantees this stream is never empty, so
 # the NR == FNR trick below keeps working even when FOOTPRINT is not requested.
 #
-# `-n` is required because top otherwise limits its rows to the terminal
+# '-n' is required because top otherwise limits its rows to the terminal
 # height, which yields no process at all when stdout is a pipe.
 function emit_footprint_table() {
   echo '#'
@@ -601,7 +604,7 @@ function emit_footprint_table() {
 }
 
 if [[ $(uname -s) == 'Darwin' ]] ; then
-  # macOS has no /proc, so smaps_rollup is unavailable. `ps` provides RSS only.
+  # macOS has no /proc, so smaps_rollup is unavailable. 'ps' provides RSS only.
   for column in "${columns[@]}" ; do
     case "$column" in
       SWAP)
@@ -619,7 +622,7 @@ if [[ $(uname -s) == 'Darwin' ]] ; then
     esac
   done
 
-  # `ps` is pre-sorted by RSS even though the normalized stream is sorted
+  # 'ps' is pre-sorted by RSS even though the normalized stream is sorted
   # afterwards, because that sort is stable: RSS then breaks ties within the
   # sorted column.
   awk -v OFS='\t' '
@@ -665,18 +668,18 @@ if [[ ! -r /proc/self/smaps_rollup ]] ; then
   exit 1
 fi
 
-# PID, USER, and COMMAND come from `ps` rather than /proc/PID/cmdline, because
-# `ps` folds newlines and other control characters in the command line into
+# PID, USER, and COMMAND come from 'ps' rather than /proc/PID/cmdline, because
+# 'ps' folds newlines and other control characters in the command line into
 # spaces or '?'. A raw command line can contain newlines (an awk script passed
 # as an argument, for instance), which would split one process across several
-# lines of the normalized stream. `user:32` keeps long user names from being
-# truncated with '+', and `-ww` keeps long command lines intact.
+# lines of the normalized stream. 'user:32' keeps long user names from being
+# truncated with '+', and '-ww' keeps long command lines intact.
 #
 # Processes whose smaps_rollup cannot be read are skipped, like smem did: other
 # users' processes when not running as root, kernel threads (whose rollup has
-# no Rss line), and processes that exited between `ps` and here.
+# no Rss line), and processes that exited between 'ps' and here.
 #
-# `-k 6,6` (RSS) is a secondary key so that RSS breaks ties within the sorted
+# '-k 6,6' (RSS) is a secondary key so that RSS breaks ties within the sorted
 # column.
 ps -eww -o pid=,user:32=,args= | awk -v OFS='\t' '
 {
