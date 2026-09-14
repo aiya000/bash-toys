@@ -30,8 +30,10 @@ setup() {
     env -u BASH_TOYS_KILL_LISTED_APPS \
     kill-listed-processes
   expects "$status" to_be 0
-  expects "$output" to_match 'process_names=nvim claude java npm node deno'
-  expects "$output" to_match 'apps=OpenDeck'
+  expects "$output" to_match 'process_names='
+  expects "$output" not to_match 'process_names=nvim'
+  expects "$output" to_match 'apps='
+  expects "$output" not to_match 'apps=OpenDeck'
 }
 
 @test 'DEBUG_BASHTOYS_PARSE_ONLY should print custom process_names' {
@@ -48,4 +50,22 @@ setup() {
     kill-listed-processes
   expects "$status" to_be 0
   expects "$output" to_match 'apps=MyApp AnotherApp'
+}
+
+@test 'DEBUG_BASHTOYS_PARSE_ONLY empty BASH_TOYS_KILL_LISTED_APPS should not fall back to default' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 \
+    BASH_TOYS_KILL_LISTED_APPS='' \
+    kill-listed-processes
+  expects "$status" to_be 0
+  expects "$output" to_match 'apps='
+  expects "$output" not to_match 'apps=OpenDeck'
+}
+
+@test 'DEBUG_BASHTOYS_PARSE_ONLY empty BASH_TOYS_KILL_LISTED_PROCESS_NAMES should not fall back to default' {
+  run env DEBUG_BASHTOYS_PARSE_ONLY=1 \
+    BASH_TOYS_KILL_LISTED_PROCESS_NAMES='' \
+    kill-listed-processes
+  expects "$status" to_be 0
+  expects "$output" to_match 'process_names='
+  expects "$output" not to_match 'process_names=nvim'
 }

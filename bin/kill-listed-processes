@@ -14,9 +14,12 @@ Options:
 
 Environment Variables:
   BASH_TOYS_KILL_LISTED_PROCESS_NAMES    Space-separated list of process names to kill
-                                         (default: nvim claude java npm node deno)
+                                         (default: empty; unset uses empty)
   BASH_TOYS_KILL_LISTED_APPS             Space-separated list of macOS app names to quit
-                                         (default: OpenDeck)
+                                         (default: empty; unset uses empty)
+
+  Note: These use unset-only defaults. Setting a variable to an empty string
+        ("") disables that list; the default is NOT restored.
 
 Examples:
   kill-listed-processes
@@ -39,8 +42,8 @@ for arg in "$@" ; do
   esac
 done
 
-IFS=' ' read -ra process_names <<< "${BASH_TOYS_KILL_LISTED_PROCESS_NAMES:-nvim claude java npm node deno}"
-IFS=' ' read -ra apps <<< "${BASH_TOYS_KILL_LISTED_APPS:-OpenDeck}"
+IFS=' ' read -ra process_names <<< "${BASH_TOYS_KILL_LISTED_PROCESS_NAMES-}"
+IFS=' ' read -ra apps <<< "${BASH_TOYS_KILL_LISTED_APPS-}"
 
 if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
   echo "process_names=${process_names[*]}"

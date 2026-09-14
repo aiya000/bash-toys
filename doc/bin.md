@@ -798,21 +798,35 @@ kill-listed-processes
 ```
 
 **Environment Variables**:
-- `BASH_TOYS_KILL_LISTED_PROCESS_NAMES` - Space-separated list of process names to kill (default: `nvim claude java npm node deno`)
-- `BASH_TOYS_KILL_LISTED_APPS` - Space-separated list of macOS app names to quit (default: `OpenDeck`)
+- `BASH_TOYS_KILL_LISTED_PROCESS_NAMES` - Space-separated list of process names to kill (default: empty)
+- `BASH_TOYS_KILL_LISTED_APPS` - Space-separated list of macOS app names to quit (default: empty)
+
+Both default to empty, so nothing is killed unless you specify these variables.
+They use unset-only defaults: setting a variable to an empty string (`""`)
+keeps that list empty, and (had a non-empty default existed) the default would
+**not** be restored.
+
+```bash
+# Kill some processes without quitting any app
+$ BASH_TOYS_KILL_LISTED_PROCESS_NAMES="java npm node" kill-listed-processes
+No process named java found
+No process named npm found
+Killed node
+```
 
 **Examples**:
 ```bash
-# Kill default processes and apps
+# Nothing happens by default; specify what you want to kill
 $ kill-listed-processes
-Killed nvim
-No process named claude found
-Quit OpenDeck
 
 # Override process list via environment variable
 $ BASH_TOYS_KILL_LISTED_PROCESS_NAMES="nvim node" kill-listed-processes
 Killed nvim
 Killed node
+
+# Quit macOS apps via environment variable
+$ BASH_TOYS_KILL_LISTED_APPS="OpenDeck" kill-listed-processes
+Quit OpenDeck
 ```
 
 ### kill-latest-started
