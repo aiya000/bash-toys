@@ -1,0 +1,106 @@
+#!/bin/bash
+
+function show_help() {
+  cat << 'EOF'
+tmux-tool - tmux utilities
+
+Usage:
+  tmux-tool <subcommand> [<args>...]
+  tmux-tool -h | --help
+
+Subcommands:
+  attach-with-new-session [<session-name>]
+      Create a new session grouped with <session-name> (default: 0) and attach to it.
+      Run: tmux new-session -t <session-name>
+      Each client gets its own current window, while sharing the windows of the target session.
+
+Options:
+  -h, --help    Show this help message
+EOF
+}
+
+function cmd-attach-with-new-session() {
+  local args=()
+  for arg in "$@" ; do
+    case "$arg" in
+      --help|-h)
+        show_help
+        exit 0
+        ;;
+      -*)
+        echo "Error: Unknown option: $arg" >&2
+        echo >&2
+        show_help >&2
+        exit 1
+        ;;
+      *)
+        args+=("$arg")
+        ;;
+    esac
+  done
+
+  if [[ ${#args[@]} -gt 1 ]] ; then
+    echo 'Error: attach-with-new-session takes at most one session name' >&2
+    exit 1
+  fi
+
+  local session_name=${args[0]:-0}
+
+  if [[ $DEBUG_BASHTOYS_PARSE_ONLY == '1' ]] ; then
+    echo "session_name=$session_name"
+    exit 0
+  fi
+
+  tmux new-session -t "$session_name"
+}
+
+case "$1" in
+  --help|-h)
+    show_help
+    exit 0
+    ;;
+  attach-with-new-session)
+    shift
+    cmd-attach-with-new-session "$@"
+    ;;
+  -*)
+    echo "Error: Unknown option: $1" >&2
+    echo >&2
+    show_help >&2
+    exit 1
+    ;;
+  '')
+    echo 'Error: a subcommand is required' >&2
+    echo >&2
+    show_help >&2
+    exit 1
+    ;;
+  *)
+    echo "Error: unknown subcommand '$1'" >&2
+    exit 1
+    ;;
+esac
+
+# https://github.com/aiya000/bash-toys
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2026- aiya000
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.

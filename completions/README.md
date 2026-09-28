@@ -60,6 +60,7 @@ source /path/to/bash-toys/completions/rm-dust.bash
 | `ps-mem` | `--help`, `-h`, `--swap`, `--rss`, `--uss`, `--pss`, `--footprint`, `--pname`, `--process-name`, `--total`, `--process-name-max-length`, `-c` | — |
 | `rm-dust` | `--help`, `-h`, `--restore`, `--keep` | files / dustbox entries |
 | `start` | `--help`, `-h` | command names |
+| `tmux-tool` | `--help`, `-h` | subcommands (`attach-with-new-session`); `attach-with-new-session` completes tmux session names |
 
 ### source functions
 

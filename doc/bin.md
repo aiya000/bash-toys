@@ -1462,6 +1462,29 @@ docker builder prune -af
 docker volume rm ...
 ```
 
+## tmux
+
+### tmux-tool
+
+tmux utilities with subcommands.
+
+```bash
+tmux-tool <subcommand> [<args>...]
+```
+
+**Subcommands**:
+- `attach-with-new-session [<session-name>]` - Create a new session grouped with `<session-name>` (default: `0`) and attach to it. Run: `tmux new-session -t <session-name>`
+    - The new session shares the windows of the target session, but each client has its own current window
+
+**Examples**:
+```bash
+# Attach to session 0 through a new grouped session
+$ tmux-tool attach-with-new-session
+
+# Attach to session `main` through a new grouped session
+$ tmux-tool attach-with-new-session main
+```
+
 ## GitHub
 
 ### gh-issue-view-select
